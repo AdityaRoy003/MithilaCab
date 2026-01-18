@@ -16,17 +16,62 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, History, User, LogOut } from "lucide-react";
+import { useUser, useAuth } from "@/firebase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { Logo } from "./logo";
 import { Separator } from "./ui/separator";
-import { mockUser } from "@/lib/data";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const auth = useAuth();
+  const { user, loading } = useUser();
 
   const handleLogout = () => {
-    router.push("/");
+    auth.signOut().then(() => {
+      router.push("/");
+    });
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full bg-background">
+        <div className="hidden md:flex flex-col justify-between w-64 border-r p-4">
+          <div>
+            <Skeleton className="h-10 w-40 mb-8" />
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-px w-full" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="flex-1 space-y-1">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+              </div>
+            </div>
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+        <main className="flex-1 p-4 md:p-6 lg:p-8">
+            <div className="flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden -mx-6 -mt-8 mb-6">
+               <Skeleton className="h-7 w-7" />
+               <Skeleton className="h-6 w-24" />
+            </div>
+            {children}
+        </main>
+      </div>
+    )
+  }
+
+  if (!user) {
+    router.push("/");
+    return null;
+  }
 
   return (
     <SidebarProvider>
@@ -66,12 +111,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Separator />
           <div className="flex items-center gap-3 px-2">
             <Avatar>
-              <AvatarImage src={mockUser.image.imageUrl} alt={mockUser.name} data-ai-hint={mockUser.image.imageHint} />
-              <AvatarFallback>{mockUser.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ""} />
+              <AvatarFallback>{user.displayName?.charAt(0) ?? user.email?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="overflow-hidden">
-              <p className="font-semibold truncate">{mockUser.name}</p>
-              <p className="text-xs text-sidebar-foreground/70 truncate">{mockUser.email}</p>
+              <p className="font-semibold truncate">{user.displayName ?? 'User'}</p>
+              <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
             </div>
           </div>
           <SidebarMenu>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -28,6 +31,9 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
+  const auth = useAuth();
+  const { toast } = useToast();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -36,10 +42,18 @@ export function LoginForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Mock login logic
-    console.log(values);
-    router.push("/home");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      router.push("/home");
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "Invalid email or password. Please try again.",
+      });
+    }
   }
 
   return (
@@ -79,8 +93,8 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full font-bold">
-          Login
+        <Button type="submit" className="w-full font-bold" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Logging in...' : 'Login'}
         </Button>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
