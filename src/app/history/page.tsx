@@ -17,20 +17,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 function RideHistoryList({ user }: { user: User }) {
     const firestore = useFirestore();
 
-    const ridesQuery = useMemoFirebase(() => 
-        // user is guaranteed non-null here because it's passed as a prop from the parent
-        // which has already checked for its existence.
-        query(
+    // The query is memoized and will only be created when both firestore and user.uid are available.
+    // This prevents any intermediate state from triggering a query without the necessary 'where' clause.
+    const ridesQuery = useMemoFirebase(() => {
+        if (!firestore || !user?.uid) {
+            return null;
+        }
+        return query(
           collection(firestore, 'rides'), 
           where('userId', '==', user.uid),
           orderBy('startTime', 'desc')
-        ), 
+        )
+      }, 
       [firestore, user]
     );
   
     const { data: rides, isLoading: areRidesLoading } = useCollection<Ride>(ridesQuery);
 
-    if (areRidesLoading) {
+    // This loading state now correctly reflects the query being prepared OR running.
+    if (areRidesLoading || !ridesQuery) {
         return (
              <>
                 <Skeleton className="h-32 w-full" />
@@ -73,6 +78,13 @@ export default function HistoryPage() {
             )}
             {/* The RideHistoryList component is now only rendered when we have a user, and we pass that user as a prop. */}
             {!isUserLoading && user && <RideHistoryList user={user} />}
+             {/* Added a state for when user is loaded but is null (logged out) */}
+             {!isUserLoading && !user && (
+                <div className="text-center py-10">
+                    <h3 className="text-xl font-semibold">Please log in</h3>
+                    <p className="text-muted-foreground">You need to be logged in to see your ride history.</p>
+                </div>
+            )}
             </div>
         </div>
       </main>
