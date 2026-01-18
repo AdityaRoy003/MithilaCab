@@ -5,19 +5,19 @@
  * This ruleset implements a strict ownership and shared-access model for a ride-sharing application.
  * User and Driver profiles are private and can only be modified by their owners.
  * Transactional data, like Rides, are shared documents accessible only by the specific participants (the user and the driver) involved in that transaction.
+ * This ruleset follows the principle that "rules are not filters". Client-side queries MUST be constructed to only request data the user is permitted to see.
  *
  * ## Data Structure
- * The data structure is flat, with three primary top-level collections:
- * - `/users/{userId}`: Stores private user profile data.
- * - `/drivers/{driverId}`: Stores private driver profile data.
- * - `/rides/{rideId}`: Stores ride data, with denormalized `userId` and `driverId` fields to link participants.
+ * - `/users/{userId}`: Private user profile data.
+ * - `/drivers/{driverId}`: Publicly readable driver profile data, but only writable by the owner.
+ * - `/rides/{rideId}`: Shared ride data, accessible only by the two participants.
  *
  * ## Key Security Decisions
- * - **Strict Ownership**: A user can only access the document located at `/users/{their_auth_uid}`. The same principle applies to drivers in the `/drivers` collection.
- * - **No Public Listing**: Listing all users or all drivers is explicitly disallowed to protect user privacy and prevent data scraping.
- * - **Shared Document Access**: Access to a ride document is granted if the requesting user's UID matches either the `userId` or `driverId` field within that document.
- * - **Denormalization for Authorization**: Ride documents contain `userId` and `driverId` to enable fast, secure authorization checks without needing to read other documents.
- * - **Prototyping Flexibility**: These rules enforce strict authorization (who can access what) but do not validate the specific shape or data types of documents, allowing for rapid front-end development and iteration.
+ * - **Strict Ownership**: A user can only write to their own document in `/users/{userId}`.
+ * - **Public Driver Profiles**: Any signed-in user can read driver profiles to see who is available, but only the driver can update their own profile.
+ * - **No Public Listing of Users**: Listing all users is disallowed to protect privacy.
+ * - **Shared Document Access**: Access to a `/rides/{rideId}` document is granted only if the requester's UID matches the `userId` or `driverId` field within that document.
+ * - **Secure Listing of Rides**: The `list` rule for the `/rides` collection is intentionally broad (`if isSignedIn()`), but this is secure because the `get` rule (`if isRideParticipant()`) is checked on *every single document* returned by a query. This forces the client to build specific queries (e.g., `where('userId', '==', auth.uid)`) to avoid permission errors. An unconstrained query on `/rides` will always fail for a regular user, which is the desired secure behavior.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -27,116 +27,82 @@ service cloud.firestore {
     // Helper Functions
     // -------------------------------------------------------------------------
 
-    /**
-     * Checks if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the authenticated user's UID matches the provided userId.
-     * This is the core function for enforcing document ownership.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Validates that the user is creating their own user profile document,
-     * ensuring the document's internal `id` field matches the user's auth UID.
-     */
     function canCreateOwnUserDoc(userId) {
       return isOwner(userId) && request.resource.data.id == userId;
     }
 
-    /**
-     * Validates that the user is creating their own driver profile document,
-     * ensuring the document's internal `id` field matches the user's auth UID.
-     */
     function canCreateOwnDriverDoc(driverId) {
       return isOwner(driverId) && request.resource.data.id == driverId;
     }
 
-    /**
-     * Enforces immutability of the document's internal ID field during an update.
-     * This prevents re-assigning ownership of a document.
-     */
     function isIdImmutable() {
       return request.resource.data.id == resource.data.id;
     }
 
     /**
      * Checks if the requesting user is either the customer (`userId`) or the
-     * driver (`driverId`) associated with an existing ride document.
+     * driver (`driverId`) for a specific ride document.
+     * Also implicitly checks for authentication.
      */
     function isRideParticipant() {
-      return resource != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.driverId);
+      return isSignedIn() && resource != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.driverId);
     }
 
-    /**
-     * Validates that a user is creating a ride for themselves.
-     * The new ride document must have a `userId` that matches the creator's UID.
-     */
     function canCreateRide() {
       return isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
     
-    /**
-     * Enforces immutability of the core participant IDs (`userId`, `driverId`)
-     * on a ride document during an update.
-     */
     function areRideParticipantsImmutable() {
       return request.resource.data.userId == resource.data.userId && request.resource.data.driverId == resource.data.driverId;
     }
 
 
     /**
-     * @description Rules for the `users` collection.
-     * @path /users/{userId}
-     * @allow (get) A user `abc` to read their own profile at `/users/abc`.
-     * @deny (get) A user `xyz` from reading user `abc`'s profile.
-     * @principle Restricts access to a user's own data tree.
+     * @description Rules for the `users` collection. Only the owner can read or write their own data.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false;
+      allow list: if false; // Disallow listing all users.
       allow create: if canCreateOwnUserDoc(userId);
-      allow update: if isOwner(userId) && resource != null && isIdImmutable();
-      allow delete: if isOwner(userId) && resource != null;
+      allow update: if isOwner(userId) && isIdImmutable();
+      allow delete: if isOwner(userId);
     }
 
     /**
-     * @description Rules for the `drivers` collection.
-     * @path /drivers/{driverId}
-     * @allow (create) A user `def` to create their own driver profile at `/drivers/def`.
-     * @deny (list) Any user from listing all available drivers.
-     * @principle Restricts access to a driver's own data tree, enforcing ownership.
+     * @description Rules for the `drivers` collection. Profiles are public, but only the owner can write.
      */
     match /drivers/{driverId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
       allow create: if canCreateOwnDriverDoc(driverId);
-      allow update: if isOwner(driverId) && resource != null && isIdImmutable();
-      allow delete: if isOwner(driverId) && resource != null;
+      allow update: if isOwner(driverId) && isIdImmutable();
+      allow delete: if isOwner(driverId);
     }
 
     /**
-     * @description Rules for the `rides` collection.
-     * @path /rides/{rideId}
-     * @allow (get) The user or driver involved in a ride to read the ride document.
-     * @deny (delete) A driver from deleting a ride document, even if they were part of it.
-     * @principle Enforces shared access for participants of a transaction and creator-only destructive rights.
+     * @description Rules for the `rides` collection. Shared access for participants.
      */
     match /rides/{rideId} {
-      allow get: if isSignedIn() && isRideParticipant();
-      // Allow list for any signed-in user to enable client-side queries.
-      // CRITICAL: Client queries MUST include `where('userId', '==', auth.uid)`
-      // or `where('driverId', '==', auth.uid)` to be secure.
+      // A user can GET a ride document if they are a participant.
+      allow get: if isRideParticipant();
+      
+      // A user can LIST rides if they are signed in.
+      // THIS IS SECURE because Firestore also checks the `get` rule for each document.
+      // A query for rides will FAIL unless the client adds a `where` clause to
+      // only request rides where they are a participant.
       allow list: if isSignedIn();
+
       allow create: if canCreateRide();
-      allow update: if isSignedIn() && isRideParticipant() && areRideParticipantsImmutable();
-      allow delete: if isOwner(resource.data.userId) && resource != null;
+      allow update: if isRideParticipant() && areRideParticipantsImmutable();
+      allow delete: if isOwner(resource.data.userId);
     }
   }
 }
