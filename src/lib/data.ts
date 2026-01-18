@@ -8,6 +8,7 @@ export interface Driver {
   vehicle: string;
   licensePlate: string;
   image: ImagePlaceholder;
+  isAvailable: boolean;
 }
 
 export interface Ride {
@@ -23,22 +24,23 @@ export interface Ride {
   rating?: number;
 }
 
-const drivers: Omit<Driver, 'image'>[] = [
-  { id: 'd1', name: 'Ramesh Kumar', rating: 4.8, vehicle: 'Suzuki Swift', licensePlate: 'BR 01 AB 1234' },
-  { id: 'd2', name: 'Sita Devi', rating: 4.9, vehicle: 'Hyundai i20', licensePlate: 'BR 01 CD 5678' },
-  { id: 'd3', name: 'Amit Singh', rating: 4.7, vehicle: 'Honda Amaze', licensePlate: 'BR 01 EF 9012' },
-];
-
 const getDriverImage = (id: string): ImagePlaceholder => {
     const placeholder = PlaceHolderImages.find(img => img.id === id);
-    if (!placeholder) throw new Error(`Placeholder image with id ${id} not found.`);
+    if (!placeholder) {
+        // Return a default/fallback image placeholder to prevent crashes
+        const defaultImage = PlaceHolderImages.find(img => img.id === 'user-profile');
+        if (defaultImage) return defaultImage;
+        // If even the default is missing, return a hardcoded fallback
+        return { id: 'fallback', description: 'Fallback image', imageUrl: 'https://placehold.co/100x100', imageHint: 'person' };
+    };
     return placeholder;
 }
 
-export const mockDrivers: Driver[] = drivers.map((driver, index) => ({
-    ...driver,
-    image: getDriverImage(`driver-${index + 1}`),
-}));
+export const mockDrivers: Driver[] = [
+  { id: 'd1', name: 'Ramesh Kumar', rating: 4.8, vehicle: 'Suzuki Swift', licensePlate: 'BR 01 AB 1234', image: getDriverImage('driver-1'), isAvailable: true },
+  { id: 'd2', name: 'Sita Devi', rating: 4.9, vehicle: 'Hyundai i20', licensePlate: 'BR 01 CD 5678', image: getDriverImage('driver-2'), isAvailable: true },
+  { id: 'd3', name: 'Amit Singh', rating: 4.7, vehicle: 'Honda Amaze', licensePlate: 'BR 01 EF 9012', image: getDriverImage('driver-3'), isAvailable: false },
+];
 
 export const mockRideHistory: Ride[] = [
   {

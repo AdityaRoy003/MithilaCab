@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
+import { collection, query, where, limit, getDocs } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 import type { Driver, Ride } from '@/lib/data';
-import { mockDrivers } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface FindingDriverProps {
@@ -11,18 +12,34 @@ interface FindingDriverProps {
 }
 
 export function FindingDriver({ onDriverFound, rideDetails }: FindingDriverProps) {
-  
-  const selectedDriver = useMemo(() => {
-    return mockDrivers[Math.floor(Math.random() * mockDrivers.length)];
-  }, []);
+  const firestore = useFirestore();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onDriverFound(selectedDriver);
-    }, 3000); 
+    const findDriver = async () => {
+      try {
+        const driversRef = collection(firestore, 'drivers');
+        const q = query(driversRef, where('isAvailable', '==', true), limit(10));
+        const querySnapshot = await getDocs(q);
 
-    return () => clearTimeout(timer);
-  }, [onDriverFound, selectedDriver, rideDetails]);
+        const availableDrivers = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Driver));
+
+        if (availableDrivers.length > 0) {
+          const selectedDriver = availableDrivers[Math.floor(Math.random() * availableDrivers.length)];
+          // Simulate time to "find" the driver
+          setTimeout(() => onDriverFound(selectedDriver), 3000);
+        } else {
+          // In a real app, you would show a "No drivers available" message.
+          console.warn("No available drivers found in Firestore. Please add driver data to the 'drivers' collection with `isAvailable: true`.");
+        }
+      } catch (error) {
+        console.error("Error finding a driver:", error);
+      }
+    };
+
+    findDriver();
+    // This effect should run once to find a driver when the component mounts.
+  }, [firestore, onDriverFound]);
+
 
   return (
     <div className="w-full max-w-md mx-auto">

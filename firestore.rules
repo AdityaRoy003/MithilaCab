@@ -114,8 +114,8 @@ service cloud.firestore {
      * @principle Restricts access to a driver's own data tree, enforcing ownership.
      */
     match /drivers/{driverId} {
-      allow get: if isOwner(driverId);
-      allow list: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create: if canCreateOwnDriverDoc(driverId);
       allow update: if isOwner(driverId) && resource != null && isIdImmutable();
       allow delete: if isOwner(driverId) && resource != null;

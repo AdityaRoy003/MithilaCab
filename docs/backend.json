@@ -49,47 +49,56 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Driver entity."
+          "description": "Unique identifier for the Driver entity, matches Auth UID."
         },
-        "firstName": {
+        "name": {
           "type": "string",
-          "description": "The first name of the driver."
+          "description": "The full name of the driver."
         },
-        "lastName": {
+        "vehicle": {
           "type": "string",
-          "description": "The last name of the driver."
+          "description": "The model of the driver's vehicle (e.g., 'Suzuki Swift')."
         },
-        "email": {
+        "licensePlate": {
           "type": "string",
-          "description": "The email address of the driver.",
-          "format": "email"
+          "description": "The vehicle's license plate number."
         },
-        "phoneNumber": {
-          "type": "string",
-          "description": "The phone number of the driver."
-        },
-        "vehicleRegistration": {
-          "type": "string",
-          "description": "The vehicle registration number of the driver."
-        },
-        "dateJoined": {
-          "type": "string",
-          "description": "The date and time when the driver joined the application.",
-          "format": "date-time"
+        "rating": {
+          "type": "number",
+          "description": "The driver's average rating."
         },
         "isAvailable": {
           "type": "boolean",
           "description": "Indicates if the driver is available for new rides."
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "imageUrl": {
+              "type": "string"
+            },
+            "imageHint": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "imageUrl"
+          ]
         }
       },
       "required": [
         "id",
-        "firstName",
-        "lastName",
-        "email",
-        "phoneNumber",
-        "vehicleRegistration",
-        "dateJoined",
+        "name",
+        "vehicle",
+        "licensePlate",
+        "rating",
         "isAvailable"
       ]
     },
@@ -157,8 +166,7 @@
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "password"
     ]
   },
   "firestore": {
