@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -27,13 +28,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const { user, loading } = useUser();
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/");
+    }
+  }, [loading, user, router]);
+
   const handleLogout = () => {
     auth.signOut().then(() => {
       router.push("/");
     });
   };
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="flex h-screen w-full bg-background">
         <div className="hidden md:flex flex-col justify-between w-64 border-r p-4">
@@ -66,11 +73,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     )
-  }
-
-  if (!user) {
-    router.push("/");
-    return null;
   }
 
   return (
