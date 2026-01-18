@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if isOwner(userId);
+    }
+    
+    match /rides/{rideId} {
+        allow read, write: if request.auth != null && (isOwner(request.resource.data.userId) || isOwner(resource.data.userId));
+        // Drivers can update ride status
+        allow update: if request.auth != null && resource.data.driverId == request.auth.uid;
+    }
+  }
+}
