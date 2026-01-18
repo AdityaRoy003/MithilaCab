@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -69,8 +69,8 @@ export function SignupForm() {
         name: values.name,
         email: values.email,
         phone: values.phone,
-        photoURL: user.photoURL,
         dateJoined: serverTimestamp(),
+        photoURL: user.photoURL,
       };
 
       const userDocRef = doc(firestore, "users", user.uid);
@@ -88,11 +88,19 @@ export function SignupForm() {
 
     } catch (error: any) {
       console.error("Signup Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Signup Failed",
-        description: error.message || "An unexpected error occurred. Please try again.",
-      });
+      if (error.code === 'auth/email-already-in-use') {
+        toast({
+          variant: "destructive",
+          title: "Signup Failed",
+          description: "This email address is already in use. Please try logging in.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Signup Failed",
+          description: error.message || "An unexpected error occurred. Please try again.",
+        });
+      }
     }
   }
 
