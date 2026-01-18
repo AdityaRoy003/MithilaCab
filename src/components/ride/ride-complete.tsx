@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from 'react';
+import { doc } from 'firebase/firestore';
+import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
 import type { Ride } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, IndianRupee } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from '../ui/skeleton';
 
 interface RideCompleteProps {
   rideDetails: Ride;
@@ -17,17 +20,43 @@ interface RideCompleteProps {
 export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const { toast } = useToast()
+  const { toast } = useToast();
+  const firestore = useFirestore();
 
   const handleSubmit = () => {
-    // Mock submission
-    console.log(`Rated ${rating} stars`);
+    if (rideDetails.id) {
+        const rideRef = doc(firestore, 'rides', rideDetails.id);
+        updateDocumentNonBlocking(rideRef, { status: 'completed', rating: rating });
+    }
+    
     toast({
         title: "Feedback Submitted",
         description: "Thank you for rating your ride!",
     })
     onNewRide();
   };
+
+  if (!rideDetails.driver) {
+      return (
+           <div className="w-full max-w-md mx-auto">
+                <Card className="shadow-lg text-center">
+                    <CardHeader>
+                        <Skeleton className="h-10 w-3/4 mx-auto" />
+                        <Skeleton className="h-5 w-1/2 mx-auto" />
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <Skeleton className="h-24 w-24 rounded-full mx-auto" />
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                    </CardContent>
+                    <CardFooter className="flex flex-col gap-4">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-10 w-1/2" />
+                    </CardFooter>
+                </Card>
+           </div>
+      )
+  }
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -48,7 +77,7 @@ export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
             <p className="text-muted-foreground">Total Fare</p>
             <p className="font-headline font-bold text-5xl text-primary flex items-center justify-center">
               <IndianRupee size={40} />
-              {rideDetails.fare?.toFixed(2)}
+              {rideDetails.fareAmount?.toFixed(2)}
             </p>
           </div>
           <div>

@@ -12,11 +12,15 @@ export interface Driver {
 
 export interface Ride {
   id: string;
-  date: string;
-  pickup: string;
-  destination: string;
-  fare: number;
+  startTime: any;
+  pickupLocation: string;
+  destinationLocation: string;
+  fareAmount: number;
   driver: Driver;
+  userId?: string;
+  driverId?: string;
+  status?: string;
+  rating?: number;
 }
 
 const drivers: Omit<Driver, 'image'>[] = [
@@ -39,34 +43,34 @@ export const mockDrivers: Driver[] = drivers.map((driver, index) => ({
 export const mockRideHistory: Ride[] = [
   {
     id: 'r1',
-    date: '2024-07-20T10:30:00Z',
-    pickup: 'Darbhanga Tower',
-    destination: 'Mithila University',
-    fare: 120.50,
+    startTime: '2024-07-20T10:30:00Z',
+    pickupLocation: 'Darbhanga Tower',
+    destinationLocation: 'Mithila University',
+    fareAmount: 120.50,
     driver: mockDrivers[0],
   },
   {
     id: 'r2',
-    date: '2024-07-19T18:45:00Z',
-    pickup: 'Laheriasarai Station',
-    destination: 'DMCH Hospital',
-    fare: 85.00,
+    startTime: '2024-07-19T18:45:00Z',
+    pickupLocation: 'Laheriasarai Station',
+    destinationLocation: 'DMCH Hospital',
+    fareAmount: 85.00,
     driver: mockDrivers[1],
   },
   {
     id: 'r3',
-    date: '2024-07-18T09:15:00Z',
-    pickup: 'Allalpatti',
-    destination: 'V2 Mall',
-    fare: 150.75,
+    startTime: '2024-07-18T09:15:00Z',
+    pickupLocation: 'Allalpatti',
+    destinationLocation: 'V2 Mall',
+    fareAmount: 150.75,
     driver: mockDrivers[2],
   },
    {
     id: 'r4',
-    date: '2024-07-17T14:00:00Z',
-    pickup: 'Panda Sarai',
-    destination: 'Donar Chowk',
-    fare: 95.25,
+    startTime: '2024-07-17T14:00:00Z',
+    pickupLocation: 'Panda Sarai',
+    destinationLocation: 'Donar Chowk',
+    fareAmount: 95.25,
     driver: mockDrivers[0],
   },
 ];

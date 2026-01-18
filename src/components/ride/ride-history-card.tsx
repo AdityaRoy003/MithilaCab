@@ -3,12 +3,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
 import { IndianRupee, Star } from "lucide-react";
+import { Timestamp } from "firebase/firestore";
 
 interface RideHistoryCardProps {
   ride: Ride;
 }
 
 export function RideHistoryCard({ ride }: RideHistoryCardProps) {
+  const getFormattedDate = (date: any) => {
+    if (!date) return 'N/A';
+    if (date instanceof Timestamp) {
+      return format(date.toDate(), "PPP p");
+    }
+    return format(new Date(date), "PPP p");
+  }
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4 flex flex-col sm:flex-row gap-4">
@@ -18,11 +27,10 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
                 <AvatarFallback>{ride.driver.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-                <p className="font-semibold">{format(new Date(ride.date), "PPP")}</p>
-                <p className="text-sm text-muted-foreground">{format(new Date(ride.date), "p")}</p>
+                <p className="font-semibold">{getFormattedDate(ride.startTime)}</p>
                 <div className="mt-2 text-sm space-y-1">
-                    <p><span className="font-medium text-primary">From:</span> {ride.pickup}</p>
-                    <p><span className="font-medium text-accent">To:</span> {ride.destination}</p>
+                    <p><span className="font-medium text-primary">From:</span> {ride.pickupLocation}</p>
+                    <p><span className="font-medium text-accent">To:</span> {ride.destinationLocation}</p>
                 </div>
             </div>
         </div>
@@ -31,7 +39,7 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
              <div className="text-right">
                 <p className="font-bold text-xl flex items-center">
                     <IndianRupee size={20} />
-                    {ride.fare.toFixed(2)}
+                    {ride.fareAmount.toFixed(2)}
                 </p>
                 <p className="text-xs text-muted-foreground">Total Fare</p>
              </div>
@@ -41,6 +49,13 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
                     <Star className="w-3 h-3 text-yellow-500 fill-yellow-500"/>
                     <span>{ride.driver.rating}</span>
                 </div>
+                {ride.rating && (
+                   <div className="flex items-center justify-end gap-1 text-xs mt-1">
+                        <span className="text-muted-foreground">You rated:</span>
+                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500"/>
+                        <span>{ride.rating}</span>
+                   </div>
+                )}
              </div>
         </div>
       </CardContent>

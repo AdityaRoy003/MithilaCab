@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Car, Star, Phone } from 'lucide-react';
+import { Skeleton } from '../ui/skeleton';
 
 interface RideTrackingProps {
   rideDetails: Ride;
@@ -48,6 +49,27 @@ export function RideTracking({ rideDetails, onComplete }: RideTrackingProps) {
   }, [stageIndex]);
 
   const { driver } = rideDetails;
+
+  if (!driver) {
+      return (
+          <div className="w-full h-full flex flex-col">
+              <div className="relative flex-1 rounded-lg overflow-hidden shadow-inner">
+                 <Skeleton className="h-full w-full" />
+              </div>
+              <Card className="shadow-lg rounded-t-none -mt-2">
+                  <CardHeader>
+                      <Skeleton className="h-8 w-3/4 mx-auto" />
+                      <Skeleton className="h-4 w-full mt-2" />
+                  </CardHeader>
+                  <CardContent>
+                      <div className="p-4 rounded-lg border bg-card">
+                          <Skeleton className="h-24 w-full" />
+                      </div>
+                  </CardContent>
+              </Card>
+          </div>
+      )
+  }
 
   return (
     <div className="w-full h-full flex flex-col">

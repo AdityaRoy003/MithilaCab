@@ -58,8 +58,8 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
             <div className="flex items-center space-x-4">
               <MapPinDashed />
               <div className="flex-1 space-y-2">
-                <p className="font-semibold text-sm truncate">{rideDetails.pickup}</p>
-                <p className="font-semibold text-sm truncate">{rideDetails.destination}</p>
+                <p className="font-semibold text-sm truncate">{rideDetails.pickupLocation}</p>
+                <p className="font-semibold text-sm truncate">{rideDetails.destinationLocation}</p>
               </div>
             </div>
           </div>

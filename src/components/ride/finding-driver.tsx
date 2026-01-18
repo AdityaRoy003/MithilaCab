@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useMemo } from 'react';
-import type { Driver } from '@/lib/data';
+import type { Driver, Ride } from '@/lib/data';
 import { mockDrivers } from '@/lib/data';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface FindingDriverProps {
   onDriverFound: (driver: Driver) => void;
-  // onCancel: () => void; // A cancel button can be added if needed
+  rideDetails: Ride; // Now receives rideDetails
 }
 
-export function FindingDriver({ onDriverFound }: FindingDriverProps) {
+export function FindingDriver({ onDriverFound, rideDetails }: FindingDriverProps) {
   
   const selectedDriver = useMemo(() => {
     return mockDrivers[Math.floor(Math.random() * mockDrivers.length)];
@@ -23,7 +22,7 @@ export function FindingDriver({ onDriverFound }: FindingDriverProps) {
     }, 3000); 
 
     return () => clearTimeout(timer);
-  }, [onDriverFound, selectedDriver]);
+  }, [onDriverFound, selectedDriver, rideDetails]);
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -40,7 +39,6 @@ export function FindingDriver({ onDriverFound }: FindingDriverProps) {
             </div>
           </div>
           <p className="text-muted-foreground">Contacting nearby drivers...</p>
-          {/* <Button variant="outline" onClick={onCancel} className="mt-6">Cancel Search</Button> */}
         </CardContent>
       </Card>
     </div>
