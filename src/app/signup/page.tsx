@@ -1,0 +1,38 @@
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { SignupForm } from '@/components/auth/signup-form';
+import { Logo } from '@/components/logo';
+
+export default function SignupPage() {
+  const bgImage = PlaceHolderImages.find(img => img.id === 'login-bg');
+
+  return (
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-[350px] gap-8">
+          <div className="grid gap-4 text-center">
+            <Logo className="justify-center" />
+            <h1 className="font-headline text-3xl font-bold">Create an Account</h1>
+            <p className="text-muted-foreground">
+              Enter your details below to get started
+            </p>
+          </div>
+          <SignupForm />
+        </div>
+      </div>
+      <div className="hidden bg-muted lg:block">
+        {bgImage && (
+          <Image
+            src={bgImage.imageUrl}
+            alt={bgImage.description}
+            width={1800}
+            height={1200}
+            priority
+            data-ai-hint={bgImage.imageHint}
+            className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
