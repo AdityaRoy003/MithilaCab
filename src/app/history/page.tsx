@@ -9,20 +9,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HistoryPage() {
   const firestore = useFirestore();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
 
   const ridesQuery = useMemoFirebase(() => 
-    user 
+    user && !isUserLoading
       ? query(
           collection(firestore, 'rides'), 
           where('userId', '==', user.uid),
           orderBy('startTime', 'desc')
         ) 
       : null, 
-    [firestore, user]
+    [firestore, user, isUserLoading]
   );
   
-  const { data: rides, isLoading } = useCollection<Ride>(ridesQuery);
+  const { data: rides, isLoading: areRidesLoading } = useCollection<Ride>(ridesQuery);
+
+  const isLoading = isUserLoading || areRidesLoading;
 
   return (
     <AppLayout>
@@ -37,7 +39,7 @@ export default function HistoryPage() {
                 <Skeleton className="h-32 w-full" />
               </>
             )}
-            {rides && rides.map((ride) => (
+            {!isLoading && rides && rides.map((ride) => (
                 <RideHistoryItem key={ride.id} ride={ride} />
             ))}
             {!isLoading && rides && rides.length === 0 && (
