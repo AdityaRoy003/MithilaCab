@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 
 import { Button } from "@/components/ui/button";
@@ -65,11 +65,12 @@ export function SignupForm() {
       });
 
       const userProfile = {
-        uid: user.uid,
+        id: user.uid,
         name: values.name,
         email: values.email,
         phone: values.phone,
-        photoURL: user.photoURL
+        photoURL: user.photoURL,
+        dateJoined: serverTimestamp(),
       };
 
       const userDocRef = doc(firestore, "users", user.uid);

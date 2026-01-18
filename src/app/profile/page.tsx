@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { useUser, useAuth, useFirestore, useDocRef, useMemoFirebase } from "@/firebase";
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -19,11 +19,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 // Define UserProfile type based on backend.json
 interface UserProfile {
-    uid: string;
+    id: string;
     name: string;
     email: string;
     phone: string;
     photoURL?: string;
+    dateJoined?: any;
 }
 
 export default function ProfilePage() {
@@ -37,7 +38,7 @@ export default function ProfilePage() {
     return doc(firestore, 'users', user.uid);
   }, [firestore, user]);
 
-  const { data: userProfile, loading: profileLoading } = useDocRef<UserProfile>(userDocRef);
+  const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
