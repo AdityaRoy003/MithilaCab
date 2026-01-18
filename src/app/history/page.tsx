@@ -1,5 +1,6 @@
 'use client';
 
+import type { User } from 'firebase/auth';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
 import { collection, query, where, orderBy } from "firebase/firestore";
 import AppLayout from "@/components/app-layout";
@@ -11,17 +12,17 @@ import { Skeleton } from "@/components/ui/skeleton";
  * A dedicated component to render the list of rides.
  * This component is only rendered after the user is confirmed to be loaded and authenticated,
  * ensuring that the Firestore query is always correctly constrained.
+ * It receives the user object as a prop to avoid race conditions.
  */
-function RideHistoryList() {
+function RideHistoryList({ user }: { user: User }) {
     const firestore = useFirestore();
-    // user is guaranteed to be non-null here because the parent component waits for it.
-    const { user } = useUser(); 
 
     const ridesQuery = useMemoFirebase(() => 
+        // user is guaranteed non-null here because it's passed as a prop from the parent
+        // which has already checked for its existence.
         query(
           collection(firestore, 'rides'), 
-          // This query is now guaranteed to have a valid user.uid
-          where('userId', '==', user!.uid),
+          where('userId', '==', user.uid),
           orderBy('startTime', 'desc')
         ), 
       [firestore, user]
@@ -70,8 +71,8 @@ export default function HistoryPage() {
                 <Skeleton className="h-32 w-full" />
               </>
             )}
-            {/* The RideHistoryList component is now only rendered when we have a user, preventing any unauthenticated queries. */}
-            {!isUserLoading && user && <RideHistoryList />}
+            {/* The RideHistoryList component is now only rendered when we have a user, and we pass that user as a prop. */}
+            {!isUserLoading && user && <RideHistoryList user={user} />}
             </div>
         </div>
       </main>
