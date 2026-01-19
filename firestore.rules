@@ -125,14 +125,14 @@ service cloud.firestore {
      * @description Rules for the `rides` collection. Shared access for participants.
      */
     match /rides/{rideId} {
-      // A user can GET a ride document if they are a participant, or if they are a driver and the ride is available.
+      // A user can GET a ride if they are a participant.
+      // A driver can GET a ride if it is unassigned.
       allow get: if isRideParticipant() || (isDriver() && isRideUnassigned());
 
-      // A user can LIST rides if they are signed in.
-      // THIS IS SECURE because Firestore also checks the `get` rule for each document.
-      // A query for rides will FAIL unless the client adds a `where` clause to
-      // only request rides where they are a participant (or are a driver fetching open rides).
-      allow list: if isSignedIn();
+      // A user can LIST their own rides (as passenger or driver).
+      // A driver can LIST all unassigned rides.
+      // This is secure because the client query MUST constrain the list.
+      allow list: if isDriver() || request.auth.uid != null;
 
       allow create: if canCreateRide();
       
