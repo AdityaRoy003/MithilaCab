@@ -12,8 +12,8 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarInset,
   SidebarTrigger,
+  SidebarInset,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, History, User, LogOut, Shield } from "lucide-react";
@@ -90,7 +90,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider side="right">
       <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden">
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden">
             <Link href="/home">
                 <Logo/>
             </Link>
@@ -106,48 +106,52 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {!isAdminLoading && !isAdmin && (
-              <>
+            {!isAdminLoading &&
+              (isAdmin ? (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <Link href="/home">
-                      <Home />
-                      <span>Book a Ride</span>
+                    <Link href="/admin">
+                      <Shield />
+                      <span>Admin Dashboard</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/history">
-                      <History />
-                      <span>Ride History</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </>
-            )}
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/profile">
-                  <User />
-                  <span>Profile</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            {!isAdminLoading && isAdmin && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/admin">
-                    <Shield />
-                    <span>Admin</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
+              ) : (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Link href="/home">
+                        <Home />
+                        <span>Book a Ride</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Link href="/history">
+                        <History />
+                        <span>Ride History</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="gap-4">
+        <SidebarFooter className="gap-2">
+           {!isDriverLoading && driver && !isAdmin && (
+            <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
+                <Label htmlFor="driver-mode" className="font-semibold cursor-pointer">Driver Mode</Label>
+                <Switch
+                    id="driver-mode"
+                    checked={isDriverMode}
+                    onCheckedChange={handleRoleChange}
+                />
+            </div>
+          )}
+
           <Separator />
+          
           <div className="flex items-center gap-3 px-2">
             <Avatar>
               <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ""} />
@@ -166,18 +170,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           
-          {!isDriverLoading && driver && !isAdmin && (
-            <div className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-sidebar-accent">
-                <Label htmlFor="driver-mode" className="font-semibold cursor-pointer">Driver Mode</Label>
-                <Switch
-                    id="driver-mode"
-                    checked={isDriverMode}
-                    onCheckedChange={handleRoleChange}
-                />
-            </div>
-          )}
-
           <SidebarMenu>
+             <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/profile">
+                  <User />
+                  <span>Profile</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
              <SidebarMenuItem>
               <SidebarMenuButton onClick={handleLogout}>
                 <LogOut />
