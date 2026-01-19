@@ -68,7 +68,9 @@ service cloud.firestore {
      * Also implicitly checks for authentication.
      */
     function isRideParticipant() {
-      return isSignedIn() && resource != null && (request.auth.uid == resource.data.userId || request.auth.uid == resource.data.driverId);
+      return isSignedIn() && resource != null && 
+             ( ('userId' in resource.data && request.auth.uid == resource.data.userId) || 
+               ('driverId' in resource.data && resource.data.driverId != null && request.auth.uid == resource.data.driverId) );
     }
 
     function canCreateRide() {
@@ -93,8 +95,8 @@ service cloud.firestore {
     
     function isRideUnassigned() {
       // A ride is "unassigned" (and thus available for a driver to see)
-      // if it's driverId is null.
-      return resource.data.driverId == null;
+      // if it's driverId is null or the field does not exist.
+      return !('driverId' in resource.data) || resource.data.driverId == null;
     }
 
     /**
