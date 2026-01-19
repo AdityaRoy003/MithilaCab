@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin } from "@/firebase";
@@ -32,22 +34,32 @@ function HomePageLoadingSkeleton() {
 
 export default function HomePage() {
   const { isAdmin, isAdminLoading } = useAdmin();
+  const router = useRouter();
 
-  // The main content is determined here.
-  const mainContent = () => {
-    // Show a loading skeleton while we determine the user's role.
-    if (isAdminLoading) {
-      return <HomePageLoadingSkeleton />;
+  useEffect(() => {
+    // After the admin check is complete, if the user is an admin, redirect them.
+    if (!isAdminLoading && isAdmin) {
+      router.replace('/admin');
     }
-    // All users, including admins, will now see the booking flow.
-    // The previous logic to show a special welcome card for admins has been removed.
-    return <BookingFlow />;
-  };
+  }, [isAdmin, isAdminLoading, router]);
 
+  // While we check if the user is an admin, or if they are an admin and are about to be redirected,
+  // show a loading skeleton. This prevents a flash of the passenger UI.
+  if (isAdminLoading || isAdmin) {
+    return (
+      <AppLayout>
+        <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
+          <HomePageLoadingSkeleton />
+        </main>
+      </AppLayout>
+    );
+  }
+
+  // If loading is complete and the user is NOT an admin, show the normal booking flow.
   return (
     <AppLayout>
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
-        {mainContent()}
+        <BookingFlow />
       </main>
     </AppLayout>
   );
