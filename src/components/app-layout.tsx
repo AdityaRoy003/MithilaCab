@@ -78,6 +78,14 @@ function UserMenu() {
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
+                {isAdmin && (
+                    <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                            <Shield className="mr-2 h-4 w-4" />
+                            <span>Admin Dashboard</span>
+                        </Link>
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
@@ -143,36 +151,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarContent className="p-2">
           <SidebarMenu>
-            {!isAdminLoading &&
-              (isAdmin ? (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/admin">
-                      <Shield />
-                      <span>Admin Dashboard</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ) : (
-                <>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link href="/home">
-                        <Home />
-                        <span>Book a Ride</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link href="/history">
-                        <History />
-                        <span>Ride History</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </>
-              ))}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/home">
+                  <Home />
+                  <span>Book a Ride</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/history">
+                  <History />
+                  <span>Ride History</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="gap-2">
