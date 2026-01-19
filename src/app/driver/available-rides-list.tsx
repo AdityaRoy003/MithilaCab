@@ -32,7 +32,7 @@ export function AvailableRidesList() {
 
   const ridesQuery = useMemoFirebase(
     () =>
-      query(collection(firestore, 'rides'), where('driverId', '==', null), where('status', '==', 'requested')),
+      query(collection(firestore, 'rides'), where('driverId', '==', null)),
     [firestore]
   );
 
@@ -70,7 +70,7 @@ export function AvailableRidesList() {
         )}
         {!isLoading &&
           rides &&
-          rides.map((ride) => (
+          rides.filter(ride => ride.status === 'requested').map((ride) => (
             <Card key={ride.id} className="p-4">
               <div className="flex justify-between items-start">
                 <div className="space-y-2">
