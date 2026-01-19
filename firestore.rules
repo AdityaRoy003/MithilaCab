@@ -78,7 +78,7 @@ service cloud.firestore {
     function areRideParticipantsImmutable() {
       // The userId cannot change. If a driverId already exists, it cannot change.
       return request.resource.data.userId == resource.data.userId &&
-             (!('driverId' in resource.data) || request.resource.data.driverId == resource.data.driverId);
+             (resource.data.driverId == null || request.resource.data.driverId == resource.data.driverId);
     }
 
     function canAcceptRide() {
@@ -86,15 +86,15 @@ service cloud.firestore {
       // and the driver must be assigning the ride to themselves.
       // Also ensures the passenger (userId) isn't being changed.
       return isDriver()
-             && !('driverId' in resource.data)
+             && resource.data.driverId == null
              && request.resource.data.driverId == request.auth.uid
              && request.resource.data.userId == resource.data.userId;
     }
     
     function isRideUnassigned() {
       // A ride is "unassigned" (and thus available for a driver to see)
-      // if it does not have a driverId field yet.
-      return !('driverId' in resource.data);
+      // if it's driverId is null.
+      return resource.data.driverId == null;
     }
 
     /**

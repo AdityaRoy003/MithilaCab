@@ -32,7 +32,7 @@ export function AvailableRidesList() {
 
   const ridesQuery = useMemoFirebase(
     () =>
-      query(collection(firestore, 'rides'), where('status', '==', 'requested')),
+      query(collection(firestore, 'rides'), where('driverId', '==', null), where('status', '==', 'requested')),
     [firestore]
   );
 

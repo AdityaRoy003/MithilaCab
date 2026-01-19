@@ -56,6 +56,7 @@ export function BookingFlow() {
       status: 'requested',
       startTime: serverTimestamp(),
       rideType: rideDetails.rideType,
+      driverId: null,
     };
     
     setRideDetails(prev => ({

@@ -21,7 +21,7 @@ export interface Ride {
   fareAmount: number;
   driver?: Driver;
   userId?: string;
-  driverId?: string;
+  driverId?: string | null;
   status?: string;
   rating?: number;
   rideType?: RideType;
