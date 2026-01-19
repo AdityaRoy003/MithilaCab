@@ -90,6 +90,10 @@ service cloud.firestore {
              && request.resource.data.driverId == request.auth.uid
              && request.resource.data.userId == resource.data.userId;
     }
+    
+    function isRideRequested() {
+      return resource.data.status == 'requested';
+    }
 
     /**
      * @description Rules for the `users` collection. Only the owner can read or write their own data. Admins can read all user data.
@@ -117,8 +121,8 @@ service cloud.firestore {
      * @description Rules for the `rides` collection. Shared access for participants.
      */
     match /rides/{rideId} {
-      // A user can GET a ride document if they are a participant.
-      allow get: if isRideParticipant();
+      // A user can GET a ride document if they are a participant, or if they are a driver and the ride is available.
+      allow get: if isRideParticipant() || (isDriver() && isRideRequested());
 
       // A user can LIST rides if they are signed in.
       // THIS IS SECURE because Firestore also checks the `get` rule for each document.
