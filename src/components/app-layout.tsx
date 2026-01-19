@@ -16,8 +16,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, History, User, LogOut } from "lucide-react";
-import { useUser, useAuth, useDriver } from "@/firebase";
+import { Home, History, User, LogOut, Shield } from "lucide-react";
+import { useUser, useAuth, useDriver, useAdmin } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -31,6 +31,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const { user, loading } = useUser();
   const { driver, isDriverLoading } = useDriver();
+  const { isAdmin, isAdminLoading } = useAdmin();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -117,6 +118,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            {!isAdminLoading && isAdmin && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin">
+                    <Shield />
+                    <span>Admin</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="gap-4">
