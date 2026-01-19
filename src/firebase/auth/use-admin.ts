@@ -9,7 +9,7 @@ interface UserProfile {
 }
 
 export function useAdmin() {
-  const { user, isUserLoading } = useUser();
+  const { user, isUserLoading: authLoading } = useUser();
   const firestore = useFirestore();
 
   const userDocRef = useMemoFirebase(() => {
@@ -25,11 +25,10 @@ export function useAdmin() {
   // Determine the role, preferring the new 'role' field but falling back for compatibility
   const role = userProfile?.role || (isAdmin ? 'admin' : undefined);
 
-  // We are loading if the user auth state is loading, OR if we have a user
-  // but we have not yet loaded their corresponding user profile document.
-  // This prevents a race condition where `isAdmin` is briefly false.
-  const isAdminLoading = isUserLoading || (!!user && !userProfile && profileLoading);
-
+  // THE DEFINITIVE FIX: The overall loading state depends on both auth and profile loading.
+  // This prevents a race condition where the app might think the user is not an admin
+  // before their profile has finished loading.
+  const isAdminLoading = authLoading || profileLoading;
 
   return { isAdmin, isAdminLoading, role };
 }
