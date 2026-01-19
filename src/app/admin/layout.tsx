@@ -1,10 +1,14 @@
+
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdmin } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Logo } from '@/components/logo';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -42,13 +46,21 @@ export default function AdminLayout({
   if (isAdmin) {
     return (
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-          <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6">
+          <nav className="flex flex-row items-center gap-5 text-sm">
             <Logo />
-            <h1 className="text-lg font-semibold text-foreground">
+            <h1 className="hidden text-lg font-semibold text-foreground md:block">
               Admin Dashboard
             </h1>
           </nav>
+          <div>
+            <Button asChild variant="outline" size="sm">
+                <Link href="/home">
+                    <ArrowLeft className="mr-1 h-4 w-4" />
+                    Back to Home
+                </Link>
+            </Button>
+          </div>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
           {children}
