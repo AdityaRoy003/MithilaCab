@@ -53,9 +53,11 @@ export interface InternalQuery extends Query<DocumentData> {
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
-  const [data, setData] = useState<WithId<T>[] | null>(null);
-  const [error, setError] = useState<FirestoreError | Error | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [state, setState] = useState<UseCollectionResult<T>>({
+    data: null,
+    isLoading: true,
+    error: null,
+  });
 
   const getPath = (target: typeof memoizedTargetRefOrQuery) => {
     if (!target) return undefined;
@@ -63,44 +65,33 @@ export function useCollection<T = any>(
   };
 
   useEffect(() => {
-    // When the query reference changes, we are in a new loading state.
-    setIsLoading(true);
-    setData(null);
-    setError(null);
+    // A change in the query ref means we need to start a new fetch.
+    // Reset the state to loading. This is the key to preventing race conditions.
+    setState({ data: null, isLoading: true, error: null });
 
-    // If the reference is null or undefined (e.g., user is logged out),
-    // we are not fetching anything, so we are done loading.
     if (!memoizedTargetRefOrQuery) {
-      setIsLoading(false);
+      setState({ data: null, isLoading: false, error: null });
       return;
     }
 
-    // Subscribe to the query.
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
-        // When data arrives, update the state and set loading to false.
         const results: WithId<T>[] = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
-        setData(results);
-        setError(null);
-        setIsLoading(false);
+        setState({ data: results, isLoading: false, error: null });
       },
       (err: FirestoreError) => {
-        // If an error occurs, update the state, set loading to false, and emit a global error.
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path: getPath(memoizedTargetRefOrQuery)!,
         });
-        setError(contextualError);
-        setData(null);
-        setIsLoading(false);
+        setState({ data: null, isLoading: false, error: contextualError });
         errorEmitter.emit('permission-error', contextualError);
       }
     );
 
-    // Unsubscribe on unmount or when the query changes.
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]);
 
-  return { data, isLoading, error };
+  return state;
 }

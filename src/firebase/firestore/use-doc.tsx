@@ -40,49 +40,42 @@ export interface UseDocResult<T> {
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
 ): UseDocResult<T> {
-  const [data, setData] = useState<WithId<T> | null>(null);
-  const [error, setError] = useState<FirestoreError | Error | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [state, setState] = useState<UseDocResult<T>>({
+    data: null,
+    isLoading: true,
+    error: null,
+  });
 
   useEffect(() => {
-    // When the document reference changes, we are in a new loading state.
-    setIsLoading(true);
-    setData(null);
-    setError(null);
+    // A change in the doc ref means we need to start a new fetch.
+    // Reset the state to loading. This is the key to preventing race conditions.
+    setState({ data: null, isLoading: true, error: null });
 
-    // If the reference is null or undefined (e.g., user is logged out),
-    // we are not fetching anything, so we are done loading.
     if (!memoizedDocRef) {
-      setIsLoading(false);
+      setState({ data: null, isLoading: false, error: null });
       return;
     }
 
-    // Subscribe to the document.
     const unsubscribe = onSnapshot(
       memoizedDocRef,
       (snapshot: DocumentSnapshot) => {
-        // When data arrives, update the state and set loading to false.
-        const docData = snapshot.exists() ? { ...(snapshot.data() as T), id: snapshot.id } : null;
-        setData(docData);
-        setError(null);
-        setIsLoading(false);
+        const docData = snapshot.exists()
+          ? { ...(snapshot.data() as T), id: snapshot.id }
+          : null;
+        setState({ data: docData, isLoading: false, error: null });
       },
       (err: FirestoreError) => {
-        // If an error occurs, update the state, set loading to false, and emit a global error.
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: memoizedDocRef.path,
         });
-        setError(contextualError);
-        setData(null);
-        setIsLoading(false);
+        setState({ data: null, isLoading: false, error: contextualError });
         errorEmitter.emit('permission-error', contextualError);
       }
     );
 
-    // Unsubscribe on unmount or when the ref changes.
     return () => unsubscribe();
-  }, [memoizedDocRef]); // Effect depends only on the memoized ref.
+  }, [memoizedDocRef]);
 
-  return { data, isLoading, error };
+  return state;
 }
