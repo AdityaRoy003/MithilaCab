@@ -72,14 +72,18 @@ function UserMenu() {
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                 <DropdownMenuItem onClick={() => router.push('/profile')}>
-                  <User className="mr-2" />
-                  <span>Profile</span>
+                 <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="mr-2" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
                 {isAdmin && (
-                    <DropdownMenuItem onClick={() => router.push('/admin')}>
-                        <Shield className="mr-2" />
-                        <span>Admin Dashboard</span>
+                    <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                            <Shield className="mr-2" />
+                            <span>Admin Dashboard</span>
+                        </Link>
                     </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
@@ -116,7 +120,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-col min-h-screen w-full">
         <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30">
           <Skeleton className="h-8 w-32" />
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 ml-auto">
             <Skeleton className="h-10 w-10 rounded-full" />
             <Skeleton className="h-7 w-7" />
           </div>
@@ -135,7 +139,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Link href="/home">
                 <Logo/>
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 ml-auto">
               <UserMenu />
               <SidebarTrigger>
                 <MoreVertical />

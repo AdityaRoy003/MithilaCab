@@ -44,8 +44,8 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 transition-all hover:text-white hover:bg-gray-700',
-        isActive && 'bg-gray-700 text-white'
+        'flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 transition-all hover:text-white hover:bg-gray-800/80',
+        isActive && 'bg-gray-800 text-white'
       )}
     >
       <Icon className="h-4 w-4" />
@@ -118,8 +118,12 @@ function UserMenu() {
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/profile')}>Profile</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/home')}>Back to App</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                   <Link href="/home">Back to App</Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
@@ -160,9 +164,9 @@ export default function AdminLayout({
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <aside className="hidden border-r bg-gray-800 text-white md:block">
+      <aside className="hidden border-r bg-gray-900 text-white md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
-            <div className="flex h-14 items-center border-b border-gray-700 px-4 lg:h-[60px] lg:px-6">
+            <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
                 <Logo />
             </div>
             <div className="flex-1 overflow-auto py-2">
@@ -171,7 +175,7 @@ export default function AdminLayout({
         </div>
       </aside>
       <div className="flex flex-col">
-        <header className="flex h-14 items-center justify-between border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
           <div className='flex items-center gap-4'>
             <Sheet>
               <SheetTrigger asChild>
@@ -184,8 +188,8 @@ export default function AdminLayout({
                   <span className="sr-only">Toggle navigation menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col bg-gray-800 text-white p-0">
-                  <div className="flex h-14 items-center border-b border-gray-700 px-4 lg:h-[60px] lg:px-6">
+              <SheetContent side="left" className="flex flex-col bg-gray-900 text-white p-0">
+                  <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
                       <Logo />
                   </div>
                   <div className="flex-1 overflow-auto py-2">
@@ -193,11 +197,11 @@ export default function AdminLayout({
                   </div>
               </SheetContent>
             </Sheet>
-             {/* Empty div for spacing, so logo in sidebar and content header dont overlap */}
-            <div className="hidden md:block w-full flex-1" />
           </div>
-
-          <UserMenu />
+          
+          <div className="ml-auto">
+            <UserMenu />
+          </div>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
           {children}
