@@ -14,35 +14,27 @@ export default function AdminLayout({
   const { isAdmin, isAdminLoading } = useAdmin();
   const router = useRouter();
 
-  // If we are still verifying the user's role, show a full-page loading skeleton.
-  if (isAdminLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Logo />
-          <Skeleton className="h-8 w-64" />
-          <p className="text-muted-foreground">Verifying admin credentials...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If, after loading, the user is confirmed to NOT be an admin,
-  // we redirect them to the home page.
-  if (!isAdmin) {
-    // We must use useEffect for navigation to avoid errors during rendering.
-    useEffect(() => {
+  // This useEffect handles the redirection logic.
+  // It is now called on every render, and the condition is inside the hook,
+  // which follows the Rules of Hooks.
+  useEffect(() => {
+    // Only redirect if loading is finished and the user is confirmed to not be an admin.
+    if (!isAdminLoading && !isAdmin) {
       router.replace('/home');
-    }, [router]);
+    }
+  }, [isAdmin, isAdminLoading, router]);
 
-    // Return a loading skeleton here as well to prevent any flash of admin
-    // content while the redirect is in progress.
+  // If we are still loading, or if the user is not an admin (and the redirect is about to happen),
+  // show a unified loading/access-denied screen. This prevents any content flashing.
+  if (isAdminLoading || !isAdmin) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Logo />
           <Skeleton className="h-8 w-64" />
-          <p className="text-muted-foreground">Access Denied. Redirecting...</p>
+          <p className="text-muted-foreground">
+            {isAdminLoading ? 'Verifying admin credentials...' : 'Access Denied. Redirecting...'}
+          </p>
         </div>
       </div>
     );
