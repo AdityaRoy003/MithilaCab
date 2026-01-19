@@ -18,14 +18,12 @@ export function useAdmin() {
 
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
-  // If a user is logged in, but we haven't fetched their profile document yet,
-  // we are still in a loading state. This is crucial for preventing race conditions.
-  const stillWaitingForProfile = !!user && !userProfile;
-  const isAdminLoading = authLoading || profileLoading || stillWaitingForProfile;
+  // The loading state is determined by whether the auth state is known AND
+  // whether the user profile document has been loaded.
+  const isAdminLoading = authLoading || profileLoading;
   
-  // Stricter check: Going forward, we will only use the 'role' field.
-  // The 'isAdmin' boolean is deprecated to avoid data conflicts.
-  const isAdmin = userProfile?.role === 'admin';
+  // A user is an admin only if their profile exists and the role is 'admin'.
+  const isAdmin = !!userProfile && userProfile.role === 'admin';
   const role = userProfile?.role;
 
   return { isAdmin, isAdminLoading, role };
