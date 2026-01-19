@@ -90,13 +90,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider side="right">
       <SidebarInset>
-        <header className="flex h-14 items-center border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden">
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden">
             <Link href="/home">
                 <Logo/>
             </Link>
-            <div className="ml-auto">
-              <SidebarTrigger />
-            </div>
+            <SidebarTrigger />
         </header>
         {children}
       </SidebarInset>
