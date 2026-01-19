@@ -97,7 +97,7 @@ service cloud.firestore {
     function isRideUnassigned() {
       // A ride is "unassigned" (and thus available for a driver to see)
       // if it's driverId is null or the field does not exist.
-      return !('driverId' in resource.data) || resource.data.driverId == null;
+      return resource != null && (!('driverId' in resource.data) || resource.data.driverId == null);
     }
 
     /**
