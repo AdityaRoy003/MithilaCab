@@ -88,7 +88,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider side="right">
+      <SidebarInset>
+        <header className="flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden">
+            <SidebarTrigger />
+            <div className="flex-1">
+                <span className="font-headline text-xl font-bold">MithilaCab</span>
+            </div>
+        </header>
+        {children}
+      </SidebarInset>
       <Sidebar>
         <SidebarHeader>
           <Logo />
@@ -176,15 +185,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden">
-            <SidebarTrigger />
-            <div className="flex-1">
-                <span className="font-headline text-xl font-bold">MithilaCab</span>
-            </div>
-        </header>
-        {children}
-      </SidebarInset>
     </SidebarProvider>
   );
 }
