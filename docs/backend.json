@@ -35,7 +35,7 @@
         "role": {
           "type": "string",
           "description": "Defines the user's role, granting different permissions.",
-          "enum": ["passenger", "driver", "admin", "superAdmin"]
+          "enum": ["passenger", "driver", "admin"]
         }
       },
       "required": [

@@ -141,9 +141,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="overflow-hidden">
               <div className="flex items-center gap-2">
                 <p className="font-semibold truncate">{user.displayName ?? 'User'}</p>
-                 {(role === 'admin' || role === 'superAdmin') && (
-                  <Badge variant="secondary" className="capitalize text-xs">
-                    {role === 'superAdmin' ? 'Super Admin' : role}
+                 {role === 'admin' && (
+                  <Badge variant="secondary" className="text-xs">
+                    Admin
                   </Badge>
                 )}
               </div>

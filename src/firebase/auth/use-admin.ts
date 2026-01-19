@@ -4,7 +4,7 @@ import { doc } from 'firebase/firestore';
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 
 interface UserProfile {
-    role?: 'passenger' | 'driver' | 'admin' | 'superAdmin';
+    role?: 'passenger' | 'driver' | 'admin';
 }
 
 export function useAdmin() {
@@ -18,11 +18,10 @@ export function useAdmin() {
 
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
-  const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superAdmin';
-  const isSuperAdmin = userProfile?.role === 'superAdmin';
+  const isAdmin = userProfile?.role === 'admin';
   const role = userProfile?.role;
 
   const isAdminLoading = isUserLoading || profileLoading;
 
-  return { isAdmin, isSuperAdmin, isAdminLoading, role };
+  return { isAdmin, isAdminLoading, role };
 }
