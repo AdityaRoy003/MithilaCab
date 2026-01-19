@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   SidebarProvider,
   Sidebar,
@@ -17,16 +17,20 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, History, User, LogOut } from "lucide-react";
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth, useDriver } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 import { Logo } from "./logo";
 import { Separator } from "./ui/separator";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const auth = useAuth();
   const { user, loading } = useUser();
+  const { driver, isDriverLoading } = useDriver();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -38,6 +42,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     auth.signOut().then(() => {
       router.push("/");
     });
+  };
+
+  const isDriverMode = pathname.startsWith('/driver');
+
+  const handleRoleChange = (isDriverMode: boolean) => {
+    router.push(isDriverMode ? '/driver' : '/home');
   };
 
   if (loading || !user) {
@@ -121,6 +131,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
             </div>
           </div>
+          
+          {!isDriverLoading && driver && (
+            <div className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-sidebar-accent">
+                <Label htmlFor="driver-mode" className="font-semibold cursor-pointer">Driver Mode</Label>
+                <Switch
+                    id="driver-mode"
+                    checked={isDriverMode}
+                    onCheckedChange={handleRoleChange}
+                />
+            </div>
+          )}
+
           <SidebarMenu>
              <SidebarMenuItem>
               <SidebarMenuButton onClick={handleLogout}>

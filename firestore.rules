@@ -35,6 +35,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isDriver() {
+      return isSignedIn() && exists(/databases/$(database)/documents/drivers/$(request.auth.uid));
+    }
+
     function canCreateOwnUserDoc(userId) {
       return isOwner(userId) && request.resource.data.id == userId;
     }
@@ -59,11 +63,22 @@ service cloud.firestore {
     function canCreateRide() {
       return isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
-    
+
     function areRideParticipantsImmutable() {
-      return request.resource.data.userId == resource.data.userId && request.resource.data.driverId == resource.data.driverId;
+      // The userId cannot change. If a driverId already exists, it cannot change.
+      return request.resource.data.userId == resource.data.userId &&
+             (!('driverId' in resource.data) || request.resource.data.driverId == resource.data.driverId);
     }
 
+    function canAcceptRide() {
+      // The user must be a driver, the ride must not have a driver yet,
+      // and the driver must be assigning the ride to themselves.
+      // Also ensures the passenger (userId) isn't being changed.
+      return isDriver()
+             && !('driverId' in resource.data)
+             && request.resource.data.driverId == request.auth.uid
+             && request.resource.data.userId == resource.data.userId;
+    }
 
     /**
      * @description Rules for the `users` collection. Only the owner can read or write their own data.
@@ -93,15 +108,20 @@ service cloud.firestore {
     match /rides/{rideId} {
       // A user can GET a ride document if they are a participant.
       allow get: if isRideParticipant();
-      
+
       // A user can LIST rides if they are signed in.
       // THIS IS SECURE because Firestore also checks the `get` rule for each document.
       // A query for rides will FAIL unless the client adds a `where` clause to
-      // only request rides where they are a participant.
+      // only request rides where they are a participant (or are a driver fetching open rides).
       allow list: if isSignedIn();
 
       allow create: if canCreateRide();
-      allow update: if isRideParticipant() && areRideParticipantsImmutable();
+      
+      // An update is allowed if:
+      // 1. A driver is accepting the ride.
+      // 2. An existing participant is updating it, and not changing participants.
+      allow update: if canAcceptRide() || (isRideParticipant() && areRideParticipantsImmutable());
+
       allow delete: if isOwner(resource.data.userId);
     }
   }

@@ -73,18 +73,23 @@
         },
         "image": {
           "type": "object",
+          "description": "Represents a placeholder image with metadata.",
           "properties": {
             "id": {
-              "type": "string"
+              "type": "string",
+              "description": "The unique identifier for the image placeholder."
             },
             "description": {
-              "type": "string"
+              "type": "string",
+              "description": "A brief description of the image."
             },
             "imageUrl": {
-              "type": "string"
+              "type": "string",
+              "description": "The URL of the image."
             },
             "imageHint": {
-              "type": "string"
+              "type": "string",
+              "description": "Keywords to help AI find a replacement image."
             }
           },
           "required": [
@@ -99,7 +104,8 @@
         "vehicle",
         "licensePlate",
         "rating",
-        "isAvailable"
+        "isAvailable",
+        "image"
       ]
     },
     "Ride": {
@@ -154,12 +160,10 @@
       "required": [
         "id",
         "userId",
-        "driverId",
         "pickupLocation",
         "destinationLocation",
         "fareAmount",
         "startTime",
-        "endTime",
         "status"
       ]
     }

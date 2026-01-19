@@ -17,7 +17,7 @@ export interface Ride {
   pickupLocation: string;
   destinationLocation: string;
   fareAmount: number;
-  driver: Driver;
+  driver?: Driver;
   userId?: string;
   driverId?: string;
   status?: string;
