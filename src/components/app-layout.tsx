@@ -155,7 +155,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           
-          {!isDriverLoading && driver && (
+          {!isDriverLoading && driver && !isAdmin && (
             <div className="flex items-center justify-between px-2 py-2 rounded-md hover:bg-sidebar-accent">
                 <Label htmlFor="driver-mode" className="font-semibold cursor-pointer">Driver Mode</Label>
                 <Switch
