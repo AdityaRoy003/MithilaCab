@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DocumentReference,
   onSnapshot,
@@ -27,7 +27,7 @@ export interface UseDocResult<T> {
 /**
  * React hook to subscribe to a single Firestore document in real-time.
  * This hook is designed to be robust against race conditions during navigation
- * and re-rendering by synchronously determining its loading state.
+ * and re-rendering by explicitly managing its loading state.
  *
  * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedDocRef or you may cause
  * infinite render loops.
@@ -40,54 +40,49 @@ export interface UseDocResult<T> {
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
 ): UseDocResult<T> {
-  type State = {
-    data: WithId<T> | null;
-    error: FirestoreError | Error | null;
-  };
-  
-  const [internalState, setInternalState] = useState<State>({ data: null, error: null });
-  const pathRef = useRef<string | undefined>();
-  
-  const path = memoizedDocRef?.path;
-
-  // Synchronous check: If the document path we're requesting has changed
-  // since the last render, we are in a loading state. We reset the internal
-  // state and update our ref. This happens *during* the render.
-  if (path !== pathRef.current) {
-    setInternalState({ data: null, error: null });
-    pathRef.current = path;
-  }
+  const [data, setData] = useState<WithId<T> | null>(null);
+  const [error, setError] = useState<FirestoreError | Error | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // If there's no document to fetch, we do nothing.
+    // When the document reference changes, we are in a new loading state.
+    setIsLoading(true);
+    setData(null);
+    setError(null);
+
+    // If the reference is null or undefined (e.g., user is logged out),
+    // we are not fetching anything, so we are done loading.
     if (!memoizedDocRef) {
+      setIsLoading(false);
       return;
     }
 
     // Subscribe to the document.
-    const unsubscribe = onSnapshot(memoizedDocRef,
+    const unsubscribe = onSnapshot(
+      memoizedDocRef,
       (snapshot: DocumentSnapshot) => {
-        // When data arrives, update the state.
-        const data = snapshot.exists() ? { ...snapshot.data() as T, id: snapshot.id } : null;
-        setInternalState({ data: data, error: null });
+        // When data arrives, update the state and set loading to false.
+        const docData = snapshot.exists() ? { ...(snapshot.data() as T), id: snapshot.id } : null;
+        setData(docData);
+        setError(null);
+        setIsLoading(false);
       },
-      (error: FirestoreError) => {
-        // If an error occurs, update the state and emit a global error.
+      (err: FirestoreError) => {
+        // If an error occurs, update the state, set loading to false, and emit a global error.
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: memoizedDocRef.path,
         });
-        setInternalState({ data: null, error: contextualError });
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
         errorEmitter.emit('permission-error', contextualError);
       }
     );
 
+    // Unsubscribe on unmount or when the ref changes.
     return () => unsubscribe();
-  }, [memoizedDocRef]); // Effect depends on the memoized ref object.
+  }, [memoizedDocRef]); // Effect depends only on the memoized ref.
 
-  // The loading state is now derived synchronously: we are loading if
-  // a path has been provided, but we haven't received either data or an error yet.
-  const isLoading = !!path && internalState.data === null && internalState.error === null;
-  
-  return { data: internalState.data, isLoading: isLoading, error: internalState.error };
+  return { data, isLoading, error };
 }

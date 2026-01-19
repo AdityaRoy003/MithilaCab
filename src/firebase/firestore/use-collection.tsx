@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Query,
   onSnapshot,
@@ -39,8 +39,8 @@ export interface InternalQuery extends Query<DocumentData> {
 
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
- * This hook is designed to be robust against race conditions during navigation
- * and re-rendering by synchronously determining its loading state.
+ * This hook is designed to be robust against race conditions by explicitly managing
+ * its loading state.
  *
  * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or you may cause
  * infinite render loops.
@@ -53,32 +53,25 @@ export interface InternalQuery extends Query<DocumentData> {
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
-  type ResultItemType = WithId<T>;
-  type State = {
-    data: ResultItemType[] | null;
-    error: FirestoreError | Error | null;
-  };
-
-  const [internalState, setInternalState] = useState<State>({ data: null, error: null });
-  const pathRef = useRef<string | undefined>();
+  const [data, setData] = useState<WithId<T>[] | null>(null);
+  const [error, setError] = useState<FirestoreError | Error | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getPath = (target: typeof memoizedTargetRefOrQuery) => {
     if (!target) return undefined;
     return target.type === 'collection' ? target.path : (target as InternalQuery)._query.path.canonicalString();
   };
 
-  const path = getPath(memoizedTargetRefOrQuery);
-
-  // Synchronous check: If the query path has changed since the last render,
-  // we are in a loading state. Reset internal state and update our ref.
-  if (path !== pathRef.current) {
-    setInternalState({ data: null, error: null });
-    pathRef.current = path;
-  }
-
   useEffect(() => {
-    // If there's no query, we do nothing.
+    // When the query reference changes, we are in a new loading state.
+    setIsLoading(true);
+    setData(null);
+    setError(null);
+
+    // If the reference is null or undefined (e.g., user is logged out),
+    // we are not fetching anything, so we are done loading.
     if (!memoizedTargetRefOrQuery) {
+      setIsLoading(false);
       return;
     }
 
@@ -86,27 +79,28 @@ export function useCollection<T = any>(
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
-        // When data arrives, update the state.
-        const results: ResultItemType[] = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
-        setInternalState({ data: results, error: null });
+        // When data arrives, update the state and set loading to false.
+        const results: WithId<T>[] = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
+        setData(results);
+        setError(null);
+        setIsLoading(false);
       },
-      (error: FirestoreError) => {
-        // If an error occurs, update the state and emit a global error.
+      (err: FirestoreError) => {
+        // If an error occurs, update the state, set loading to false, and emit a global error.
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path: getPath(memoizedTargetRefOrQuery)!,
         });
-        setInternalState({ data: null, error: contextualError });
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
         errorEmitter.emit('permission-error', contextualError);
       }
     );
 
+    // Unsubscribe on unmount or when the query changes.
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]);
 
-  // The loading state is now derived synchronously: we are loading if
-  // a path has been provided, but we haven't received either data or an error yet.
-  const isLoading = !!path && internalState.data === null && internalState.error === null;
-
-  return { data: internalState.data, isLoading: isLoading, error: internalState.error };
+  return { data, isLoading, error };
 }
