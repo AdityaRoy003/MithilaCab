@@ -16,6 +16,10 @@ export function FindingDriver({ onDriverFound, rideDetails }: FindingDriverProps
 
   useEffect(() => {
     const findDriver = async () => {
+      // Don't start searching until the ride document has been created and we have an ID.
+      if (!rideDetails.id) {
+        return;
+      }
       try {
         const driversRef = collection(firestore, 'drivers');
         const q = query(driversRef, where('isAvailable', '==', true), limit(10));
@@ -37,8 +41,8 @@ export function FindingDriver({ onDriverFound, rideDetails }: FindingDriverProps
     };
 
     findDriver();
-    // This effect should run once to find a driver when the component mounts.
-  }, [firestore, onDriverFound]);
+    // This effect should run once the rideDetails.id is available.
+  }, [firestore, onDriverFound, rideDetails.id]);
 
 
   return (
