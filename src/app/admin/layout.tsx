@@ -14,6 +14,7 @@ import {
   Map,
   Menu,
   Settings,
+  User,
   Users,
   Wallet,
 } from 'lucide-react';
@@ -119,7 +120,10 @@ function UserMenu() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
+                  <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                    <Link href="/home">Back to App</Link>
@@ -155,19 +159,20 @@ export default function AdminLayout({
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
   const isAdminLoading = authLoading || profileLoading;
-  const isAdmin = !!userProfile && userProfile.role === 'admin';
+  const isAdmin = userProfile?.role === 'admin';
 
   useEffect(() => {
-    // We only want to check for redirection *after* the initial loading is complete.
+    // This effect runs when the loading state or admin status changes.
+    // It will only redirect if loading is complete AND the user is NOT an admin.
     if (!isAdminLoading && !isAdmin) {
       router.replace('/home');
     }
   }, [isAdmin, isAdminLoading, router]);
 
-  // If the admin status is still loading, OR if the user is not an admin
-  // (and we're waiting for the useEffect redirect to happen), show the verification screen.
-  // This prevents any flash of the admin content for non-admin users.
-  if (isAdminLoading || !isAdmin) {
+  // If we are still determining the user's auth state or their profile,
+  // we show a loading screen. This is the crucial step that prevents
+  // the premature redirect.
+  if (isAdminLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -180,7 +185,14 @@ export default function AdminLayout({
     );
   }
 
-  // If we reach here, it means `isAdminLoading` is false AND `isAdmin` is true.
+  // If loading is complete, but the user is not an admin, we render nothing.
+  // The useEffect above will handle the redirect. This prevents any flash
+  // of admin content for non-admin users.
+  if (!isAdmin) {
+    return null;
+  }
+
+  // If we reach here, it means loading is complete AND the user is an admin.
   // It is now safe to render the full admin dashboard layout.
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">

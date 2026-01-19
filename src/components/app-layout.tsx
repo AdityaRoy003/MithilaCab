@@ -1,19 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarTrigger,
-  SidebarInset,
-} from "@/components/ui/sidebar";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -23,6 +12,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, History, User, LogOut, Shield, MoreVertical } from "lucide-react";
 import { useUser, useAuth, useDriver, useAdmin } from "@/firebase";
@@ -102,6 +92,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
   const { driver, isDriverLoading } = useDriver();
   const { isAdmin, isAdminLoading } = useAdmin();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -133,58 +124,59 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider side="right">
-      <SidebarInset>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <div className="flex flex-col min-h-screen w-full">
         <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30">
             <Link href="/home">
                 <Logo/>
             </Link>
             <div className="flex items-center gap-4 ml-auto">
               <UserMenu />
-              <SidebarTrigger>
-                <MoreVertical />
-              </SidebarTrigger>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical />
+                </Button>
+              </SheetTrigger>
             </div>
         </header>
         {children}
-      </SidebarInset>
-      <Sidebar>
-        <SidebarContent className="p-2">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/home">
-                  <Home />
-                  <span>Book a Ride</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/history">
-                  <History />
-                  <span>Ride History</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter className="gap-2">
-           {!isDriverLoading && driver && !isAdmin && (
-            <>
-              <Separator />
-              <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
-                  <Label htmlFor="driver-mode" className="font-semibold cursor-pointer">Driver Mode</Label>
-                  <Switch
-                      id="driver-mode"
-                      checked={isDriverMode}
-                      onCheckedChange={handleRoleChange}
-                  />
-              </div>
-            </>
-          )}
-        </SidebarFooter>
-      </Sidebar>
-    </SidebarProvider>
+      </div>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Menu</SheetTitle>
+        </SheetHeader>
+        <div className="py-4 flex flex-col h-full">
+          <nav className="flex flex-col gap-1">
+            <Button variant="ghost" asChild className="justify-start">
+              <Link href="/home">
+                <Home className="mr-2" />
+                <span>Book a Ride</span>
+              </Link>
+            </Button>
+            <Button variant="ghost" asChild className="justify-start">
+              <Link href="/history">
+                <History className="mr-2" />
+                <span>Ride History</span>
+              </Link>
+            </Button>
+          </nav>
+          <div className="mt-auto">
+            {!isDriverLoading && driver && !isAdmin && (
+              <>
+                <Separator className="my-4" />
+                <div className="flex items-center justify-between p-2 rounded-md">
+                    <Label htmlFor="driver-mode" className="font-semibold cursor-pointer">Driver Mode</Label>
+                    <Switch
+                        id="driver-mode"
+                        checked={isDriverMode}
+                        onCheckedChange={handleRoleChange}
+                    />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
