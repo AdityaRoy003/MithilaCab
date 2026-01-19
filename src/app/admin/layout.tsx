@@ -158,7 +158,12 @@ export default function AdminLayout({
 
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
-  const isAdminLoading = authLoading || (user && profileLoading);
+  // This is the robust loading logic. We are finished loading only when:
+  // 1. Auth check is done, AND
+  // 2. EITHER the user is null (not logged in) OR we have a user AND their profile has finished loading.
+  const isFinishedLoading = !authLoading && (user === null || (user !== null && !profileLoading));
+  const isAdminLoading = !isFinishedLoading;
+  
   const isAdmin = userProfile?.role === 'admin';
 
   useEffect(() => {
