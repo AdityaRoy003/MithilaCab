@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -172,30 +171,32 @@ export default function AdminLayout({
         </div>
       </aside>
       <div className="flex flex-col">
-        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0 md:hidden"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col bg-gray-800 text-white p-0">
-                <div className="flex h-14 items-center border-b border-gray-700 px-4 lg:h-[60px] lg:px-6">
-                    <Logo />
-                </div>
-                <div className="flex-1 overflow-auto py-2">
-                    <SidebarNav />
-                </div>
-            </SheetContent>
-          </Sheet>
-          <div className="w-full flex-1">
-            {/* Can add search bar here later */}
+        <header className="flex h-14 items-center justify-between border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+          <div className='flex items-center gap-4'>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 md:hidden"
+                >
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle navigation menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="flex flex-col bg-gray-800 text-white p-0">
+                  <div className="flex h-14 items-center border-b border-gray-700 px-4 lg:h-[60px] lg:px-6">
+                      <Logo />
+                  </div>
+                  <div className="flex-1 overflow-auto py-2">
+                      <SidebarNav />
+                  </div>
+              </SheetContent>
+            </Sheet>
+             {/* Empty div for spacing, so logo in sidebar and content header dont overlap */}
+            <div className="hidden md:block w-full flex-1" />
           </div>
+
           <UserMenu />
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
