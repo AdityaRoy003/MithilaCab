@@ -24,6 +24,7 @@ import { Switch } from "@/components/ui/switch";
 
 import { Logo } from "./logo";
 import { Separator } from "./ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const { user, loading } = useUser();
   const { driver, isDriverLoading } = useDriver();
-  const { isAdmin, isAdminLoading } = useAdmin();
+  const { isAdmin, isAdminLoading, role } = useAdmin();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -138,7 +139,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <AvatarFallback>{user.displayName?.charAt(0) ?? user.email?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="overflow-hidden">
-              <p className="font-semibold truncate">{user.displayName ?? 'User'}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold truncate">{user.displayName ?? 'User'}</p>
+                 {(role === 'admin' || role === 'superAdmin') && (
+                  <Badge variant="secondary" className="capitalize text-xs">
+                    {role === 'superAdmin' ? 'Super Admin' : role}
+                  </Badge>
+                )}
+              </div>
               <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
             </div>
           </div>

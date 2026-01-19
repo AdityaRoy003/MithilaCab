@@ -20,8 +20,9 @@ export function useAdmin() {
 
   const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'superAdmin';
   const isSuperAdmin = userProfile?.role === 'superAdmin';
+  const role = userProfile?.role;
 
   const isAdminLoading = isUserLoading || profileLoading;
 
-  return { isAdmin, isSuperAdmin, isAdminLoading };
+  return { isAdmin, isSuperAdmin, isAdminLoading, role };
 }
