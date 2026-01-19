@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -150,8 +150,6 @@ export default function AdminLayout({
   const { user, isUserLoading: authLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
-  
-  const [authStatus, setAuthStatus] = useState<'loading' | 'admin' | 'non-admin'>('loading');
 
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -160,32 +158,18 @@ export default function AdminLayout({
 
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
-  useEffect(() => {
-    // This effect determines the final auth status.
-    // It waits until all loading is complete before making a decision.
-    if (authLoading || (user && profileLoading)) {
-      setAuthStatus('loading');
-      return;
-    }
-
-    // Loading is finished. Now, determine the user's status.
-    if (user && userProfile?.role === 'admin') {
-      setAuthStatus('admin');
-    } else {
-      setAuthStatus('non-admin');
-    }
-  }, [authLoading, profileLoading, user, userProfile]);
+  const isLoading = authLoading || (user && profileLoading);
+  const isDefinitivelyNotAdmin = !isLoading && (!user || userProfile?.role !== 'admin');
   
   useEffect(() => {
-    // This separate effect handles the redirection once the status is 'non-admin'.
-    if (authStatus === 'non-admin') {
+    if (isDefinitivelyNotAdmin) {
       router.replace('/home');
     }
-  }, [authStatus, router]);
+  }, [isDefinitivelyNotAdmin, router]);
 
 
   // 1. Render a loading screen while we verify credentials.
-  if (authStatus === 'loading') {
+  if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -198,60 +182,60 @@ export default function AdminLayout({
     );
   }
 
-  // 2. If the user is a confirmed admin, render the dashboard.
-  if (authStatus === 'admin') {
-    return (
-      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-        <aside className="hidden border-r bg-gray-900 text-white md:block">
-          <div className="flex h-full max-h-screen flex-col gap-2">
-              <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
-                  <Link href="/home"><Logo /></Link>
-              </div>
-              <div className="flex-1 overflow-auto py-2">
-                  <SidebarNav />
-              </div>
-          </div>
-        </aside>
-        <div className="flex flex-col">
-          <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
-            <div className='flex items-center gap-4'>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0 md:hidden"
-                  >
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Toggle navigation menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="flex flex-col bg-gray-900 text-white p-0">
-                    <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
-                        <Link href="/home"><Logo /></Link>
-                    </div>
-                    <div className="flex-1 overflow-auto py-2">
-                        <SidebarNav />
-                    </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            
-            <div className="ml-auto">
-              <UserMenu />
-            </div>
-          </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
-            {children}
-          </main>
-          <footer className="border-t p-4 text-center text-xs text-muted-foreground">
-              Copyright © MithilaCab {new Date().getFullYear()}
-          </footer>
-        </div>
-      </div>
-    );
+  // 2. If loading is complete and the user is NOT an admin, render nothing while redirecting.
+  if (isDefinitivelyNotAdmin) {
+    return null;
   }
-
-  // 3. For 'non-admin' status, render nothing while the redirect happens.
-  return null;
+  
+  // 3. If loading is complete and we haven't redirected, the user must be an admin.
+  return (
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+      <aside className="hidden border-r bg-gray-900 text-white md:block">
+        <div className="flex h-full max-h-screen flex-col gap-2">
+            <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
+                <Link href="/home"><Logo /></Link>
+            </div>
+            <div className="flex-1 overflow-auto py-2">
+                <SidebarNav />
+            </div>
+        </div>
+      </aside>
+      <div className="flex flex-col">
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+          <div className='flex items-center gap-4'>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 md:hidden"
+                >
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle navigation menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="flex flex-col bg-gray-900 text-white p-0">
+                  <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
+                      <Link href="/home"><Logo /></Link>
+                  </div>
+                  <div className="flex-1 overflow-auto py-2">
+                      <SidebarNav />
+                  </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+          
+          <div className="ml-auto">
+            <UserMenu />
+          </div>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
+          {children}
+        </main>
+        <footer className="border-t p-4 text-center text-xs text-muted-foreground">
+            Copyright © MithilaCab {new Date().getFullYear()}
+        </footer>
+      </div>
+    </div>
+  );
 }
