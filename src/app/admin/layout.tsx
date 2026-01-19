@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -150,6 +150,8 @@ export default function AdminLayout({
   const { user, isUserLoading: authLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
+  
+  const [authStatus, setAuthStatus] = useState<'loading' | 'admin' | 'non-admin'>('loading');
 
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -158,26 +160,32 @@ export default function AdminLayout({
 
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
-  // This is the robust loading logic. We are finished loading only when:
-  // 1. Auth check is done, AND
-  // 2. EITHER the user is null (not logged in) OR we have a user AND their profile has finished loading.
-  const isFinishedLoading = !authLoading && (user === null || (user !== null && !profileLoading));
-  const isAdminLoading = !isFinishedLoading;
-  
-  const isAdmin = userProfile?.role === 'admin';
-
   useEffect(() => {
-    // This effect runs when the loading state or admin status changes.
-    // It will only redirect if loading is complete AND the user is NOT an admin.
-    if (!isAdminLoading && !isAdmin) {
+    // This effect determines the final auth status.
+    // It waits until all loading is complete before making a decision.
+    if (authLoading || (user && profileLoading)) {
+      setAuthStatus('loading');
+      return;
+    }
+
+    // Loading is finished. Now, determine the user's status.
+    if (user && userProfile?.role === 'admin') {
+      setAuthStatus('admin');
+    } else {
+      setAuthStatus('non-admin');
+    }
+  }, [authLoading, profileLoading, user, userProfile]);
+  
+  useEffect(() => {
+    // This separate effect handles the redirection once the status is 'non-admin'.
+    if (authStatus === 'non-admin') {
       router.replace('/home');
     }
-  }, [isAdmin, isAdminLoading, router]);
+  }, [authStatus, router]);
 
-  // If we are still determining the user's auth state or their profile,
-  // we show a loading screen. This is the crucial step that prevents
-  // the premature redirect.
-  if (isAdminLoading) {
+
+  // 1. Render a loading screen while we verify credentials.
+  if (authStatus === 'loading') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -190,63 +198,60 @@ export default function AdminLayout({
     );
   }
 
-  // If loading is complete, but the user is not an admin, we render nothing.
-  // The useEffect above will handle the redirect. This prevents any flash
-  // of admin content for non-admin users.
-  if (!isAdmin) {
-    return null;
+  // 2. If the user is a confirmed admin, render the dashboard.
+  if (authStatus === 'admin') {
+    return (
+      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <aside className="hidden border-r bg-gray-900 text-white md:block">
+          <div className="flex h-full max-h-screen flex-col gap-2">
+              <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
+                  <Link href="/home"><Logo /></Link>
+              </div>
+              <div className="flex-1 overflow-auto py-2">
+                  <SidebarNav />
+              </div>
+          </div>
+        </aside>
+        <div className="flex flex-col">
+          <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+            <div className='flex items-center gap-4'>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 md:hidden"
+                  >
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle navigation menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="flex flex-col bg-gray-900 text-white p-0">
+                    <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
+                        <Link href="/home"><Logo /></Link>
+                    </div>
+                    <div className="flex-1 overflow-auto py-2">
+                        <SidebarNav />
+                    </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+            
+            <div className="ml-auto">
+              <UserMenu />
+            </div>
+          </header>
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
+            {children}
+          </main>
+          <footer className="border-t p-4 text-center text-xs text-muted-foreground">
+              Copyright © MithilaCab {new Date().getFullYear()}
+          </footer>
+        </div>
+      </div>
+    );
   }
 
-  // If we reach here, it means loading is complete AND the user is an admin.
-  // It is now safe to render the full admin dashboard layout.
-  return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <aside className="hidden border-r bg-gray-900 text-white md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-            <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
-                <Link href="/home"><Logo /></Link>
-            </div>
-            <div className="flex-1 overflow-auto py-2">
-                <SidebarNav />
-            </div>
-        </div>
-      </aside>
-      <div className="flex flex-col">
-        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
-          <div className='flex items-center gap-4'>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 md:hidden"
-                >
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col bg-gray-900 text-white p-0">
-                  <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
-                      <Link href="/home"><Logo /></Link>
-                  </div>
-                  <div className="flex-1 overflow-auto py-2">
-                      <SidebarNav />
-                  </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-          
-          <div className="ml-auto">
-            <UserMenu />
-          </div>
-        </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
-          {children}
-        </main>
-        <footer className="border-t p-4 text-center text-xs text-muted-foreground">
-            Copyright © MithilaCab {new Date().getFullYear()}
-        </footer>
-      </div>
-    </div>
-  );
+  // 3. For 'non-admin' status, render nothing while the redirect happens.
+  return null;
 }
