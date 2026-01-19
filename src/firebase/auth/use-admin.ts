@@ -19,16 +19,18 @@ export function useAdmin() {
 
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
-  // Check for the new role OR the old boolean flag for backward compatibility
+  // THE DEFINITIVE FIX:
+  // The race condition happens because `profileLoading` can be briefly `false`
+  // after the `user` is available but before the `useDoc` hook has started its new fetch.
+  // We can manually close this gap. If we have a user, but we don't have their profile yet,
+  // we must be in a loading state. This is especially true during the first render after login.
+  const stillWaitingForProfile = !!user && !userProfile;
+  const isAdminLoading = authLoading || profileLoading || stillWaitingForProfile;
+  
   const isAdmin = userProfile?.role === 'admin' || userProfile?.isAdmin === true;
   
   // Determine the role, preferring the new 'role' field but falling back for compatibility
   const role = userProfile?.role || (isAdmin ? 'admin' : undefined);
-
-  // THE DEFINITIVE FIX: The overall loading state depends on both auth and profile loading.
-  // This prevents a race condition where the app might think the user is not an admin
-  // before their profile has finished loading.
-  const isAdminLoading = authLoading || profileLoading;
 
   return { isAdmin, isAdminLoading, role };
 }
