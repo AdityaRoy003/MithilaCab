@@ -200,16 +200,6 @@ export default function ProfilePage() {
                         </Label>
                         <Switch id="notifications" defaultChecked />
                     </div>
-                    <Separator />
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="dark-mode" className="flex flex-col space-y-1">
-                            <span>Dark Mode</span>
-                             <span className="font-normal leading-snug text-muted-foreground">
-                                Toggle the interface theme.
-                            </span>
-                        </Label>
-                        <Switch id="dark-mode" />
-                    </div>
                 </CardContent>
              </Card>
           </div>
