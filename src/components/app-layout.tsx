@@ -77,9 +77,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <main className="flex-1 p-4 md:p-6 lg:p-8">
-            <div className="flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden -mx-6 -mt-8 mb-6">
+            <div className="flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden -mx-6 -mt-8 mb-6">
+               <Skeleton className="h-8 w-32" />
                <Skeleton className="h-7 w-7" />
-               <Skeleton className="h-6 w-24" />
             </div>
             {children}
         </main>
@@ -90,11 +90,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider side="right">
       <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden">
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30 md:hidden">
+            <Link href="/home">
+                <Logo/>
+            </Link>
             <SidebarTrigger />
-            <div className="flex-1">
-                <span className="font-headline text-xl font-bold">MithilaCab</span>
-            </div>
         </header>
         {children}
       </SidebarInset>
