@@ -21,6 +21,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
+import { MoreHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface User {
   id: string;
@@ -50,7 +60,7 @@ export function UserList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Users</CardTitle>
+        <CardTitle>Passenger Accounts</CardTitle>
         <CardDescription>A list of all registered passengers.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -69,6 +79,9 @@ export function UserList() {
                     <TableHead>Email</TableHead>
                     <TableHead className="hidden md:table-cell">Phone</TableHead>
                     <TableHead className="hidden md:table-cell">Joined</TableHead>
+                    <TableHead>
+                        <span className="sr-only">Actions</span>
+                    </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -86,11 +99,28 @@ export function UserList() {
                             <TableCell>{user.email}</TableCell>
                             <TableCell className="hidden md:table-cell">{user.phone}</TableCell>
                             <TableCell className="hidden md:table-cell">{getFormattedDate(user.dateJoined)}</TableCell>
+                            <TableCell>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <span className="sr-only">Open menu</span>
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem>View profile</DropdownMenuItem>
+                                        <DropdownMenuItem>View ride history</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-destructive">Suspend user</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
                         </TableRow>
                     ))}
                     {(!users || users.length === 0) && (
                         <TableRow>
-                            <TableCell colSpan={4} className="h-24 text-center">No users found.</TableCell>
+                            <TableCell colSpan={5} className="h-24 text-center">No users found.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>

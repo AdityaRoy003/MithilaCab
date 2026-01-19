@@ -22,6 +22,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
+import { MoreHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 interface Driver {
   id: string;
@@ -54,7 +65,7 @@ export function DriverList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Drivers</CardTitle>
+        <CardTitle>Driver Accounts</CardTitle>
         <CardDescription>A list of all registered drivers.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -73,6 +84,9 @@ export function DriverList() {
                     <TableHead>Status</TableHead>
                     <TableHead className="hidden md:table-cell">Rating</TableHead>
                     <TableHead className="hidden md:table-cell">Joined</TableHead>
+                    <TableHead>
+                        <span className="sr-only">Actions</span>
+                    </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -94,11 +108,29 @@ export function DriverList() {
                             </TableCell>
                             <TableCell className="hidden md:table-cell">{driver.rating.toFixed(1)}</TableCell>
                             <TableCell className="hidden md:table-cell">{getFormattedDate(driver.dateJoined)}</TableCell>
+                            <TableCell>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <span className="sr-only">Open menu</span>
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem>View profile</DropdownMenuItem>
+                                        <DropdownMenuItem>Verify documents</DropdownMenuItem>
+                                        <DropdownMenuItem>View performance</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-destructive">Suspend driver</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
                         </TableRow>
                     ))}
                     {(!drivers || drivers.length === 0) && (
                         <TableRow>
-                            <TableCell colSpan={4} className="h-24 text-center">No drivers found.</TableCell>
+                            <TableCell colSpan={5} className="h-24 text-center">No drivers found.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>
