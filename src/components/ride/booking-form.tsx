@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Car, CarFront, CarIcon, MapPin, Suv } from 'lucide-react';
+import { Car, CarFront, MapPin, Truck } from 'lucide-react';
 import type { RideType } from '@/lib/data';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -80,7 +80,7 @@ export function BookingForm({ onBookingRequest }: BookingFormProps) {
                     </Label>
                     <Label className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", rideType === 'SUV' && 'border-primary')}>
                         <RadioGroupItem value="SUV" id="SUV" className="sr-only" />
-                        <Suv className="mb-3 h-6 w-6" />
+                        <Truck className="mb-3 h-6 w-6" />
                         SUV
                     </Label>
                 </RadioGroup>
