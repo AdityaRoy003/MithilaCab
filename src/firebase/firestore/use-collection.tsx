@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Query,
   onSnapshot,
@@ -39,14 +39,14 @@ export interface InternalQuery extends Query<DocumentData> {
 
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
- * Handles nullable references/queries.
+ * This hook is designed to be robust against race conditions during navigation
+ * and re-rendering by synchronously determining its loading state.
  *
- * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
- * references
+ * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or you may cause
+ * infinite render loops.
  *
  * @template T Optional type for document data. Defaults to any.
- * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} targetRefOrQuery -
+ * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} memoizedTargetRefOrQuery -
  * The Firestore CollectionReference or Query. Waits if null/undefined.
  * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
@@ -54,49 +54,49 @@ export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
-  type StateDataType = ResultItemType[] | null;
+  type State = {
+    data: ResultItemType[] | null;
+    error: FirestoreError | Error | null;
+  };
 
-  const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<FirestoreError | Error | null>(null);
+  const [internalState, setInternalState] = useState<State>({ data: null, error: null });
+  const pathRef = useRef<string | undefined>();
+
+  const getPath = (target: typeof memoizedTargetRefOrQuery) => {
+    if (!target) return undefined;
+    return target.type === 'collection' ? target.path : (target as InternalQuery)._query.path.canonicalString();
+  };
+
+  const path = getPath(memoizedTargetRefOrQuery);
+
+  // Synchronous check: If the query path has changed since the last render,
+  // we are in a loading state. Reset internal state and update our ref.
+  if (path !== pathRef.current) {
+    setInternalState({ data: null, error: null });
+    pathRef.current = path;
+  }
 
   useEffect(() => {
-    // If there's no query, we are not loading and have no data.
+    // If there's no query, we do nothing.
     if (!memoizedTargetRefOrQuery) {
-      setData(null);
-      setIsLoading(false);
-      setError(null);
       return;
     }
 
-    // A query is present. Set loading state and clear previous data/errors.
-    setIsLoading(true);
-    setData(null);
-    setError(null);
-
+    // Subscribe to the query.
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
+        // When data arrives, update the state.
         const results: ResultItemType[] = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
-        setData(results);
-        setError(null);
-        setIsLoading(false);
+        setInternalState({ data: results, error: null });
       },
       (error: FirestoreError) => {
-        const path: string =
-          memoizedTargetRefOrQuery.type === 'collection'
-            ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
-
+        // If an error occurs, update the state and emit a global error.
         const contextualError = new FirestorePermissionError({
           operation: 'list',
-          path,
-        })
-
-        setError(contextualError);
-        setData(null);
-        setIsLoading(false);
-
+          path: getPath(memoizedTargetRefOrQuery)!,
+        });
+        setInternalState({ data: null, error: contextualError });
         errorEmitter.emit('permission-error', contextualError);
       }
     );
@@ -104,5 +104,9 @@ export function useCollection<T = any>(
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]);
 
-  return { data, isLoading, error };
+  // The loading state is now derived synchronously: we are loading if
+  // a path has been provided, but we haven't received either data or an error yet.
+  const isLoading = !!path && internalState.data === null && internalState.error === null;
+
+  return { data: internalState.data, isLoading: isLoading, error: internalState.error };
 }

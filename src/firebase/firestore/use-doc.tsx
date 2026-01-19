@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   DocumentReference,
   onSnapshot,
@@ -26,69 +26,68 @@ export interface UseDocResult<T> {
 
 /**
  * React hook to subscribe to a single Firestore document in real-time.
- * Handles nullable references.
+ * This hook is designed to be robust against race conditions during navigation
+ * and re-rendering by synchronously determining its loading state.
  *
- * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
- * references
- *
+ * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedDocRef or you may cause
+ * infinite render loops.
  *
  * @template T Optional type for document data. Defaults to any.
- * @param {DocumentReference<DocumentData> | null | undefined} docRef -
+ * @param {DocumentReference<DocumentData> | null | undefined} memoizedDocRef -
  * The Firestore DocumentReference. Waits if null/undefined.
  * @returns {UseDocResult<T>} Object with data, isLoading, error.
  */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
 ): UseDocResult<T> {
-  type StateDataType = WithId<T> | null;
+  type State = {
+    data: WithId<T> | null;
+    error: FirestoreError | Error | null;
+  };
+  
+  const [internalState, setInternalState] = useState<State>({ data: null, error: null });
+  const pathRef = useRef<string | undefined>();
+  
+  const path = memoizedDocRef?.path;
 
-  const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<FirestoreError | Error | null>(null);
+  // Synchronous check: If the document path we're requesting has changed
+  // since the last render, we are in a loading state. We reset the internal
+  // state and update our ref. This happens *during* the render.
+  if (path !== pathRef.current) {
+    setInternalState({ data: null, error: null });
+    pathRef.current = path;
+  }
 
   useEffect(() => {
-    // If there's no reference, we are not loading and have no data.
+    // If there's no document to fetch, we do nothing.
     if (!memoizedDocRef) {
-      setData(null);
-      setIsLoading(false);
-      setError(null);
       return;
     }
 
-    // A reference is present. Set loading state and clear previous data/errors.
-    setIsLoading(true);
-    setData(null);
-    setError(null);
-
-    const unsubscribe = onSnapshot(
-      memoizedDocRef,
-      (snapshot: DocumentSnapshot<DocumentData>) => {
-        if (snapshot.exists()) {
-          setData({ ...(snapshot.data() as T), id: snapshot.id });
-        } else {
-          // Document does not exist. This is not an error, but there's no data.
-          setData(null);
-        }
-        setError(null);
-        setIsLoading(false);
+    // Subscribe to the document.
+    const unsubscribe = onSnapshot(memoizedDocRef,
+      (snapshot: DocumentSnapshot) => {
+        // When data arrives, update the state.
+        const data = snapshot.exists() ? { ...snapshot.data() as T, id: snapshot.id } : null;
+        setInternalState({ data: data, error: null });
       },
       (error: FirestoreError) => {
+        // If an error occurs, update the state and emit a global error.
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: memoizedDocRef.path,
-        })
-
-        setError(contextualError);
-        setData(null);
-        setIsLoading(false);
-
+        });
+        setInternalState({ data: null, error: contextualError });
         errorEmitter.emit('permission-error', contextualError);
       }
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef]);
+  }, [memoizedDocRef]); // Effect depends on the memoized ref object.
 
-  return { data, isLoading, error };
+  // The loading state is now derived synchronously: we are loading if
+  // a path has been provided, but we haven't received either data or an error yet.
+  const isLoading = !!path && internalState.data === null && internalState.error === null;
+  
+  return { data: internalState.data, isLoading: isLoading, error: internalState.error };
 }
