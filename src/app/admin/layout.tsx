@@ -14,46 +14,59 @@ export default function AdminLayout({
   const { isAdmin, isAdminLoading } = useAdmin();
   const router = useRouter();
 
-  // This useEffect handles the redirection logic.
-  // It is now called on every render, and the condition is inside the hook,
-  // which follows the Rules of Hooks.
   useEffect(() => {
-    // Only redirect if loading is finished and the user is confirmed to not be an admin.
+    // On every render, check the state.
+    // If we're done loading and the user is NOT an admin, redirect them.
     if (!isAdminLoading && !isAdmin) {
       router.replace('/home');
     }
   }, [isAdmin, isAdminLoading, router]);
 
-  // If we are still loading, or if the user is not an admin (and the redirect is about to happen),
-  // show a unified loading/access-denied screen. This prevents any content flashing.
-  if (isAdminLoading || !isAdmin) {
+  // If loading is not finished, show a full-page loader.
+  // This prevents any flash of content.
+  if (isAdminLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Logo />
-          <Skeleton className="h-8 w-64" />
           <p className="text-muted-foreground">
-            {isAdminLoading ? 'Verifying admin credentials...' : 'Access Denied. Redirecting...'}
+            Verifying admin credentials...
           </p>
         </div>
       </div>
     );
   }
 
-  // If we've finished loading and the user IS an admin, render the dashboard.
+  // If loading IS finished, AND the user is an admin, show the dashboard.
+  // The useEffect above handles the case where the user is not an admin.
+  if (isAdmin) {
+    return (
+      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+          <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+            <Logo />
+            <h1 className="text-lg font-semibold text-foreground">
+              Admin Dashboard
+            </h1>
+          </nav>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+          {children}
+        </main>
+      </div>
+    );
+  }
+  
+  // If loading is finished and the user is NOT an admin, the useEffect is redirecting them.
+  // Render a loading screen to prevent content flashing during the redirect.
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
           <Logo />
-          <h1 className="text-lg font-semibold text-foreground">
-            Admin Dashboard
-          </h1>
-        </nav>
-      </header>
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        {children}
-      </main>
-    </div>
-  );
+           <p className="text-muted-foreground">
+            Access Denied. Redirecting...
+          </p>
+        </div>
+      </div>
+    );
 }
