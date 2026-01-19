@@ -9,7 +9,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, ShieldCheck, LifeBuoy, Briefcase, Map, AreaChart, IndianRupee, CarFront, Activity } from 'lucide-react';
+import { Users, ShieldCheck, LifeBuoy, Briefcase, Map, AreaChart, IndianRupee, CarFront, Activity, Landmark, Wallet, Gavel, ClipboardList } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   return (
@@ -78,6 +78,7 @@ export default function AdminDashboardPage() {
             <TabsTrigger value="operations"><Briefcase className="mr-2 h-4 w-4" /> Ride & Operations</TabsTrigger>
             <TabsTrigger value="verification"><ShieldCheck className="mr-2 h-4 w-4" /> Verification</TabsTrigger>
             <TabsTrigger value="support"><LifeBuoy className="mr-2 h-4 w-4" /> Support & Disputes</TabsTrigger>
+            <TabsTrigger value="finance"><Landmark className="mr-2 h-4 w-4" /> Finance & Compliance</TabsTrigger>
           </TabsList>
           <TabsContent value="management" className="mt-4">
             <div className="grid gap-4 md:grid-cols-2 md:gap-8">
@@ -156,6 +157,43 @@ export default function AdminDashboardPage() {
                     <CardContent>
                         <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
                             <p>Cancellation/refund module coming soon.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+          </TabsContent>
+          <TabsContent value="finance" className="mt-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Wallet /> Finance Officer</CardTitle>
+                        <CardDescription>Manages payments, refunds, driver payouts, and transaction logs.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                            <p>Finance module coming soon.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Gavel /> Compliance Officer</CardTitle>
+                        <CardDescription>Ensures legal compliance, verifies driver documents, and monitors fraud prevention.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                            <p>Compliance module coming soon.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><ClipboardList /> Auditor</CardTitle>
+                        <CardDescription>Reviews logs, ride records, and financial reports for transparency.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                            <p>Auditing module coming soon.</p>
                         </div>
                     </CardContent>
                 </Card>
