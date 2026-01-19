@@ -55,6 +55,15 @@
           "type": "string",
           "description": "The full name of the driver."
         },
+        "email": {
+          "type": "string",
+          "description": "The email address of the driver.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The phone number of the driver."
+        },
         "vehicle": {
           "type": "string",
           "description": "The model of the driver's vehicle (e.g., 'Suzuki Swift')."
@@ -96,16 +105,24 @@
             "id",
             "imageUrl"
           ]
+        },
+        "dateJoined": {
+          "type": "string",
+          "description": "The date and time when the driver joined.",
+          "format": "date-time"
         }
       },
       "required": [
         "id",
         "name",
+        "email",
+        "phone",
         "vehicle",
         "licensePlate",
         "rating",
         "isAvailable",
-        "image"
+        "image",
+        "dateJoined"
       ]
     },
     "Ride": {

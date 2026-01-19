@@ -23,6 +23,7 @@ import { useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { errorEmitter } from "@/firebase/error-emitter";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -36,6 +37,9 @@ const formSchema = z.object({
   }),
   password: z.string().min(6, {
     message: "Password must be at least 6 characters.",
+  }),
+  role: z.enum(["passenger", "driver"], {
+    required_error: "You need to select a role.",
   }),
 });
 
@@ -52,6 +56,7 @@ export function SignupForm() {
       email: "",
       phone: "",
       password: "",
+      role: "passenger",
     },
   });
 
@@ -64,28 +69,55 @@ export function SignupForm() {
         displayName: values.name,
       });
 
-      const userProfile = {
-        id: user.uid,
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        dateJoined: serverTimestamp(),
-        photoURL: user.photoURL,
-      };
-
-      const userDocRef = doc(firestore, "users", user.uid);
-      
-      setDoc(userDocRef, userProfile, { merge: true }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: userDocRef.path,
-            operation: 'create',
-            requestResourceData: userProfile,
+      if (values.role === 'passenger') {
+        const userProfile = {
+          id: user.uid,
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          dateJoined: serverTimestamp(),
+          photoURL: user.photoURL,
+        };
+        const userDocRef = doc(firestore, "users", user.uid);
+        setDoc(userDocRef, userProfile, { merge: true }).catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+              path: userDocRef.path,
+              operation: 'create',
+              requestResourceData: userProfile,
+          });
+          errorEmitter.emit('permission-error', permissionError);
         });
-        errorEmitter.emit('permission-error', permissionError);
-      });
+        router.push("/home");
+      } else if (values.role === 'driver') {
+        const driverProfile = {
+          id: user.uid,
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          isAvailable: false,
+          rating: 5,
+          vehicle: "Not specified",
+          licensePlate: "N/A",
+          image: {
+            id: "driver-3",
+            description: "Portrait of a person smiling",
+            imageUrl: "https://images.unsplash.com/photo-1607529378676-a20456ee2f6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2ODYzNzM4MHww&ixlib=rb-4.1.0&q=80&w=1080",
+            imageHint: "person smiling"
+          },
+          dateJoined: serverTimestamp(),
+        };
+        const driverDocRef = doc(firestore, "drivers", user.uid);
+        setDoc(driverDocRef, driverProfile).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: driverDocRef.path,
+                operation: 'create',
+                requestResourceData: driverProfile,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+        router.push("/driver");
+      }
       
-      router.push("/home");
-
     } catch (error: any) {
       console.error("Signup Error:", error);
       if (error.code === 'auth/email-already-in-use') {
@@ -107,6 +139,40 @@ export function SignupForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>I am a...</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex space-x-4"
+                >
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="passenger" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Passenger
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="driver" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Driver
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="name"

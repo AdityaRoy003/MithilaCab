@@ -33,6 +33,7 @@ export default function SignupPage() {
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-10 w-full mt-2" />
                 </div>
             </div>
@@ -50,9 +51,9 @@ export default function SignupPage() {
         <div className="mx-auto grid w-[350px] gap-8">
           <div className="grid gap-4 text-center">
             <Logo className="justify-center" />
-            <h1 className="font-headline text-3xl font-bold">Create an Account</h1>
+            <h1 className="font-headline text-3xl font-bold">Join MithilaCab</h1>
             <p className="text-muted-foreground">
-              Enter your details below to get started
+              Sign up as a passenger or a driver to get started.
             </p>
           </div>
           <SignupForm />
