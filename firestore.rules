@@ -127,13 +127,13 @@ service cloud.firestore {
      */
     match /rides/{rideId} {
       // A user can GET a ride if they are a participant.
-      // A driver can GET a ride if it is unassigned.
-      allow get: if isRideParticipant() || (isDriver() && isRideUnassigned());
+      // Any signed-in user can GET a ride if it is unassigned.
+      allow get: if isRideParticipant() || isRideUnassigned();
 
       // A user can LIST their own rides (as passenger or driver).
-      // A driver can LIST all unassigned rides.
+      // Any signed-in user can LIST all unassigned rides.
       // This is secure because the client query MUST constrain the list.
-      allow list: if isDriver() || request.auth.uid != null;
+      allow list: if isSignedIn();
 
       allow create: if canCreateRide();
       
