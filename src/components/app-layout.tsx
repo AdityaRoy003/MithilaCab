@@ -40,12 +40,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [loading, user, router]);
 
-  useEffect(() => {
-    if (!isAdminLoading && isAdmin && (pathname === '/home' || pathname === '/history')) {
-      router.replace('/admin');
-    }
-  }, [isAdmin, isAdminLoading, pathname, router]);
-
   const handleLogout = () => {
     auth.signOut().then(() => {
       router.push("/");
