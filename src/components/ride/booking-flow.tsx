@@ -12,7 +12,7 @@ import {
   addDocumentNonBlocking,
   updateDocumentNonBlocking,
 } from '@/firebase';
-import type { Ride, Driver } from '@/lib/data';
+import type { Ride, Driver, RideType } from '@/lib/data';
 
 import { BookingForm } from './booking-form';
 import { FareEstimate } from './fare-estimate';
@@ -35,14 +35,15 @@ export function BookingFlow() {
 
   const handleBookingRequest = (
     pickupLocation: string,
-    destinationLocation: string
+    destinationLocation: string,
+    rideType: RideType
   ) => {
-    setRideDetails({ pickupLocation, destinationLocation });
+    setRideDetails({ pickupLocation, destinationLocation, rideType });
     setBookingState('estimating');
   };
 
   const handleFareConfirm = (estimatedFare: number) => {
-    if (!user || !rideDetails.pickupLocation || !rideDetails.destinationLocation)
+    if (!user || !rideDetails.pickupLocation || !rideDetails.destinationLocation || !rideDetails.rideType)
       return;
 
     setBookingState('finding');
@@ -54,9 +55,9 @@ export function BookingFlow() {
       fareAmount: estimatedFare,
       status: 'requested',
       startTime: serverTimestamp(),
+      rideType: rideDetails.rideType,
     };
     
-    // Set ride details optimistically, then update with the ID when it's available.
     setRideDetails(prev => ({
         ...prev,
         ...newRideData,

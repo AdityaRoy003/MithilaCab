@@ -11,6 +11,8 @@ export interface Driver {
   isAvailable: boolean;
 }
 
+export type RideType = 'Standard' | 'Premium' | 'SUV';
+
 export interface Ride {
   id: string;
   startTime: any;
@@ -22,6 +24,8 @@ export interface Ride {
   driverId?: string;
   status?: string;
   rating?: number;
+  rideType?: RideType;
+  comment?: string;
 }
 
 const getDriverImage = (id: string): ImagePlaceholder => {
@@ -50,6 +54,7 @@ export const mockRideHistory: Ride[] = [
     destinationLocation: 'Mithila University',
     fareAmount: 120.50,
     driver: mockDrivers[0],
+    rideType: 'Standard',
   },
   {
     id: 'r2',
@@ -58,6 +63,7 @@ export const mockRideHistory: Ride[] = [
     destinationLocation: 'DMCH Hospital',
     fareAmount: 85.00,
     driver: mockDrivers[1],
+    rideType: 'Premium',
   },
   {
     id: 'r3',
@@ -66,6 +72,7 @@ export const mockRideHistory: Ride[] = [
     destinationLocation: 'V2 Mall',
     fareAmount: 150.75,
     driver: mockDrivers[2],
+    rideType: 'SUV',
   },
    {
     id: 'r4',
@@ -74,6 +81,7 @@ export const mockRideHistory: Ride[] = [
     destinationLocation: 'Donar Chowk',
     fareAmount: 95.25,
     driver: mockDrivers[0],
+    rideType: 'Standard',
   },
 ];
 

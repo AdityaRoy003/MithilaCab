@@ -1,25 +1,30 @@
 "use client";
 
 import { useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { Car, CarFront, CarIcon, MapPin, Suv } from 'lucide-react';
+import type { RideType } from '@/lib/data';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
 
 interface BookingFormProps {
-  onBookingRequest: (pickup: string, destination: string) => void;
+  onBookingRequest: (pickup: string, destination: string, rideType: RideType) => void;
 }
 
 export function BookingForm({ onBookingRequest }: BookingFormProps) {
   const [pickup, setPickup] = useState('');
   const [destination, setDestination] = useState('');
+  const [rideType, setRideType] = useState<RideType>('Standard');
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (pickup && destination) {
-      onBookingRequest(pickup, destination);
+      onBookingRequest(pickup, destination, rideType);
     }
   };
 
@@ -59,6 +64,28 @@ export function BookingForm({ onBookingRequest }: BookingFormProps) {
                 />
               </div>
             </div>
+
+             <div className="space-y-2">
+                <Label>Ride Type</Label>
+                <RadioGroup value={rideType} onValueChange={(value: any) => setRideType(value)} className="grid grid-cols-3 gap-4">
+                    <Label className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", rideType === 'Standard' && 'border-primary')}>
+                        <RadioGroupItem value="Standard" id="Standard" className="sr-only" />
+                        <Car className="mb-3 h-6 w-6" />
+                        Standard
+                    </Label>
+                    <Label className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", rideType === 'Premium' && 'border-primary')}>
+                        <RadioGroupItem value="Premium" id="Premium" className="sr-only" />
+                        <CarFront className="mb-3 h-6 w-6" />
+                        Premium
+                    </Label>
+                    <Label className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground", rideType === 'SUV' && 'border-primary')}>
+                        <RadioGroupItem value="SUV" id="SUV" className="sr-only" />
+                        <Suv className="mb-3 h-6 w-6" />
+                        SUV
+                    </Label>
+                </RadioGroup>
+             </div>
+
             <Button type="submit" className="w-full font-bold text-lg" size="lg" disabled={!pickup || !destination}>
               Request Ride
             </Button>

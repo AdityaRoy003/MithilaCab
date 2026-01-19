@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, History, User, LogOut, Shield, MoreVertical } from "lucide-react";
+import { Home, History, User, LogOut, Shield, MoreVertical, Bell } from "lucide-react";
 import { useUser, useAuth, useDriver, useAdmin } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 
 import { Logo } from "./logo";
 import { Separator } from "./ui/separator";
+import { NotificationsPanel } from "./notifications-panel";
 
 function UserMenu() {
     const { user } = useUser();
@@ -93,6 +94,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { driver, isDriverLoading } = useDriver();
   const { isAdmin, isAdminLoading } = useAdmin();
   const [open, setOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+
 
   useEffect(() => {
     if (!loading && !user) {
@@ -124,13 +127,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
+    <>
     <Sheet open={open} onOpenChange={setOpen}>
       <div className="flex flex-col min-h-screen w-full">
         <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30">
             <Link href="/home">
                 <Logo/>
             </Link>
-            <div className="flex items-center gap-4 ml-auto">
+            <div className="flex items-center gap-2 ml-auto">
+              <Sheet open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Bell />
+                    <span className="sr-only">Toggle Notifications</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Notifications</SheetTitle>
+                  </SheetHeader>
+                  <NotificationsPanel />
+                </SheetContent>
+              </Sheet>
               <UserMenu />
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -178,5 +196,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </SheetContent>
     </Sheet>
+    </>
   );
 }

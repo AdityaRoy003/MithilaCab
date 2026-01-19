@@ -178,6 +178,19 @@
         "status": {
           "type": "string",
           "description": "The status of the ride (e.g., scheduled, ongoing, completed, cancelled)."
+        },
+        "rideType": {
+          "type": "string",
+          "description": "The type of ride selected (e.g., Standard, Premium, SUV).",
+          "enum": [
+            "Standard",
+            "Premium",
+            "SUV"
+          ]
+        },
+        "comment": {
+          "type": "string",
+          "description": "Optional comment left by the user after the ride."
         }
       },
       "required": [
@@ -187,7 +200,8 @@
         "destinationLocation",
         "fareAmount",
         "startTime",
-        "status"
+        "status",
+        "rideType"
       ]
     }
   },

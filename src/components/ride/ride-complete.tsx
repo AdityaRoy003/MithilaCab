@@ -11,6 +11,8 @@ import { Star, IndianRupee } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '../ui/skeleton';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
 
 interface RideCompleteProps {
   rideDetails: Ride;
@@ -20,13 +22,14 @@ interface RideCompleteProps {
 export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState('');
   const { toast } = useToast();
   const firestore = useFirestore();
 
   const handleSubmit = () => {
     if (rideDetails.id) {
         const rideRef = doc(firestore, 'rides', rideDetails.id);
-        updateDocumentNonBlocking(rideRef, { status: 'completed', rating: rating });
+        updateDocumentNonBlocking(rideRef, { status: 'completed', rating, comment });
     }
     
     toast({
@@ -80,24 +83,30 @@ export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
               {rideDetails.fareAmount?.toFixed(2)}
             </p>
           </div>
-          <div>
-            <p className="font-semibold mb-2">Rate your driver</p>
-            <div className="flex justify-center gap-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={cn(
-                    'h-10 w-10 cursor-pointer transition-colors',
-                    (hoverRating >= star || rating >= star)
-                      ? 'text-yellow-400 fill-yellow-400'
-                      : 'text-muted-foreground/50'
-                  )}
-                  onClick={() => setRating(star)}
-                  onMouseEnter={() => setHoverRating(star)}
-                  onMouseLeave={() => setHoverRating(0)}
-                />
-              ))}
+          <div className='space-y-4'>
+            <div>
+              <Label className="font-semibold mb-2">Rate your driver</Label>
+              <div className="flex justify-center gap-2 mt-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={cn(
+                      'h-10 w-10 cursor-pointer transition-colors',
+                      (hoverRating >= star || rating >= star)
+                        ? 'text-yellow-400 fill-yellow-400'
+                        : 'text-muted-foreground/50'
+                    )}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                  />
+                ))}
+              </div>
             </div>
+             <div className="text-left">
+                <Label htmlFor="comment" className="font-semibold mb-2">Add a comment (optional)</Label>
+                <Textarea id="comment" placeholder="Tell us about your experience..." value={comment} onChange={(e) => setComment(e.target.value)} />
+             </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">

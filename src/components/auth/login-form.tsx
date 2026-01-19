@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "../ui/separator";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -94,7 +95,14 @@ export function LoginForm() {
           )}
         />
         <Button type="submit" className="w-full font-bold" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Logging in...' : 'Login'}
+          {form.formState.isSubmitting ? 'Logging in...' : 'Login with Email'}
+        </Button>
+        <div className="relative">
+            <Separator className="absolute top-1/2 -translate-y-1/2" />
+            <p className="text-center bg-background px-2 text-sm text-muted-foreground w-fit mx-auto">OR</p>
+        </div>
+         <Button variant="outline" className="w-full font-bold" disabled>
+          Sign in with OTP
         </Button>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}

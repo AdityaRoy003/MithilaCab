@@ -17,19 +17,21 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
   const [isLoading, setIsLoading] = useState(true);
 
   const { distance, time, fare } = useMemo(() => {
-    // Mock calculation
-    const dist = Math.random() * 20 + 2; // 2 to 22 km
+    const multipliers = { Standard: 1, Premium: 1.5, SUV: 2.0 };
+    const multiplier = multipliers[rideDetails.rideType || 'Standard'];
+    
+    const dist = Math.random() * 20 + 2;
     const baseFare = 40;
     const perKmRate = 12;
-    const finalFare = Math.round(baseFare + dist * perKmRate);
-    const travelTime = Math.round(dist * 2.5); // avg 2.5 min/km
+    const finalFare = Math.round((baseFare + dist * perKmRate) * multiplier);
+    const travelTime = Math.round(dist * 2.5);
 
     return {
       distance: dist.toFixed(1),
       time: travelTime,
       fare: finalFare,
     };
-  }, []);
+  }, [rideDetails.rideType]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -62,6 +64,7 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
                 <p className="font-semibold text-sm truncate">{rideDetails.destinationLocation}</p>
               </div>
             </div>
+             <div className="text-center text-sm font-medium pt-2 text-muted-foreground">{rideDetails.rideType}</div>
           </div>
           
           {isLoading ? (
