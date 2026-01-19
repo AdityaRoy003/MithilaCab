@@ -37,7 +37,8 @@ service cloud.firestore {
     }
 
     function isDriver() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'driver';
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && userDoc != null && userDoc.data.role == 'driver';
     }
     
     /**
@@ -46,8 +47,8 @@ service cloud.firestore {
      * or the old `isAdmin` boolean flag.
      */
     function isAdmin() {
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return isSignedIn() && userDoc != null && (userDoc.role == 'admin' || userDoc.isAdmin == true);
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && userDoc != null && (userDoc.data.role == 'admin' || userDoc.data.isAdmin == true);
     }
 
     function canCreateOwnUserDoc(userId) {
