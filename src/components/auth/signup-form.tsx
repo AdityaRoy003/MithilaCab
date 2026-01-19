@@ -69,26 +69,28 @@ export function SignupForm() {
         displayName: values.name,
       });
 
-      if (values.role === 'passenger') {
-        const userProfile = {
-          id: user.uid,
-          name: values.name,
-          email: values.email,
-          phone: values.phone,
-          dateJoined: serverTimestamp(),
-          photoURL: user.photoURL,
-        };
-        const userDocRef = doc(firestore, "users", user.uid);
-        setDoc(userDocRef, userProfile, { merge: true }).catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-              path: userDocRef.path,
-              operation: 'create',
-              requestResourceData: userProfile,
-          });
-          errorEmitter.emit('permission-error', permissionError);
+      // All users get a user document with their role.
+      const userProfile = {
+        id: user.uid,
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        dateJoined: serverTimestamp(),
+        photoURL: user.photoURL,
+        role: values.role, // This will be 'passenger' or 'driver'
+      };
+      const userDocRef = doc(firestore, "users", user.uid);
+      setDoc(userDocRef, userProfile, { merge: true }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'create',
+            requestResourceData: userProfile,
         });
-        router.push("/home");
-      } else if (values.role === 'driver') {
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
+      if (values.role === 'driver') {
+        // Drivers also get a separate driver document.
         const driverProfile = {
           id: user.uid,
           name: values.name,
@@ -116,6 +118,8 @@ export function SignupForm() {
             errorEmitter.emit('permission-error', permissionError);
         });
         router.push("/driver");
+      } else {
+        router.push("/home");
       }
       
     } catch (error: any) {

@@ -8,14 +8,14 @@
  * This ruleset follows the principle that "rules are not filters". Client-side queries MUST be constructed to only request data the user is permitted to see.
  *
  * ## Data Structure
- * - `/users/{userId}`: Private user profile data.
+ * - `/users/{userId}`: Private user profile data, including their role.
  * - `/drivers/{driverId}`: Publicly readable driver profile data, but only writable by the owner.
  * - `/rides/{rideId}`: Shared ride data, accessible only by the two participants.
  *
  * ## Key Security Decisions
  * - **Strict Ownership**: A user can only write to their own document in `/users/{userId}`.
  * - **Public Driver Profiles**: Any signed-in user can read driver profiles to see who is available, but only the driver can update their own profile.
- * - **Admin Access**: Users with `isAdmin: true` on their user profile can read all user and driver data.
+ * - **Admin Access**: Users with `role: 'admin'` or `role: 'superAdmin'` on their user profile can read all user and driver data.
  * - **No Public Listing of Users**: Listing all users is disallowed for non-admins to protect privacy.
  * - **Shared Document Access**: Access to a `/rides/{rideId}` document is granted only if the requester's UID matches the `userId` or `driverId` field within that document.
  * - **Secure Listing of Rides**: The `list` rule for the `/rides` collection is intentionally broad (`if isSignedIn()`), but this is secure because the `get` rule (`if isRideParticipant()`) is checked on *every single document* returned by a query. This forces the client to build specific queries (e.g., `where('userId', '==', auth.uid)`) to avoid permission errors. An unconstrained query on `/rides` will always fail for a regular user, which is the desired secure behavior.
@@ -40,10 +40,21 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/drivers/$(request.auth.uid));
     }
     
+    /**
+     * Checks if the user has 'admin' or 'superAdmin' role in their user document.
+     * It's safe because if the document or role field doesn't exist, it evaluates to false.
+     */
     function isAdmin() {
-      // Check for the existence of the isAdmin flag and that it's true.
-      // This is more secure than just checking for existence.
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && userDoc != null && (userDoc.data.role == 'admin' || userDoc.data.role == 'superAdmin');
+    }
+
+    /**
+     * Checks if the user has the 'superAdmin' role.
+     */
+    function isSuperAdmin() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && userDoc != null && userDoc.data.role == 'superAdmin';
     }
 
     function canCreateOwnUserDoc(userId) {

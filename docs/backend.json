@@ -32,9 +32,10 @@
           "description": "The date and time when the user joined.",
           "format": "date-time"
         },
-        "isAdmin": {
-          "type": "boolean",
-          "description": "Indicates if the user has administrative privileges."
+        "role": {
+          "type": "string",
+          "description": "Defines the user's role, granting different permissions.",
+          "enum": ["passenger", "driver", "admin", "superAdmin"]
         }
       },
       "required": [
@@ -42,7 +43,8 @@
         "name",
         "email",
         "phone",
-        "dateJoined"
+        "dateJoined",
+        "role"
       ]
     },
     "Driver": {
