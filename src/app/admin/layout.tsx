@@ -142,16 +142,23 @@ export default function AdminLayout({
   const { isAdmin, isAdminLoading } = useAdmin();
   const router = useRouter();
 
+  // This effect redirects non-admins away from the page.
   useEffect(() => {
-    // Only redirect if loading is finished and we know for sure the user is not an admin.
-    if (isAdminLoading === false && isAdmin === false) {
+    // Do not perform any action while the admin status is still being determined.
+    if (isAdminLoading) {
+      return;
+    }
+    // Once loading is complete, if the user is NOT an admin, redirect them.
+    if (!isAdmin) {
       router.replace('/home');
     }
   }, [isAdmin, isAdminLoading, router]);
 
-  // If loading is not yet finished, OR if loading is finished but user is not an admin (and is being redirected),
-  // show the loading/verification screen.
-  if (isAdminLoading || isAdmin === false) {
+  // This is the authentication guard.
+  // If the admin status is loading, OR if the user is confirmed to be NOT an admin,
+  // show the "Verifying" screen. This prevents any flash of the admin UI for non-admins
+  // and covers the brief moment before the useEffect above redirects them.
+  if (isAdminLoading || !isAdmin) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -164,13 +171,14 @@ export default function AdminLayout({
     );
   }
 
-  // If we reach here, isAdminLoading is false and isAdmin is true.
+  // If we reach here, it means `isAdminLoading` is false AND `isAdmin` is true.
+  // It is now safe to render the full admin dashboard layout.
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <aside className="hidden border-r bg-gray-900 text-white md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
             <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
-                <Logo />
+                <Link href="/home"><Logo /></Link>
             </div>
             <div className="flex-1 overflow-auto py-2">
                 <SidebarNav />
@@ -193,7 +201,7 @@ export default function AdminLayout({
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col bg-gray-900 text-white p-0">
                   <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
-                      <Logo />
+                      <Link href="/home"><Logo /></Link>
                   </div>
                   <div className="flex-1 overflow-auto py-2">
                       <SidebarNav />

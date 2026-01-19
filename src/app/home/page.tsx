@@ -33,11 +33,14 @@ function HomePageLoadingSkeleton() {
 export default function HomePage() {
   const { isAdmin, isAdminLoading } = useAdmin();
 
+  // The main content is determined here.
   const mainContent = () => {
+    // Show a loading skeleton while we determine the user's role.
     if (isAdminLoading) {
       return <HomePageLoadingSkeleton />;
     }
-    // All users, including admins, will see the booking flow.
+    // All users, including admins, will now see the booking flow.
+    // The previous logic to show a special welcome card for admins has been removed.
     return <BookingFlow />;
   };
 
