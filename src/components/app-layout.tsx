@@ -40,6 +40,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [loading, user, router]);
 
+  useEffect(() => {
+    if (!isAdminLoading && isAdmin && (pathname === '/home' || pathname === '/history')) {
+      router.replace('/admin');
+    }
+  }, [isAdmin, isAdminLoading, pathname, router]);
+
   const handleLogout = () => {
     auth.signOut().then(() => {
       router.push("/");
@@ -95,22 +101,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/home">
-                  <Home />
-                  <span>Book a Ride</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/history">
-                  <History />
-                  <span>Ride History</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {!isAdminLoading && !isAdmin && (
+              <>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href="/home">
+                      <Home />
+                      <span>Book a Ride</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href="/history">
+                      <History />
+                      <span>Ride History</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </>
+            )}
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Link href="/profile">
