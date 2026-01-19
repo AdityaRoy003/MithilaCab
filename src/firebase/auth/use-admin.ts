@@ -25,7 +25,11 @@ export function useAdmin() {
   // Determine the role, preferring the new 'role' field but falling back for compatibility
   const role = userProfile?.role || (isAdmin ? 'admin' : undefined);
 
-  const isAdminLoading = isUserLoading || profileLoading;
+  // We are loading if the user auth state is loading, OR if we have a user
+  // but we have not yet loaded their corresponding user profile document.
+  // This prevents a race condition where `isAdmin` is briefly false.
+  const isAdminLoading = isUserLoading || (!!user && !userProfile && profileLoading);
+
 
   return { isAdmin, isAdminLoading, role };
 }
