@@ -142,23 +142,9 @@ export default function AdminLayout({
   const { isAdmin, isAdminLoading } = useAdmin();
   const router = useRouter();
 
-  // This effect redirects non-admins away from the page.
-  useEffect(() => {
-    // Do not perform any action while the admin status is still being determined.
-    if (isAdminLoading) {
-      return;
-    }
-    // Once loading is complete, if the user is NOT an admin, redirect them.
-    if (!isAdmin) {
-      router.replace('/home');
-    }
-  }, [isAdmin, isAdminLoading, router]);
-
   // This is the authentication guard.
-  // If the admin status is loading, OR if the user is confirmed to be NOT an admin,
-  // show the "Verifying" screen. This prevents any flash of the admin UI for non-admins
-  // and covers the brief moment before the useEffect above redirects them.
-  if (isAdminLoading || !isAdmin) {
+  // If the admin status is still loading, show a verification screen.
+  if (isAdminLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -169,6 +155,13 @@ export default function AdminLayout({
         </div>
       </div>
     );
+  }
+
+  // Once loading is complete, if the user is NOT an admin, redirect them.
+  // This happens in the same render cycle, preventing a flash of content.
+  if (!isAdmin) {
+    router.replace('/home');
+    return null; // Render nothing while the redirect occurs.
   }
 
   // If we reach here, it means `isAdminLoading` is false AND `isAdmin` is true.
