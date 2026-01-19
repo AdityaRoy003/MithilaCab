@@ -4,10 +4,11 @@ import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin } from "@/firebase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Shield } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 function AdminWelcome() {
     return (
@@ -21,9 +22,9 @@ function AdminWelcome() {
                     <p className="text-muted-foreground mb-6">
                         You can manage users, drivers, and system settings from your dashboard.
                     </p>
-                     <Button asChild size="lg" className="font-bold">
-                        <Link href="/admin"><Shield className="mr-2" /> Go to Admin Dashboard</Link>
-                    </Button>
+                     <Link href="/admin" className={cn(buttonVariants({ size: "lg" }), "font-bold")}>
+                        <Shield className="mr-2" /> Go to Admin Dashboard
+                    </Link>
                 </CardContent>
             </Card>
         </div>
