@@ -3,33 +3,8 @@
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin } from "@/firebase";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Shield } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
-function AdminWelcome() {
-    return (
-        <div className="flex h-full w-full items-center justify-center">
-            <Card className="w-full max-w-md text-center shadow-lg">
-                <CardHeader>
-                    <CardTitle className="text-2xl font-headline">Welcome, Admin!</CardTitle>
-                    <CardDescription>You are logged in as an administrator.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground mb-6">
-                        You can manage users, drivers, and system settings from your dashboard.
-                    </p>
-                     <Link href="/admin" className={cn(buttonVariants({ size: "lg" }), "font-bold")}>
-                        <Shield className="mr-2" /> Go to Admin Dashboard
-                    </Link>
-                </CardContent>
-            </Card>
-        </div>
-    );
-}
 
 function HomePageLoadingSkeleton() {
     return (
@@ -62,9 +37,7 @@ export default function HomePage() {
     if (isAdminLoading) {
       return <HomePageLoadingSkeleton />;
     }
-    if (isAdmin) {
-      return <AdminWelcome />;
-    }
+    // Admins will now see the regular booking flow instead of a welcome message.
     return <BookingFlow />;
   };
 

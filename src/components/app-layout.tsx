@@ -74,21 +74,13 @@ function UserMenu() {
                 <DropdownMenuSeparator />
                  <DropdownMenuItem asChild>
                   <Link href="/profile">
-                    <User className="mr-2" />
+                    <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
-                {isAdmin && (
-                    <DropdownMenuItem asChild>
-                        <Link href="/admin">
-                            <Shield className="mr-2" />
-                            <span>Admin Dashboard</span>
-                        </Link>
-                    </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="mr-2" />
+                    <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
