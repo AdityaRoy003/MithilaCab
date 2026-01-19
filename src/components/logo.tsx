@@ -18,7 +18,7 @@ export function Logo({ className }: { className?: string }) {
           <circle cx="12" cy="10" r="3" />
         </svg>
       </div>
-      <span className="font-headline text-2xl font-bold text-foreground">
+      <span className="font-headline text-2xl font-bold">
         MithilaCab
       </span>
     </div>
