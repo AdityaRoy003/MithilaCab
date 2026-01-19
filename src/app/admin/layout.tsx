@@ -158,7 +158,7 @@ export default function AdminLayout({
 
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
-  const isAdminLoading = authLoading || profileLoading;
+  const isAdminLoading = authLoading || (user && profileLoading);
   const isAdmin = userProfile?.role === 'admin';
 
   useEffect(() => {

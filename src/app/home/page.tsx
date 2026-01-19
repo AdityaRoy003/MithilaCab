@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin } from "@/firebase";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from '@/components/ui/button';
+import { Shield } from 'lucide-react';
 
 function HomePageLoadingSkeleton() {
     return (
@@ -32,20 +33,32 @@ function HomePageLoadingSkeleton() {
     );
 }
 
+function AdminWelcome() {
+    return (
+        <div className="flex h-full w-full items-center justify-center">
+            <Card className="w-full max-w-md text-center">
+                <CardHeader>
+                    <CardTitle>Welcome, Admin!</CardTitle>
+                    <CardDescription>You have administrative privileges.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button asChild size="lg" className="font-bold">
+                        <Link href="/admin">
+                            <Shield className="mr-2" />
+                            Go to Admin Dashboard
+                        </Link>
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
 export default function HomePage() {
   const { isAdmin, isAdminLoading } = useAdmin();
-  const router = useRouter();
 
-  useEffect(() => {
-    // After the admin check is complete, if the user is an admin, redirect them.
-    if (!isAdminLoading && isAdmin) {
-      router.replace('/admin');
-    }
-  }, [isAdmin, isAdminLoading, router]);
-
-  // While we check if the user is an admin, or if they are an admin and are about to be redirected,
-  // show a loading skeleton. This prevents a flash of the passenger UI.
-  if (isAdminLoading || isAdmin) {
+  // While we check if the user is an admin, show a loading skeleton.
+  if (isAdminLoading) {
     return (
       <AppLayout>
         <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
@@ -55,11 +68,11 @@ export default function HomePage() {
     );
   }
 
-  // If loading is complete and the user is NOT an admin, show the normal booking flow.
+  // If loading is complete, render based on role.
   return (
     <AppLayout>
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
-        <BookingFlow />
+        {isAdmin ? <AdminWelcome /> : <BookingFlow />}
       </main>
     </AppLayout>
   );
