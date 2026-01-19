@@ -81,7 +81,6 @@ function SidebarNav() {
 
 function UserMenu() {
     const { user } = useUser();
-    const { role } = useAdmin();
     const auth = useAuth();
     const router = useRouter();
 
@@ -144,12 +143,15 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAdminLoading && !isAdmin) {
+    // Only redirect if loading is finished and we know for sure the user is not an admin.
+    if (isAdminLoading === false && isAdmin === false) {
       router.replace('/home');
     }
   }, [isAdmin, isAdminLoading, router]);
 
-  if (isAdminLoading || !isAdmin) {
+  // If loading is not yet finished, OR if loading is finished but user is not an admin (and is being redirected),
+  // show the loading/verification screen.
+  if (isAdminLoading || isAdmin === false) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -162,6 +164,7 @@ export default function AdminLayout({
     );
   }
 
+  // If we reach here, isAdminLoading is false and isAdmin is true.
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <aside className="hidden border-r bg-gray-900 text-white md:block">
