@@ -1,5 +1,5 @@
 'use client';
-    
+
 import { useState, useEffect } from 'react';
 import {
   DocumentReference,
@@ -27,7 +27,7 @@ export interface UseDocResult<T> {
 /**
  * React hook to subscribe to a single Firestore document in real-time.
  * Handles nullable references.
- * 
+ *
  * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
  * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
  * references
@@ -48,6 +48,7 @@ export function useDoc<T = any>(
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
+    // If there's no reference, we are not loading and have no data.
     if (!memoizedDocRef) {
       setData(null);
       setIsLoading(false);
@@ -55,7 +56,9 @@ export function useDoc<T = any>(
       return;
     }
 
+    // A reference is present. Set loading state and clear previous data/errors.
     setIsLoading(true);
+    setData(null);
     setError(null);
 
     const unsubscribe = onSnapshot(
@@ -64,6 +67,7 @@ export function useDoc<T = any>(
         if (snapshot.exists()) {
           setData({ ...(snapshot.data() as T), id: snapshot.id });
         } else {
+          // Document does not exist. This is not an error, but there's no data.
           setData(null);
         }
         setError(null);
@@ -75,9 +79,9 @@ export function useDoc<T = any>(
           path: memoizedDocRef.path,
         })
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
         errorEmitter.emit('permission-error', contextualError);
       }
