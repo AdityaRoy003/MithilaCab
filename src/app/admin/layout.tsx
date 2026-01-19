@@ -158,17 +158,20 @@ export default function AdminLayout({
 
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
-  const isLoading = authLoading || (user && profileLoading);
-  const isDefinitivelyNotAdmin = !isLoading && (!user || userProfile?.role !== 'admin');
+  const isLoading = authLoading || profileLoading;
   
   useEffect(() => {
-    if (isDefinitivelyNotAdmin) {
-      router.replace('/home');
+    // Only perform check after all loading is complete.
+    if (!isLoading) {
+      // If loading is done, and we determine the user is not an admin, redirect.
+      if (!user || userProfile?.role !== 'admin') {
+        router.replace('/home');
+      }
     }
-  }, [isDefinitivelyNotAdmin, router]);
+  }, [isLoading, user, userProfile, router]);
 
 
-  // 1. Render a loading screen while we verify credentials.
+  // 1. While any authentication or profile fetching is in progress, show a loading screen.
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -182,60 +185,63 @@ export default function AdminLayout({
     );
   }
 
-  // 2. If loading is complete and the user is NOT an admin, render nothing while redirecting.
-  if (isDefinitivelyNotAdmin) {
-    return null;
+  // 2. After loading, if the user's role is confirmed to be an admin, render the dashboard.
+  // This check is crucial to prevent non-admins from seeing a flash of the admin UI.
+  if (userProfile?.role === 'admin') {
+      return (
+        <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+          <aside className="hidden border-r bg-gray-900 text-white md:block">
+            <div className="flex h-full max-h-screen flex-col gap-2">
+                <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
+                    <Link href="/home"><Logo /></Link>
+                </div>
+                <div className="flex-1 overflow-auto py-2">
+                    <SidebarNav />
+                </div>
+            </div>
+          </aside>
+          <div className="flex flex-col">
+            <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+              <div className='flex items-center gap-4'>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0 md:hidden"
+                    >
+                      <Menu className="h-5 w-5" />
+                      <span className="sr-only">Toggle navigation menu</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="flex flex-col bg-gray-900 text-white p-0">
+                      <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
+                          <Link href="/home"><Logo /></Link>
+                      </div>
+                      <div className="flex-1 overflow-auto py-2">
+                          <SidebarNav />
+                      </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+              
+              <div className="ml-auto">
+                <UserMenu />
+              </div>
+            </header>
+            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
+              {children}
+            </main>
+            <footer className="border-t p-4 text-center text-xs text-muted-foreground">
+                Copyright © MithilaCab {new Date().getFullYear()}
+            </footer>
+          </div>
+        </div>
+      );
   }
   
-  // 3. If loading is complete and we haven't redirected, the user must be an admin.
-  return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <aside className="hidden border-r bg-gray-900 text-white md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-            <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
-                <Link href="/home"><Logo /></Link>
-            </div>
-            <div className="flex-1 overflow-auto py-2">
-                <SidebarNav />
-            </div>
-        </div>
-      </aside>
-      <div className="flex flex-col">
-        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
-          <div className='flex items-center gap-4'>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 md:hidden"
-                >
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col bg-gray-900 text-white p-0">
-                  <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
-                      <Link href="/home"><Logo /></Link>
-                  </div>
-                  <div className="flex-1 overflow-auto py-2">
-                      <SidebarNav />
-                  </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-          
-          <div className="ml-auto">
-            <UserMenu />
-          </div>
-        </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
-          {children}
-        </main>
-        <footer className="border-t p-4 text-center text-xs text-muted-foreground">
-            Copyright © MithilaCab {new Date().getFullYear()}
-        </footer>
-      </div>
-    </div>
-  );
+  // 3. If loading is done but the user is not an admin, render nothing.
+  // The useEffect above has already initiated the redirect. This prevents the admin UI
+  // from flashing on the screen for a non-admin user.
+  return null;
 }
