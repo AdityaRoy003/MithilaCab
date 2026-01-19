@@ -37,7 +37,7 @@ service cloud.firestore {
     }
 
     function isDriver() {
-      return isSignedIn() && exists(/databases/$(database)/documents/drivers/$(request.auth.uid));
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'driver';
     }
     
     /**
