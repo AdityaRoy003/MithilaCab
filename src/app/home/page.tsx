@@ -37,7 +37,7 @@ export default function HomePage() {
     if (isAdminLoading) {
       return <HomePageLoadingSkeleton />;
     }
-    // Admins will now see the regular booking flow instead of a welcome message.
+    // All users, including admins, will see the booking flow.
     return <BookingFlow />;
   };
 
