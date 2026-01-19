@@ -18,7 +18,8 @@ function RideHistoryList({ user }: { user: User }) {
     const firestore = useFirestore();
 
     // The query is memoized and will only be created when both firestore and user.uid are available.
-    // This prevents any intermediate state from triggering a query without the necessary 'where' clause.
+    // The dependency array now uses user.uid for better stability, ensuring the query is not
+    // re-created unless the actual user ID changes.
     const ridesQuery = useMemoFirebase(() => {
         if (!firestore || !user?.uid) {
             return null;
@@ -29,7 +30,7 @@ function RideHistoryList({ user }: { user: User }) {
           orderBy('startTime', 'desc')
         )
       }, 
-      [firestore, user]
+      [firestore, user?.uid] // Using user.uid for stable dependency
     );
   
     const { data: rides, isLoading: areRidesLoading } = useCollection<Ride>(ridesQuery);
