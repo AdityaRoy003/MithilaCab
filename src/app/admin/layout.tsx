@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAdmin, useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import {
@@ -133,14 +134,28 @@ function UserMenu() {
     );
 }
 
+interface UserProfile {
+    role?: 'passenger' | 'driver' | 'admin';
+}
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAdmin, isAdminLoading } = useAdmin();
+  const { user, isUserLoading: authLoading } = useUser();
+  const firestore = useFirestore();
   const router = useRouter();
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
+
+  const isAdminLoading = authLoading || profileLoading;
+  const isAdmin = !!userProfile && userProfile.role === 'admin';
 
   useEffect(() => {
     // We only want to check for redirection *after* the initial loading is complete.
