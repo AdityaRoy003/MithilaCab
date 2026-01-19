@@ -5,6 +5,7 @@ import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 
 interface UserProfile {
     role?: 'passenger' | 'driver' | 'admin';
+    isAdmin?: boolean; // For backward compatibility
 }
 
 export function useAdmin() {
@@ -18,8 +19,11 @@ export function useAdmin() {
 
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
-  const isAdmin = userProfile?.role === 'admin';
-  const role = userProfile?.role;
+  // Check for the new role OR the old boolean flag for backward compatibility
+  const isAdmin = userProfile?.role === 'admin' || userProfile?.isAdmin === true;
+  
+  // Determine the role, preferring the new 'role' field but falling back for compatibility
+  const role = userProfile?.role || (isAdmin ? 'admin' : undefined);
 
   const isAdminLoading = isUserLoading || profileLoading;
 

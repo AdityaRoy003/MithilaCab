@@ -42,11 +42,12 @@ service cloud.firestore {
     
     /**
      * Checks if the user has 'admin' role in their user document.
-     * It's safe because if the document or role field doesn't exist, it evaluates to false.
+     * This is backward-compatible and checks for the new `role` field
+     * or the old `isAdmin` boolean flag.
      */
     function isAdmin() {
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return isSignedIn() && userDoc != null && userDoc.data.role == 'admin';
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isSignedIn() && userDoc != null && (userDoc.role == 'admin' || userDoc.isAdmin == true);
     }
 
     function canCreateOwnUserDoc(userId) {
