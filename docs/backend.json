@@ -31,6 +31,10 @@
           "type": "string",
           "description": "The date and time when the user joined.",
           "format": "date-time"
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "description": "Indicates if the user has administrative privileges."
         }
       },
       "required": [

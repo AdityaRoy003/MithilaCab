@@ -50,3 +50,4 @@ export * from './errors';
 export * from './error-emitter';
 export * from './auth/use-user';
 export * from './auth/use-driver';
+export * from './auth/use-admin';

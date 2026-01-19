@@ -15,7 +15,8 @@
  * ## Key Security Decisions
  * - **Strict Ownership**: A user can only write to their own document in `/users/{userId}`.
  * - **Public Driver Profiles**: Any signed-in user can read driver profiles to see who is available, but only the driver can update their own profile.
- * - **No Public Listing of Users**: Listing all users is disallowed to protect privacy.
+ * - **Admin Access**: Users with `isAdmin: true` on their user profile can read all user and driver data.
+ * - **No Public Listing of Users**: Listing all users is disallowed for non-admins to protect privacy.
  * - **Shared Document Access**: Access to a `/rides/{rideId}` document is granted only if the requester's UID matches the `userId` or `driverId` field within that document.
  * - **Secure Listing of Rides**: The `list` rule for the `/rides` collection is intentionally broad (`if isSignedIn()`), but this is secure because the `get` rule (`if isRideParticipant()`) is checked on *every single document* returned by a query. This forces the client to build specific queries (e.g., `where('userId', '==', auth.uid)`) to avoid permission errors. An unconstrained query on `/rides` will always fail for a regular user, which is the desired secure behavior.
  */
@@ -37,6 +38,12 @@ service cloud.firestore {
 
     function isDriver() {
       return isSignedIn() && exists(/databases/$(database)/documents/drivers/$(request.auth.uid));
+    }
+    
+    function isAdmin() {
+      // Check for the existence of the isAdmin flag and that it's true.
+      // This is more secure than just checking for existence.
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
     function canCreateOwnUserDoc(userId) {
@@ -81,11 +88,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Rules for the `users` collection. Only the owner can read or write their own data.
+     * @description Rules for the `users` collection. Only the owner can read or write their own data. Admins can read all user data.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false; // Disallow listing all users.
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
       allow create: if canCreateOwnUserDoc(userId);
       allow update: if isOwner(userId) && isIdImmutable();
       allow delete: if isOwner(userId);
