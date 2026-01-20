@@ -96,7 +96,7 @@ export function DriverList() {
                                 <div className="flex items-center gap-3">
                                     <Avatar className="hidden h-9 w-9 sm:flex">
                                         <AvatarImage src={driver.image?.imageUrl} alt={driver.name} data-ai-hint={driver.image?.imageHint}/>
-                                        <AvatarFallback>{driver.name.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback>{driver.name?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="font-medium">{driver.name}</div>
                                 </div>

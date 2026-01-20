@@ -91,7 +91,7 @@ export function UserList() {
                                 <div className="flex items-center gap-3">
                                     <Avatar className="hidden h-9 w-9 sm:flex">
                                         <AvatarImage src={user.photoURL} alt={user.name} />
-                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="font-medium">{user.name}</div>
                                 </div>
