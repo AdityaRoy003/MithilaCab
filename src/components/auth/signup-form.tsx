@@ -158,12 +158,12 @@ export function SignupForm() {
                   defaultValue={field.value}
                   className="grid grid-cols-2 gap-4"
                 >
-                    <Label className={cn("flex flex-col items-center justify-center rounded-md border-2 p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors", field.value === 'passenger' ? 'border-primary bg-accent/50' : 'border-muted')}>
+                    <Label className={cn("flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer transition-all", field.value === 'passenger' ? 'border-primary bg-primary/10 shadow-md' : 'border-muted hover:bg-accent/50')}>
                         <RadioGroupItem value="passenger" className="sr-only" />
                         <UserIcon className="mb-2 h-6 w-6" />
                         Passenger
                     </Label>
-                    <Label className={cn("flex flex-col items-center justify-center rounded-md border-2 p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors", field.value === 'driver' ? 'border-primary bg-accent/50' : 'border-muted')}>
+                    <Label className={cn("flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer transition-all", field.value === 'driver' ? 'border-primary bg-primary/10 shadow-md' : 'border-muted hover:bg-accent/50')}>
                         <RadioGroupItem value="driver" className="sr-only" />
                         <Car className="mb-2 h-6 w-6" />
                         Driver
