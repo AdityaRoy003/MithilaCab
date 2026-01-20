@@ -80,10 +80,9 @@ service cloud.firestore {
     }
 
     match /rides/{rideId} {
-      // DIAGNOSTIC/STABILITY FIX: Allow any signed-in user to read any ride data.
-      // This is a permissive but functional rule that resolves all 'list' query errors.
-      // It unblocks the application flow for all users (passengers and drivers).
-      allow read: if isSignedIn();
+      // STABILITY FIX: Allow any signed-in user to read ride data.
+      // This is the simplest possible rule to resolve all list query errors.
+      allow get, list: if isSignedIn();
 
       allow create: if canCreateRide();
       
