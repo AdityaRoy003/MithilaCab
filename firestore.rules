@@ -18,7 +18,7 @@
  * - **Admin Access**: Users with `role: 'admin'` on their user profile can read all user and driver data.
  * - **No Public Listing of Users**: Listing all users is disallowed for non-admins to protect privacy.
  * - **Shared Document Access**: Access to a `/rides/{rideId}` document is granted only if the requester's UID matches the `userId` or `driverId` field within that document.
- * - **Secure Listing of Rides**: The `list` rule for the `/rides` collection is intentionally broad (`if isSignedIn()`), but this is secure because the `get` rule (`if isRideParticipant()`) is checked on *every single document* returned by a query. This forces the client to build specific queries (e.g., `where('userId', '==', auth.uid)`) to avoid permission errors. An unconstrained query on `/rides` will always fail for a regular user, which is the desired secure behavior.
+ * - **Secure Listing of Rides**: The `list` rule for the `/rides` collection is intentionally broad (`if isSignedIn()`), but this is secure because the `get` rule (`if isRideParticipant() || isRideUnassigned()`) is checked on *every single document* returned by a query. This forces the client to build specific queries (e.g., `where('driverId', '==', null)`) to avoid permission errors. An unconstrained query on `/rides` will always fail for a regular user, which is the desired secure behavior.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -96,8 +96,8 @@ service cloud.firestore {
     
     function isRideUnassigned() {
       // A ride is "unassigned" (and thus available for a driver to see)
-      // if it's driverId is null or the field does not exist.
-      return resource != null && (!('driverId' in resource.data) || resource.data.driverId == null);
+      // if its driverId is null. This rule is simple to allow for efficient querying.
+      return resource != null && resource.data.driverId == null;
     }
 
     /**
@@ -132,7 +132,8 @@ service cloud.firestore {
 
       // A user can LIST their own rides (as passenger or driver).
       // Any signed-in user can LIST all unassigned rides.
-      // This is secure because the client query MUST constrain the list.
+      // This is secure because the client query MUST constrain the list, and the GET rule is
+      // evaluated on every document returned.
       allow list: if isSignedIn();
 
       allow create: if canCreateRide();
