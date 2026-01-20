@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Car, KeyRound, Mail, Phone, User as UserIcon, Eye, EyeOff, Loader2 } from "lucide-react";
 
 
@@ -71,7 +71,7 @@ export function SignupForm() {
     },
   });
 
-  const { formState: { isSubmitting } } = form;
+  const { formState: { isSubmitting, errors } } = form;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -155,13 +155,13 @@ export function SignupForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
         <FormField
           control={form.control}
           name="role"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel>I am signing up as a...</FormLabel>
+              <FormLabel className="text-center block">I am signing up as a...</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
@@ -199,11 +199,18 @@ export function SignupForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
               <FormControl>
                 <div className="relative">
                   <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Your Name" {...field} className="pl-9" />
+                  <Input 
+                    id="name" 
+                    placeholder=" " 
+                    {...field} 
+                    className={cn("peer pl-9", errors.name && "animate-shake border-destructive")}
+                  />
+                  <FormLabel htmlFor="name" className="absolute text-base text-muted-foreground duration-300 transform -translate-y-1/2 top-1/2 left-9 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-[-50%] peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-3 peer-focus:text-primary">
+                    Full Name
+                  </FormLabel>
                 </div>
               </FormControl>
               <FormMessage />
@@ -215,11 +222,18 @@ export function SignupForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="name@example.com" {...field} className="pl-9" />
+                  <Input 
+                    id="email" 
+                    placeholder=" " 
+                    {...field} 
+                    className={cn("peer pl-9", errors.email && "animate-shake border-destructive")}
+                  />
+                  <FormLabel htmlFor="email" className="absolute text-base text-muted-foreground duration-300 transform -translate-y-1/2 top-1/2 left-9 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-[-50%] peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-3 peer-focus:text-primary">
+                    Email
+                  </FormLabel>
                 </div>
               </FormControl>
               <FormMessage />
@@ -231,11 +245,18 @@ export function SignupForm() {
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone Number</FormLabel>
               <FormControl>
                  <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="9876543210" {...field} className="pl-9" />
+                  <Input 
+                    id="phone" 
+                    placeholder=" " 
+                    {...field} 
+                    className={cn("peer pl-9", errors.phone && "animate-shake border-destructive")}
+                  />
+                  <FormLabel htmlFor="phone" className="absolute text-base text-muted-foreground duration-300 transform -translate-y-1/2 top-1/2 left-9 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-[-50%] peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-3 peer-focus:text-primary">
+                    Phone Number
+                  </FormLabel>
                 </div>
               </FormControl>
               <FormMessage />
@@ -247,26 +268,34 @@ export function SignupForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
               <FormControl>
                  <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
+                    id="password"
                     type={showPassword ? "text" : "password"} 
-                    placeholder="••••••••" 
+                    placeholder=" "
                     {...field} 
-                    className="pl-9 pr-10" 
+                    className={cn("peer pl-9 pr-10", errors.password && "animate-shake border-destructive")}
                   />
-                   <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
-                </Button>
+                  <FormLabel htmlFor="password" className="absolute text-base text-muted-foreground duration-300 transform -translate-y-1/2 top-1/2 left-9 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-[-50%] peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-3 peer-focus:text-primary">
+                    Password
+                  </FormLabel>
+                   <AnimatePresence mode="wait" initial={false}>
+                      <motion.button
+                        key={showPassword ? "eye-off" : "eye"}
+                        initial={{ opacity: 0, x: 5 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -5 }}
+                        transition={{ duration: 0.2 }}
+                        type="button"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground flex items-center justify-center"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+                      </motion.button>
+                  </AnimatePresence>
                 </div>
               </FormControl>
               <FormMessage />
