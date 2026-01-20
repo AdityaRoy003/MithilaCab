@@ -36,6 +36,40 @@
           "type": "string",
           "description": "Defines the user's role, granting different permissions.",
           "enum": ["passenger", "driver", "admin"]
+        },
+        "savedAddresses": {
+          "type": "object",
+          "description": "User's saved addresses for quick booking.",
+          "properties": {
+            "home": {
+              "type": "string",
+              "description": "User's home address."
+            },
+            "work": {
+              "type": "string",
+              "description": "User's work address."
+            }
+          }
+        },
+        "preferences": {
+          "type": "object",
+          "description": "User's application preferences.",
+          "properties": {
+            "defaultRideType": {
+              "type": "string",
+              "enum": [
+                "Standard",
+                "Premium",
+                "SUV"
+              ]
+            },
+            "language": {
+              "type": "string"
+            },
+            "accessibilityNeeds": {
+              "type": "boolean"
+            }
+          }
         }
       },
       "required": [

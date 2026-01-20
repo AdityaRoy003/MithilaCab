@@ -14,6 +14,11 @@ import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Home, Briefcase } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import type { RideType } from '@/lib/data';
+
 
 interface UserProfile {
     id: string;
@@ -22,6 +27,15 @@ interface UserProfile {
     phone: string;
     photoURL?: string;
     dateJoined?: any;
+    savedAddresses?: {
+        home?: string;
+        work?: string;
+    };
+    preferences?: {
+        defaultRideType?: RideType;
+        language?: string;
+        accessibilityNeeds?: boolean;
+    };
 }
 
 export default function ProfilePage() {
@@ -42,6 +56,13 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  // New state for profile features
+  const [homeAddress, setHomeAddress] = useState('');
+  const [workAddress, setWorkAddress] = useState('');
+  const [defaultRideType, setDefaultRideType] = useState<RideType>('Standard');
+  const [language, setLanguage] = useState('en');
+  const [accessibilityNeeds, setAccessibilityNeeds] = useState(false);
+
   // State for password change
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -53,6 +74,11 @@ export default function ProfilePage() {
       setName(userProfile.name || '');
       setEmail(userProfile.email || '');
       setPhone(userProfile.phone || '');
+      setHomeAddress(userProfile.savedAddresses?.home || '');
+      setWorkAddress(userProfile.savedAddresses?.work || '');
+      setDefaultRideType(userProfile.preferences?.defaultRideType || 'Standard');
+      setLanguage(userProfile.preferences?.language || 'en');
+      setAccessibilityNeeds(userProfile.preferences?.accessibilityNeeds || false);
     } else if(user) {
       setName(user.displayName || '');
       setEmail(user.email || '');
@@ -69,7 +95,19 @@ export default function ProfilePage() {
         });
       }
 
-      const updatedProfileData = { name: name, phone: phone };
+      const updatedProfileData = {
+          name,
+          phone,
+          savedAddresses: {
+              home: homeAddress,
+              work: workAddress,
+          },
+          preferences: {
+              defaultRideType,
+              language,
+              accessibilityNeeds,
+          }
+       };
       
       setDoc(userDocRef, updatedProfileData, { merge: true })
         .catch(async (serverError) => {
@@ -83,7 +121,7 @@ export default function ProfilePage() {
 
       toast({
         title: "Profile Updated",
-        description: "Your personal information has been saved.",
+        description: "Your information has been saved successfully.",
       });
     } catch (error: any) {
       toast({
@@ -146,9 +184,10 @@ export default function ProfilePage() {
                                 <Skeleton className="h-10 w-full" />
                                 <Skeleton className="h-10 w-full" />
                                 <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-32" />
                             </CardContent>
                         </Card>
+                        <Skeleton className="h-48 w-full" />
+                        <Skeleton className="h-64 w-full" />
                         <Skeleton className="h-64 w-full" />
                     </div>
                     <div className="space-y-8">
@@ -176,7 +215,7 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
-                <CardDescription>Update your personal details here.</CardDescription>
+                <CardDescription>Update your details. Click "Save All Changes" at the bottom to apply.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -191,10 +230,77 @@ export default function ProfilePage() {
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
                 </div>
-                <Button onClick={handleSaveChanges} disabled={isSaving} className="font-bold">
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </Button>
               </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Saved Addresses</CardTitle>
+                <CardDescription>Add your frequent locations for faster booking.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="home-address">Home</Label>
+                  <div className="relative flex items-center">
+                    <Home className="absolute left-3 h-4 w-4 text-muted-foreground" />
+                    <Input id="home-address" placeholder="e.g., 123 Main St, Your City" value={homeAddress} onChange={(e) => setHomeAddress(e.target.value)} className="pl-9" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="work-address">Work</Label>
+                  <div className="relative flex items-center">
+                    <Briefcase className="absolute left-3 h-4 w-4 text-muted-foreground" />
+                    <Input id="work-address" placeholder="e.g., 456 Business Ave, Your City" value={workAddress} onChange={(e) => setWorkAddress(e.target.value)} className="pl-9" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Preferences</CardTitle>
+                <CardDescription>Customize your app experience.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Default Ride Type</Label>
+                  <Select value={defaultRideType} onValueChange={(value) => setDefaultRideType(value as RideType)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a ride type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Standard">Standard</SelectItem>
+                      <SelectItem value="Premium">Premium</SelectItem>
+                      <SelectItem value="SUV">SUV</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Language</Label>
+                  <Select value={language} onValueChange={setLanguage}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="hi">Hindi</SelectItem>
+                      <SelectItem value="mai">Maithili</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accessibility" className="text-base">Accessibility Needs</Label>
+                    <p className="text-sm text-muted-foreground">Request wheelchair accessible vehicles.</p>
+                  </div>
+                  <Switch id="accessibility" checked={accessibilityNeeds} onCheckedChange={setAccessibilityNeeds} />
+                </div>
+              </CardContent>
+              <CardFooter>
+                 <Button onClick={handleSaveChanges} disabled={isSaving} className="font-bold">
+                  {isSaving ? 'Saving...' : 'Save All Changes'}
+                </Button>
+              </CardFooter>
             </Card>
 
             <Card>
