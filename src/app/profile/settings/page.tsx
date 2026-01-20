@@ -30,7 +30,7 @@ import {
 import AppLayout from '@/components/app-layout';
 import { cn } from '@/lib/utils';
 
-const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false, onAction, isDestructive = false, disabled = false, ...props }: { href?: string, icon: React.ElementType, title:string, subtitle?: string, isAction?: boolean, onAction?: () => void, isDestructive?: boolean, disabled?: boolean, [key:string]: any }) => {
+const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false, onAction, isDestructive = false, disabled = false, ...props }: { href?: string, icon: React.ElementType, title:string, subtitle?: string, isAction?: boolean, onAction?: (e: React.MouseEvent<Element, MouseEvent>) => void, isDestructive?: boolean, disabled?: boolean, [key:string]: any }) => {
     const content = (
         <div className={cn("flex items-center justify-between p-4 w-full text-left", isDestructive && "text-destructive", disabled && "opacity-50")}>
             <div className="flex items-center gap-4">
@@ -47,7 +47,14 @@ const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false,
     );
 
     const commonProps = {
-        onClick: onAction,
+        onClick: (e: React.MouseEvent<Element, MouseEvent>) => {
+          if (props.onClick) {
+            props.onClick(e)
+          }
+          if (onAction) {
+            onAction(e)
+          }
+        },
         disabled: disabled,
         className: "w-full h-full hover:bg-accent/50 transition-colors disabled:hover:bg-transparent disabled:cursor-not-allowed"
     };
