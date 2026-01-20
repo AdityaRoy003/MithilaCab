@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { Car, KeyRound, Mail, Phone, User as UserIcon, Eye, EyeOff } from "lucide-react";
+import { Car, KeyRound, Mail, Phone, User as UserIcon, Eye, EyeOff, Loader2 } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,8 @@ export function SignupForm() {
       role: "passenger",
     },
   });
+
+  const { formState: { isSubmitting } } = form;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -255,8 +257,15 @@ export function SignupForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full font-bold" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Creating Account...' : 'Create Account'}
+        <Button type="submit" className="w-full font-bold" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating Account...
+            </>
+          ) : (
+            'Create Account'
+          )}
         </Button>
       </form>
     </Form>
