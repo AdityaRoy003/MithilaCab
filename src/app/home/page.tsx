@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin, useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -8,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
 import { Shield, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, limit } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
 import { RideHistoryItem } from '@/components/ride/ride-history-item';
 
@@ -21,12 +22,20 @@ function PassengerDashboard() {
         return query(
             collection(firestore, 'rides'),
             where('userId', '==', user.uid),
-            orderBy('startTime', 'desc'),
             limit(3)
         );
     }, [firestore, user]);
 
     const { data: recentRides, isLoading: areRidesLoading } = useCollection<Ride>(ridesQuery);
+
+    const sortedRecentRides = useMemo(() => {
+        if (!recentRides) return [];
+        return [...recentRides].sort((a, b) => {
+            const timeA = a.startTime?.toDate ? a.startTime.toDate().getTime() : 0;
+            const timeB = b.startTime?.toDate ? b.startTime.toDate().getTime() : 0;
+            return timeB - timeA;
+        });
+    }, [recentRides]);
     
     return (
         <div className="space-y-8">
@@ -51,12 +60,12 @@ function PassengerDashboard() {
                             <Skeleton className="h-24 w-full" />
                         </>
                     )}
-                    {!areRidesLoading && recentRides && recentRides.length > 0 && (
-                        recentRides.map((ride) => (
+                    {!areRidesLoading && sortedRecentRides && sortedRecentRides.length > 0 && (
+                        sortedRecentRides.map((ride) => (
                             <RideHistoryItem key={ride.id} ride={ride} />
                         ))
                     )}
-                    {!areRidesLoading && (!recentRides || recentRides.length === 0) && (
+                    {!areRidesLoading && (!sortedRecentRides || sortedRecentRides.length === 0) && (
                         <Card>
                             <CardContent className="p-6 text-center text-muted-foreground">
                                 You have no recent rides.

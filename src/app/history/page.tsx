@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
-import { collection, query, where, orderBy } from "firebase/firestore";
+import { collection, query, where } from "firebase/firestore";
 import AppLayout from "@/components/app-layout";
 import { RideHistoryItem } from "@/components/ride/ride-history-item";
 import type { Ride } from "@/lib/data";
@@ -19,11 +19,10 @@ export default function HistoryPage() {
   const ridesQuery = useMemoFirebase(() => {
     if (!user) return null;
     // Simple query for all rides belonging to the user.
-    // Filtering by status will be done on the client side to avoid complex queries.
+    // Sorting will be done on the client side to avoid complex queries and missing index errors.
     return query(
         collection(firestore, 'rides'), 
-        where('userId', '==', user.uid), 
-        orderBy('startTime', 'desc')
+        where('userId', '==', user.uid)
     );
   }, [firestore, user]);
 
@@ -32,8 +31,15 @@ export default function HistoryPage() {
 
   const filteredRides = useMemo(() => {
       if (!rides) return [];
-      if (filter === 'all') return rides;
-      return rides.filter(ride => ride.status === filter);
+      // Make a mutable copy before sorting
+      const sorted = [...rides].sort((a, b) => {
+        const timeA = a.startTime?.toDate ? a.startTime.toDate().getTime() : 0;
+        const timeB = b.startTime?.toDate ? b.startTime.toDate().getTime() : 0;
+        return timeB - timeA;
+      });
+
+      if (filter === 'all') return sorted;
+      return sorted.filter(ride => ride.status === filter);
   }, [rides, filter]);
 
 
