@@ -32,6 +32,30 @@
           "description": "The date and time when the user joined.",
           "format": "date-time"
         },
+        "gender": {
+            "type": "string",
+            "description": "The gender of the user.",
+            "enum": ["Male", "Female", "Other", "Prefer not to say"]
+        },
+        "dateOfBirth": {
+            "type": "string",
+            "description": "The user's date of birth.",
+            "format": "date"
+        },
+        "emergencyContact": {
+            "type": "object",
+            "description": "An emergency contact for the user.",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the emergency contact."
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "Phone number of the emergency contact."
+                }
+            }
+        },
         "role": {
           "type": "string",
           "description": "Defines the user's role, granting different permissions.",

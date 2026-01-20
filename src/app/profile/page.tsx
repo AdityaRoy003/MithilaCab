@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Home, Briefcase, History, ChevronRight } from 'lucide-react';
+import { Home, Briefcase, History, ChevronRight, User as UserIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import type { RideType } from '@/lib/data';
@@ -53,8 +53,6 @@ export default function ProfilePage() {
   const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   // New state for profile features
@@ -73,8 +71,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (userProfile) {
       setName(userProfile.name || '');
-      setEmail(userProfile.email || '');
-      setPhone(userProfile.phone || '');
       setHomeAddress(userProfile.savedAddresses?.home || '');
       setWorkAddress(userProfile.savedAddresses?.work || '');
       setDefaultRideType(userProfile.preferences?.defaultRideType || 'Standard');
@@ -82,7 +78,6 @@ export default function ProfilePage() {
       setAccessibilityNeeds(userProfile.preferences?.accessibilityNeeds || false);
     } else if(user) {
       setName(user.displayName || '');
-      setEmail(user.email || '');
     }
   }, [user, userProfile]);
 
@@ -90,15 +85,7 @@ export default function ProfilePage() {
     if (!auth.currentUser || !userDocRef) return;
     setIsSaving(true);
     try {
-      if (auth.currentUser.displayName !== name) {
-        await updateProfile(auth.currentUser, {
-            displayName: name,
-        });
-      }
-
       const updatedProfileData = {
-          name,
-          phone,
           savedAddresses: {
               home: homeAddress,
               work: workAddress,
@@ -121,14 +108,14 @@ export default function ProfilePage() {
         });
 
       toast({
-        title: "Profile Updated",
-        description: "Your information has been saved successfully.",
+        title: "Settings Updated",
+        description: "Your settings have been saved successfully.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Could not update profile.",
+        description: error.message || "Could not update settings.",
       });
     } finally {
       setIsSaving(false);
@@ -176,17 +163,6 @@ export default function ProfilePage() {
                   <h1 className="font-headline text-3xl font-bold mb-6">My Profile</h1>
                    <div className="grid gap-8 md:grid-cols-3">
                     <div className="md:col-span-2 space-y-8">
-                        <Card>
-                            <CardHeader>
-                                <Skeleton className="h-8 w-48" />
-                                <Skeleton className="h-4 w-64" />
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
-                            </CardContent>
-                        </Card>
                         <Skeleton className="h-48 w-full" />
                         <Skeleton className="h-64 w-full" />
                         <Skeleton className="h-64 w-full" />
@@ -214,24 +190,15 @@ export default function ProfilePage() {
         <div className="grid gap-8 md:grid-cols-3">
           <div className="md:col-span-2 space-y-8">
             <Card>
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>Update your details. Click "Save All Changes" at the bottom to apply.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input id="email" type="email" value={email} disabled />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </div>
-              </CardContent>
+                <CardContent className="p-0">
+                    <Link href="/profile/personal" className="flex items-center justify-between p-6 w-full">
+                        <div className="flex items-center gap-4">
+                            <UserIcon className="h-5 w-5 text-muted-foreground" />
+                            <span className="font-medium">Personal Information</span>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    </Link>
+                </CardContent>
             </Card>
             
             <Card>
@@ -299,7 +266,7 @@ export default function ProfilePage() {
               </CardContent>
               <CardFooter>
                  <Button onClick={handleSaveChanges} disabled={isSaving} className="font-bold">
-                  {isSaving ? 'Saving...' : 'Save All Changes'}
+                  {isSaving ? 'Saving...' : 'Save Settings'}
                 </Button>
               </CardFooter>
             </Card>
