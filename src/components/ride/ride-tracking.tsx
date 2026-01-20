@@ -119,7 +119,7 @@ export function RideTracking({ rideDetails, onComplete }: RideTrackingProps) {
           <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={driver.image.imageUrl} alt={driver.name} data-ai-hint={driver.image.imageHint} />
+                <AvatarImage src={driver.image?.imageUrl} alt={driver.name} data-ai-hint={driver.image?.imageHint} />
                 <AvatarFallback>{driver.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>

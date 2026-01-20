@@ -23,7 +23,7 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
       <CardContent className="p-4 flex flex-col sm:flex-row gap-4">
         <div className="flex flex-1 items-start gap-4">
             <Avatar className="w-12 h-12 border">
-                <AvatarImage src={ride.driver.image.imageUrl} alt={ride.driver.name} data-ai-hint={ride.driver.image.imageHint} />
+                <AvatarImage src={ride.driver.image?.imageUrl} alt={ride.driver.name} data-ai-hint={ride.driver.image?.imageHint} />
                 <AvatarFallback>{ride.driver.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-1">

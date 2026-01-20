@@ -71,7 +71,7 @@ export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center space-y-2">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={rideDetails.driver.image.imageUrl} alt={rideDetails.driver.name} data-ai-hint={rideDetails.driver.image.imageHint} />
+              <AvatarImage src={rideDetails.driver.image?.imageUrl} alt={rideDetails.driver.name} data-ai-hint={rideDetails.driver.image?.imageHint} />
               <AvatarFallback>{rideDetails.driver.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <p className="font-bold text-xl">{rideDetails.driver.name}</p>
