@@ -98,7 +98,7 @@ export default function ProfilePage() {
                  <Button variant="ghost" asChild className="-ml-4">
                     <Link href="/home">
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back
+                        Back to Home
                     </Link>
                 </Button>
                 <h1 className="font-headline text-2xl font-bold">Profile</h1>

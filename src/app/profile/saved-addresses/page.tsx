@@ -101,7 +101,7 @@ export default function SavedAddressesPage() {
             <Button variant="ghost" asChild>
                 <Link href="/profile">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Settings
+                    Back to Profile
                 </Link>
             </Button>
         </div>
