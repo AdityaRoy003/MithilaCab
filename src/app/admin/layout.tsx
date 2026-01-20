@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -150,6 +150,7 @@ export default function AdminLayout({
   const { user, isUserLoading: authLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
+  const [year, setYear] = useState(new Date().getFullYear());
 
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -169,6 +170,10 @@ export default function AdminLayout({
       }
     }
   }, [isLoading, user, userProfile, router]);
+  
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
 
 
   // 1. While any authentication or profile fetching is in progress, show a loading screen.
@@ -233,7 +238,7 @@ export default function AdminLayout({
               {children}
             </main>
             <footer className="border-t p-4 text-center text-xs text-muted-foreground">
-                Copyright © MithilaCab {new Date().getFullYear()}
+                Copyright © MithilaCab {year}
             </footer>
           </div>
         </div>

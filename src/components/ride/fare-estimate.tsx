@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import type { Ride } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,8 +15,10 @@ interface FareEstimateProps {
 
 export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [estimate, setEstimate] = useState<{ distance: string; time: number; fare: number } | null>(null);
 
-  const { distance, time, fare } = useMemo(() => {
+  useEffect(() => {
+    // This effect runs only on the client, avoiding hydration mismatches from Math.random().
     const multipliers = { Standard: 1, Premium: 1.5, SUV: 2.0 };
     const multiplier = multipliers[rideDetails.rideType || 'Standard'];
     
@@ -26,30 +28,33 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
     const finalFare = Math.round((baseFare + dist * perKmRate) * multiplier);
     const travelTime = Math.round(dist * 2.5);
 
-    return {
+    setEstimate({
       distance: dist.toFixed(1),
       time: travelTime,
       fare: finalFare,
-    };
-  }, [rideDetails.rideType]);
+    });
 
-  useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1500);
+    }, 1500); // Simulate calculation time
+
     return () => clearTimeout(timer);
-  }, []);
+  }, [rideDetails.rideType]);
 
   const handleConfirm = () => {
-    onConfirm(fare);
+    if (estimate) {
+      onConfirm(estimate.fare);
+    }
   };
+  
+  const showSkeletons = isLoading || !estimate;
 
   return (
     <div className="w-full max-w-md mx-auto">
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-2xl text-center">
-            {isLoading ? 'Calculating Fare...' : 'Ride Estimate'}
+            {showSkeletons ? 'Calculating Fare...' : 'Ride Estimate'}
           </CardTitle>
           <CardDescription className="text-center">
             Review your trip details and confirm.
@@ -67,39 +72,39 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
              <div className="text-center text-sm font-medium pt-2 text-muted-foreground">{rideDetails.rideType}</div>
           </div>
           
-          {isLoading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-16 w-full" />
+          {showSkeletons ? (
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <Skeleton className="h-[76px] w-full" />
+              <Skeleton className="h-[76px] w-full" />
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4 text-center">
               <div className="p-3 rounded-lg border bg-card">
                 <p className="text-sm text-muted-foreground">Distance</p>
-                <p className="font-bold text-lg flex items-center justify-center gap-1"><Map size={16}/> {distance} km</p>
+                <p className="font-bold text-lg flex items-center justify-center gap-1"><Map size={16}/> {estimate.distance} km</p>
               </div>
               <div className="p-3 rounded-lg border bg-card">
                 <p className="text-sm text-muted-foreground">Est. Time</p>
-                <p className="font-bold text-lg flex items-center justify-center gap-1"><Clock size={16}/> {time} min</p>
+                <p className="font-bold text-lg flex items-center justify-center gap-1"><Clock size={16}/> {estimate.time} min</p>
               </div>
             </div>
           )}
 
-           {isLoading ? (
-              <Skeleton className="h-20 w-full" />
+           {showSkeletons ? (
+              <Skeleton className="h-[92px] w-full" />
            ): (
             <div className="text-center p-4 rounded-lg bg-accent/10 border border-accent">
                 <p className="text-sm text-accent-foreground/80">Estimated Fare</p>
                 <p className="font-headline font-bold text-4xl text-accent flex items-center justify-center">
-                    <IndianRupee size={30} className="mt-1" />{fare.toFixed(2)}
+                    <IndianRupee size={30} className="mt-1" />{estimate.fare.toFixed(2)}
                 </p>
             </div>
            )}
 
         </CardContent>
         <CardFooter className="grid grid-cols-2 gap-4">
-          <Button variant="outline" onClick={onCancel} disabled={isLoading}>Cancel</Button>
-          <Button onClick={handleConfirm} disabled={isLoading} className="font-bold">
+          <Button variant="outline" onClick={onCancel} disabled={showSkeletons}>Cancel</Button>
+          <Button onClick={handleConfirm} disabled={showSkeletons} className="font-bold">
             Confirm Ride <ArrowRight className="ml-2" />
           </Button>
         </CardFooter>
