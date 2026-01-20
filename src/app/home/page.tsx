@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, Suspense } from 'react';
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin, useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -12,10 +12,15 @@ import Link from 'next/link';
 import { collection, query, where, limit } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
 import { RideHistoryItem } from '@/components/ride/ride-history-item';
+import { useSearchParams } from 'next/navigation';
 
 function PassengerDashboard() {
     const { user } = useUser();
     const firestore = useFirestore();
+    const searchParams = useSearchParams();
+    const initialPickup = searchParams.get('pickup');
+    const initialDestination = searchParams.get('destination');
+
 
     const ridesQuery = useMemoFirebase(() => {
         if (!user) return null;
@@ -44,7 +49,7 @@ function PassengerDashboard() {
                 <p className="text-muted-foreground">Let's get you where you need to go.</p>
             </div>
             
-            <BookingFlow />
+            <BookingFlow initialPickup={initialPickup} initialDestination={initialDestination} />
 
             <div>
                 <div className="flex justify-between items-center mb-4">
@@ -145,6 +150,14 @@ function DriverWelcome() {
 }
 
 
+function PassengerDashboardWrapper() {
+    return (
+        <Suspense fallback={<HomePageLoadingSkeleton />}>
+            <PassengerDashboard />
+        </Suspense>
+    )
+}
+
 export default function HomePage() {
   const { isAdmin, isAdminLoading, role } = useAdmin();
 
@@ -168,7 +181,7 @@ export default function HomePage() {
         ) : (
             <div className="space-y-8">
                 {isDriver && <DriverWelcome />}
-                <PassengerDashboard />
+                <PassengerDashboardWrapper />
             </div>
         )}
       </main>

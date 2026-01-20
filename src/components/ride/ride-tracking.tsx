@@ -6,16 +6,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Ride } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Car, Star, Phone } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface RideTrackingProps {
   rideDetails: Ride;
   onComplete: () => void;
+  onCancel: () => void;
 }
 
 const rideStages = [
@@ -25,7 +27,7 @@ const rideStages = [
   { status: 'You are arriving at your destination', duration: 2000, progress: 100 },
 ];
 
-export function RideTracking({ rideDetails, onComplete }: RideTrackingProps) {
+export function RideTracking({ rideDetails, onComplete, onCancel }: RideTrackingProps) {
   const [stageIndex, setStageIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const mapImage = PlaceHolderImages.find(img => img.id === 'map-background');
@@ -139,6 +141,25 @@ export function RideTracking({ rideDetails, onComplete }: RideTrackingProps) {
             </Button>
           </div>
         </CardContent>
+        <CardFooter>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="w-full font-bold">Cancel Ride</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        A cancellation fee may be charged as the driver is already on the way. Please review our cancellation policy for details.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Don't Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onCancel} className={buttonVariants({ variant: "destructive" })}>Confirm Cancellation</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </CardFooter>
       </Card>
     </div>
   );

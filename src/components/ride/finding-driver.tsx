@@ -4,14 +4,17 @@ import { useEffect } from 'react';
 import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { Driver, Ride } from '@/lib/data';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface FindingDriverProps {
   onDriverFound: (driver: Driver) => void;
   rideDetails: Ride; // Now receives rideDetails
+  onCancel: () => void;
 }
 
-export function FindingDriver({ onDriverFound, rideDetails }: FindingDriverProps) {
+export function FindingDriver({ onDriverFound, rideDetails, onCancel }: FindingDriverProps) {
   const firestore = useFirestore();
 
   useEffect(() => {
@@ -61,6 +64,25 @@ export function FindingDriver({ onDriverFound, rideDetails }: FindingDriverProps
           </div>
           <p className="text-muted-foreground">Contacting nearby drivers...</p>
         </CardContent>
+         <CardFooter>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="w-full">Cancel Search</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will stop the search for a driver and cancel your ride request. No fee will be charged at this stage.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep Searching</AlertDialogCancel>
+                  <AlertDialogAction onClick={onCancel}>Confirm Cancellation</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        </CardFooter>
       </Card>
     </div>
   );

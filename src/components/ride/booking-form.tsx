@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Car, CarFront, MapPin, Truck } from 'lucide-react';
 import type { RideType } from '@/lib/data';
 
@@ -13,12 +13,19 @@ import { cn } from '@/lib/utils';
 
 interface BookingFormProps {
   onBookingRequest: (pickup: string, destination: string, rideType: RideType) => void;
+  initialPickup?: string | null;
+  initialDestination?: string | null;
 }
 
-export function BookingForm({ onBookingRequest }: BookingFormProps) {
-  const [pickup, setPickup] = useState('');
-  const [destination, setDestination] = useState('');
+export function BookingForm({ onBookingRequest, initialPickup, initialDestination }: BookingFormProps) {
+  const [pickup, setPickup] = useState(initialPickup || '');
+  const [destination, setDestination] = useState(initialDestination || '');
   const [rideType, setRideType] = useState<RideType>('Standard');
+  
+  useEffect(() => {
+    if (initialPickup) setPickup(initialPickup);
+    if (initialDestination) setDestination(initialDestination);
+  }, [initialPickup, initialDestination]);
 
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -13,6 +13,7 @@ import {
   updateDocumentNonBlocking,
 } from '@/firebase';
 import type { Ride, Driver, RideType } from '@/lib/data';
+import { useToast } from "@/hooks/use-toast";
 
 import { BookingForm } from './booking-form';
 import { FareEstimate } from './fare-estimate';
@@ -26,12 +27,18 @@ type BookingState =
   | 'finding'
   | 'tracking'
   | 'complete';
+  
+interface BookingFlowProps {
+  initialPickup?: string | null;
+  initialDestination?: string | null;
+}
 
-export function BookingFlow() {
+export function BookingFlow({ initialPickup, initialDestination }: BookingFlowProps) {
   const [bookingState, setBookingState] = useState<BookingState>('booking');
   const [rideDetails, setRideDetails] = useState<Partial<Ride>>({});
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const handleBookingRequest = (
     pickupLocation: string,
@@ -110,10 +117,25 @@ export function BookingFlow() {
     setRideDetails({});
     setBookingState('booking');
   };
+  
+  const handleCancelBooking = () => {
+    if (!rideDetails.id) {
+        handleCancel();
+        return;
+    }
+    const rideRef = doc(firestore, 'rides', rideDetails.id);
+    updateDocumentNonBlocking(rideRef, { status: 'cancelled' });
+    toast({
+        title: "Ride Cancelled",
+        description: "Your ride has been successfully cancelled.",
+    });
+    handleCancel(); // Resets booking flow state to the start
+  };
+
 
   switch (bookingState) {
     case 'booking':
-      return <BookingForm onBookingRequest={handleBookingRequest} />;
+      return <BookingForm onBookingRequest={handleBookingRequest} initialPickup={initialPickup} initialDestination={initialDestination} />;
     case 'estimating':
       return (
         <FareEstimate
@@ -127,6 +149,7 @@ export function BookingFlow() {
         <FindingDriver
           onDriverFound={handleDriverFound}
           rideDetails={rideDetails as Ride}
+          onCancel={handleCancelBooking}
         />
       );
     case 'tracking':
@@ -134,6 +157,7 @@ export function BookingFlow() {
         <RideTracking
           rideDetails={rideDetails as Ride}
           onComplete={handleRideCompletion}
+          onCancel={handleCancelBooking}
         />
       );
     case 'complete':

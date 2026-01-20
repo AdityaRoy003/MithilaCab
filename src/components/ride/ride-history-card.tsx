@@ -1,12 +1,23 @@
 import type { Ride } from "@/lib/data";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
-import { IndianRupee, Star } from "lucide-react";
+import { IndianRupee, Star, RefreshCw } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
+import { Button } from "../ui/button";
+import Link from "next/link";
+import { Badge } from "../ui/badge";
 
 interface RideHistoryCardProps {
   ride: Ride;
+}
+
+const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
+  completed: 'default',
+  cancelled: 'destructive',
+  requested: 'outline',
+  accepted: 'outline',
+  'in-progress': 'outline',
 }
 
 export function RideHistoryCard({ ride }: RideHistoryCardProps) {
@@ -23,6 +34,8 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
         return 'Invalid Date';
     }
   }
+
+  const isPastRide = ride.status === 'completed' || ride.status === 'cancelled';
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -49,8 +62,8 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
                 </p>
                 <p className="text-xs text-muted-foreground">Total Fare</p>
              </div>
-             <div className="text-right">
-                <p className="font-semibold text-sm">{ride.driver?.name ?? 'Unknown Driver'}</p>
+             <div className="space-y-1 text-right">
+                <p className="font-semibold text-sm">{ride.driver?.name ?? 'Searching...'}</p>
                 {ride.driver && (
                     <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
                         <Star className="w-3 h-3 text-yellow-500 fill-yellow-500"/>
@@ -64,9 +77,20 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
                         <span>{ride.rating}</span>
                    </div>
                 )}
+                 {ride.status && <Badge variant={statusVariant[ride.status] || 'secondary'} className="mt-1">{ride.status}</Badge>}
              </div>
         </div>
       </CardContent>
+      {isPastRide && (
+        <CardFooter className="p-4 pt-0 justify-end">
+            <Button asChild variant="ghost" size="sm">
+                <Link href={`/home?pickup=${encodeURIComponent(ride.pickupLocation)}&destination=${encodeURIComponent(ride.destinationLocation)}`}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Rebook
+                </Link>
+            </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }

@@ -9,7 +9,7 @@ import type { Ride } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type RideStatusFilter = 'all' | 'completed' | 'cancelled';
+type RideStatusFilter = 'all' | 'upcoming' | 'completed' | 'cancelled';
 
 export default function HistoryPage() {
   const { user, isUserLoading } = useUser();
@@ -39,6 +39,9 @@ export default function HistoryPage() {
       });
 
       if (filter === 'all') return sorted;
+      if (filter === 'upcoming') {
+        return sorted.filter(ride => ['requested', 'accepted', 'in-progress'].includes(ride.status || ''));
+      }
       return sorted.filter(ride => ride.status === filter);
   }, [rides, filter]);
 
@@ -89,8 +92,9 @@ export default function HistoryPage() {
         </div>
         
         <Tabs value={filter} onValueChange={(value) => setFilter(value as RideStatusFilter)}>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
                 <TabsTrigger value="completed">Completed</TabsTrigger>
                 <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
             </TabsList>
