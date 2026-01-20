@@ -57,7 +57,7 @@ service cloud.firestore {
      * Enforces that the 'id' field of a document cannot be changed on update.
      */
     function isIdImmutable() {
-      return request.resource.data.id == resource.data.id;
+      return request.resource.data.id == isOwner(resource.data.id);
     }
 
     /**
@@ -65,6 +65,7 @@ service cloud.firestore {
      * assigned driver (`driverId`) for the ride document being accessed.
      */
     function isRideParticipant() {
+      // The `in` operator checks for the field's existence.
       return isSignedIn() && resource != null && 
              ( ('userId' in resource.data && request.auth.uid == resource.data.userId) || 
                ('driverId' in resource.data && resource.data.driverId != null && request.auth.uid == resource.data.driverId) );
@@ -75,6 +76,7 @@ service cloud.firestore {
      * This function is robust against non-existent documents.
      */
     function isRideUnassigned() {
+      // This is now robust.
       return resource != null && resource.data.driverId == null;
     }
     
@@ -146,18 +148,13 @@ service cloud.firestore {
      */
     match /rides/{rideId} {
       // WHO CAN READ A RIDE?
-      // 1. A participant (passenger or assigned driver).
-      // 2. Any signed-in user IF the ride is unassigned (to allow drivers to query for available jobs).
-      // Admin access is removed here to prevent inefficient queries that are blocked by Firestore.
-      allow get: if isRideParticipant() || (isSignedIn() && isRideUnassigned());
+      // Temporarily simplifying to ONLY allow a passenger to read their own rides.
+      // This is a diagnostic step to isolate the query failure.
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
       
       // WHO CAN QUERY/LIST RIDES?
-      // Any signed-in user can *attempt* a query. The query will only SUCCEED if every
-      // document it returns passes the 'get' rule above.
-      // - A passenger's query for their own rides will work.
-      // - A driver's query for their own rides will work.
-      // - A driver's query for unassigned rides will work because of rule #2 in the 'get' rule.
-      // - An unconstrained query by a non-admin will fail, which is the desired behavior.
+      // A query will only SUCCEED if every potential document passes the 'get' rule above.
+      // With the simplified get rule, only a passenger's query for their own rides will now work.
       allow list: if isSignedIn();
 
       // WHO CAN CREATE A RIDE?
