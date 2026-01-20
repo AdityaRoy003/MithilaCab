@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
 import { collection, query, where, Timestamp } from "firebase/firestore";
 import AppLayout from "@/components/app-layout";
@@ -10,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Filter, Calendar as CalendarIcon } from 'lucide-react';
+import { Filter, Calendar as CalendarIcon, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -24,6 +25,7 @@ import { cn } from '@/lib/utils';
 type RideStatusFilter = 'all' | 'upcoming' | 'completed' | 'cancelled';
 
 export default function HistoryPage() {
+  const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [statusFilter, setStatusFilter] = useState<RideStatusFilter>('all');
@@ -139,9 +141,13 @@ export default function HistoryPage() {
   return (
     <AppLayout>
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
-        <div className="flex justify-between items-center mb-6">
-            <h1 className="font-headline text-3xl font-bold">Ride History</h1>
+        <div className="mb-6">
+            <Button variant="ghost" onClick={() => router.push('/profile')} className="-ml-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Profile
+            </Button>
         </div>
+        <h1 className="font-headline text-3xl font-bold mb-6">Ride History</h1>
         
         <Collapsible className="mb-6">
             <div className="flex items-center justify-between">
