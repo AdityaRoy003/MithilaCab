@@ -9,7 +9,7 @@ import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Car, KeyRound, Mail, Phone, User as UserIcon, Eye, EyeOff, Loader2, Check } from "lucide-react";
+import { Car, KeyRound, Mail, Phone, User as UserIcon, Eye, EyeOff, Loader2 } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button";
@@ -177,8 +177,12 @@ export function SignupForm() {
                   className="relative grid grid-cols-2 gap-4"
                 >
                     {roles.map((role) => (
+                      <motion.div 
+                        key={role.value}
+                        whileHover={{ y: -4 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      >
                         <Label
-                            key={role.value}
                             className={cn(
                                 "relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer transition-colors",
                                 field.value === role.value ? 'border-primary' : 'border-muted hover:bg-accent/50'
@@ -195,6 +199,7 @@ export function SignupForm() {
                             <role.icon className={cn("relative z-10 mb-2 h-6 w-6", field.value === role.value && "text-primary")} />
                             <span className={cn("relative z-10", field.value === role.value && "text-primary font-semibold")}>{role.label}</span>
                         </Label>
+                      </motion.div>
                     ))}
                 </RadioGroup>
               </FormControl>
@@ -285,7 +290,7 @@ export function SignupForm() {
                         exit={{ opacity: 0, x: -5 }}
                         transition={{ duration: 0.2 }}
                         type="button"
-                        className="absolute right-2 inset-y-0 my-auto h-7 w-7 text-muted-foreground flex items-center justify-center"
+                        className="absolute right-0 inset-y-0 my-auto h-full w-10 text-muted-foreground flex items-center justify-center"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -330,7 +335,28 @@ export function SignupForm() {
                 exit={{ opacity: 0 }}
                 className="flex items-center"
               >
-                <Check className="mr-2 h-4 w-4" />
+                <motion.svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="mr-2"
+                >
+                  <motion.path
+                    d="M20 6L9 17l-5-5"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{
+                      pathLength: { delay: 0.2, type: "tween", ease: "easeOut", duration: 0.3 },
+                      opacity: { delay: 0.2, duration: 0.01 }
+                    }}
+                  />
+                </motion.svg>
                 Account Created!
               </motion.div>
             )}
