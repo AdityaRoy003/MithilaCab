@@ -42,7 +42,7 @@ interface Driver {
   isAvailable: boolean;
   rating: number;
   vehicle: string;
-  image: { imageUrl?: string; imageHint?: string; };
+  image?: { imageUrl?: string; imageHint?: string; };
   dateJoined?: Timestamp;
 }
 
@@ -106,7 +106,7 @@ export function DriverList() {
                                     {driver.isAvailable ? 'Available' : 'Offline'}
                                 </Badge>
                             </TableCell>
-                            <TableCell className="hidden md:table-cell">{driver.rating.toFixed(1)}</TableCell>
+                            <TableCell className="hidden md:table-cell">{driver.rating?.toFixed(1) || 'N/A'}</TableCell>
                             <TableCell className="hidden md:table-cell">{getFormattedDate(driver.dateJoined)}</TableCell>
                             <TableCell>
                                 <DropdownMenu>

@@ -18,7 +18,8 @@ export default function HistoryPage() {
 
   const ridesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    // Simplify the query to only fetch by userId. Filtering by status will be done on the client.
+    // Simple query for all rides belonging to the user.
+    // Filtering by status will be done on the client side to avoid complex queries.
     return query(
         collection(firestore, 'rides'), 
         where('userId', '==', user.uid), 
@@ -62,7 +63,7 @@ export default function HistoryPage() {
           );
       }
 
-      if (!user) {
+      if (!user && !isLoading) {
          return (
             <div className="text-center py-10">
               <h3 className="text-xl font-semibold">Please log in</h3>

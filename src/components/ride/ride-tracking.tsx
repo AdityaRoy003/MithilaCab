@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -58,8 +58,7 @@ export function RideTracking({ rideDetails, onComplete }: RideTrackingProps) {
               </div>
               <Card className="shadow-lg rounded-t-none -mt-2">
                   <CardHeader>
-                      <Skeleton className="h-8 w-3/4 mx-auto" />
-                      <Skeleton className="h-4 w-full mt-2" />
+                      <CardTitle className="font-headline text-2xl text-center">Finalizing ride details...</CardTitle>
                   </CardHeader>
                   <CardContent>
                       <div className="p-4 rounded-lg border bg-card">
@@ -120,7 +119,7 @@ export function RideTracking({ rideDetails, onComplete }: RideTrackingProps) {
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
                 <AvatarImage src={driver.image?.imageUrl} alt={driver.name} data-ai-hint={driver.image?.imageHint} />
-                <AvatarFallback>{driver.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{driver.name?.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
                 <p className="font-bold text-lg">{driver.name}</p>

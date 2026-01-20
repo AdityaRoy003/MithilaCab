@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { doc } from 'firebase/firestore';
@@ -44,17 +44,17 @@ export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
            <div className="w-full max-w-md mx-auto">
                 <Card className="shadow-lg text-center">
                     <CardHeader>
-                        <Skeleton className="h-10 w-3/4 mx-auto" />
-                        <Skeleton className="h-5 w-1/2 mx-auto" />
+                        <CardTitle className="font-headline text-3xl">Ride Completed!</CardTitle>
+                        <CardDescription>We hope you had a pleasant journey.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <Skeleton className="h-24 w-24 rounded-full mx-auto" />
+                        <p>Loading ride details...</p>
                         <Skeleton className="h-24 w-full" />
-                        <Skeleton className="h-12 w-full" />
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-10 w-1/2" />
+                        <Button onClick={onNewRide} className="w-full">
+                            Book Another Ride
+                        </Button>
                     </CardFooter>
                 </Card>
            </div>
@@ -80,7 +80,7 @@ export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
             <p className="text-muted-foreground">Total Fare</p>
             <p className="font-headline font-bold text-5xl text-primary flex items-center justify-center">
               <IndianRupee size={40} />
-              {rideDetails.fareAmount?.toFixed(2)}
+              {rideDetails.fareAmount?.toFixed(2) ?? '0.00'}
             </p>
           </div>
           <div className='space-y-4'>

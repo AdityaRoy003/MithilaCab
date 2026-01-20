@@ -30,9 +30,11 @@ export function AvailableRidesList() {
   const firestore = useFirestore();
   const { user } = useUser();
 
+  // Query for rides that are available to be accepted.
+  // The security rules ensure a driver can only see unassigned rides.
   const ridesQuery = useMemoFirebase(
     () =>
-      query(collection(firestore, 'rides'), where('driverId', '==', null)),
+      query(collection(firestore, 'rides'), where('driverId', '==', null), where('status', '==', 'requested')),
     [firestore]
   );
 
@@ -47,7 +49,8 @@ export function AvailableRidesList() {
     });
   };
 
-  const validRides = rides?.filter(ride => ride.status === 'requested' && ride.fareAmount != null);
+  // Further client-side filtering to ensure data integrity before rendering.
+  const validRides = rides?.filter(ride => ride.fareAmount != null);
 
   return (
     <Card>
