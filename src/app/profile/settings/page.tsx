@@ -30,7 +30,7 @@ import {
 import AppLayout from '@/components/app-layout';
 import { cn } from '@/lib/utils';
 
-const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false, onAction, isDestructive = false, disabled = false }: { href?: string, icon: React.ElementType, title:string, subtitle?: string, isAction?: boolean, onAction?: () => void, isDestructive?: boolean, disabled?: boolean }) => {
+const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false, onAction, isDestructive = false, disabled = false, ...props }: { href?: string, icon: React.ElementType, title:string, subtitle?: string, isAction?: boolean, onAction?: () => void, isDestructive?: boolean, disabled?: boolean, [key:string]: any }) => {
     const content = (
         <div className={cn("flex items-center justify-between p-4 w-full text-left", isDestructive && "text-destructive", disabled && "opacity-50")}>
             <div className="flex items-center gap-4">
@@ -53,18 +53,18 @@ const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false,
     };
 
     if (isAction) {
-        return <button {...commonProps}>{content}</button>
+        return <button {...commonProps} {...props}>{content}</button>
     }
     
     if (href && !disabled) {
         return (
-            <Link href={href} className={commonProps.className}>
+            <Link href={href} className={commonProps.className} {...props}>
                {content}
             </Link>
         )
     }
 
-    return <button {...commonProps}>{content}</button>;
+    return <button {...commonProps} {...props}>{content}</button>;
 }
 
 export default function AppSettingsPage() {
@@ -95,13 +95,19 @@ export default function AppSettingsPage() {
         }
     
         try {
-            // Delete Firestore documents first
+            // Delete Firestore user document
             const userDocRef = doc(firestore, 'users', user.uid);
             await deleteDoc(userDocRef);
     
-            // Try to delete driver document, it might not exist, which is fine
-            const driverDocRef = doc(firestore, 'drivers', user.uid);
-            await deleteDoc(driverDocRef);
+            // Try to delete driver document, it might not exist, which is fine.
+            try {
+                const driverDocRef = doc(firestore, 'drivers', user.uid);
+                await deleteDoc(driverDocRef);
+            } catch (e) {
+                // This might fail if the user is not a driver or due to permissions.
+                // We'll log it but continue with account deletion.
+                console.warn("Could not delete driver document, continuing with account deletion.", e);
+            }
     
             // Then delete the user from Authentication
             await deleteUser(user);
@@ -148,7 +154,7 @@ export default function AppSettingsPage() {
                        <SettingsListItem isAction onAction={handleNotImplemented} icon={FlaskConical} title="Subscribe to Beta" subtitle="Get early access to latest features" />
                        <AlertDialog>
                           <AlertDialogTrigger asChild>
-                             <SettingsListItem isAction onAction={()=>{}} icon={LogOut} title="Logout" />
+                             <SettingsListItem isAction icon={LogOut} title="Logout" />
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
@@ -162,7 +168,7 @@ export default function AppSettingsPage() {
                         </AlertDialog>
                        <AlertDialog>
                            <AlertDialogTrigger asChild>
-                              <SettingsListItem isAction onAction={()=>{}} icon={Trash2} title="Delete Account" isDestructive />
+                              <SettingsListItem isAction icon={Trash2} title="Delete Account" isDestructive />
                            </AlertDialogTrigger>
                            <AlertDialogContent>
                             <AlertDialogHeader>
