@@ -150,7 +150,7 @@ export default function AdminLayout({
   const { user, isUserLoading: authLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [year, setYear] = useState<number | null>(null);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -172,6 +172,7 @@ export default function AdminLayout({
   }, [isLoading, user, userProfile, router]);
   
   useEffect(() => {
+    // Set year on the client to avoid hydration mismatch
     setYear(new Date().getFullYear());
   }, []);
 
@@ -238,7 +239,7 @@ export default function AdminLayout({
               {children}
             </main>
             <footer className="border-t p-4 text-center text-xs text-muted-foreground">
-                Copyright © MithilaCab {year}
+                {year && `Copyright © MithilaCab ${year}`}
             </footer>
           </div>
         </div>
