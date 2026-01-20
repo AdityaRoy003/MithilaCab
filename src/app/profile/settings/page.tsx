@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser, useFirestore } from '@/firebase';
+import { deleteUser } from 'firebase/auth';
+import { doc, deleteDoc } from 'firebase/firestore';
 import {
   ArrowLeft,
   ChevronRight,
@@ -26,7 +29,6 @@ import {
 } from 'lucide-react';
 import AppLayout from '@/components/app-layout';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
 
 const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false, onAction, isDestructive = false, disabled = false }: { href?: string, icon: React.ElementType, title:string, subtitle?: string, isAction?: boolean, onAction?: () => void, isDestructive?: boolean, disabled?: boolean }) => {
     const content = (
@@ -67,6 +69,8 @@ const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false,
 
 export default function AppSettingsPage() {
     const auth = useAuth();
+    const { user } = useUser();
+    const firestore = useFirestore();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -83,6 +87,46 @@ export default function AppSettingsPage() {
           description: "This feature is not yet available."
         })
     }
+
+    const handleDeleteAccount = async () => {
+        if (!user) {
+            toast({ variant: "destructive", title: "Error", description: "You must be logged in to delete your account." });
+            return;
+        }
+    
+        try {
+            // Delete Firestore documents first
+            const userDocRef = doc(firestore, 'users', user.uid);
+            await deleteDoc(userDocRef);
+    
+            // Try to delete driver document, it might not exist, which is fine
+            const driverDocRef = doc(firestore, 'drivers', user.uid);
+            await deleteDoc(driverDocRef);
+    
+            // Then delete the user from Authentication
+            await deleteUser(user);
+    
+            toast({ title: "Account Deleted", description: "Your account and all associated data have been permanently removed." });
+            router.push('/');
+    
+        } catch (error: any) {
+            console.error("Delete Account Error:", error);
+            if (error.code === 'auth/requires-recent-login') {
+                toast({
+                    variant: "destructive",
+                    title: "Action Required",
+                    description: "This is a sensitive action. Please log out and log back in before deleting your account.",
+                    duration: 5000,
+                });
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Error Deleting Account",
+                    description: error.message || "Could not delete account. Please try again.",
+                });
+            }
+        }
+    };
 
     return (
         <AppLayout>
@@ -129,7 +173,7 @@ export default function AppSettingsPage() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleNotImplemented} className={buttonVariants({ variant: "destructive" })}>Delete</AlertDialogAction>
+                              <AlertDialogAction onClick={handleDeleteAccount} className={buttonVariants({ variant: "destructive" })}>Delete</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                        </AlertDialog>
