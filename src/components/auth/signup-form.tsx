@@ -155,7 +155,7 @@ export function SignupForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="role"
@@ -208,7 +208,7 @@ export function SignupForm() {
                     {...field} 
                     className={cn("peer pl-9", errors.name && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="name" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 text-sm text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-[-50%] peer-placeholder-shown:top-1/2 peer-focus:text-primary">
+                  <FormLabel htmlFor="name" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 z-10 text-sm bg-card px-1 text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-placeholder-shown:bg-transparent peer-placeholder-shown:px-0 peer-focus:text-primary peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-4 peer-focus:bg-card peer-focus:px-1">
                     Full Name
                   </FormLabel>
                 </div>
@@ -231,7 +231,7 @@ export function SignupForm() {
                     {...field} 
                     className={cn("peer pl-9", errors.email && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="email" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 text-sm text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-[-50%] peer-placeholder-shown:top-1/2 peer-focus:text-primary">
+                  <FormLabel htmlFor="email" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 z-10 text-sm bg-card px-1 text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-placeholder-shown:bg-transparent peer-placeholder-shown:px-0 peer-focus:text-primary peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-4 peer-focus:bg-card peer-focus:px-1">
                     Email
                   </FormLabel>
                 </div>
@@ -254,7 +254,7 @@ export function SignupForm() {
                     {...field} 
                     className={cn("peer pl-9", errors.phone && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="phone" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 text-sm text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-[-50%] peer-placeholder-shown:top-1/2 peer-focus:text-primary">
+                  <FormLabel htmlFor="phone" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 z-10 text-sm bg-card px-1 text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-placeholder-shown:bg-transparent peer-placeholder-shown:px-0 peer-focus:text-primary peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-4 peer-focus:bg-card peer-focus:px-1">
                     Phone Number
                   </FormLabel>
                 </div>
@@ -278,7 +278,7 @@ export function SignupForm() {
                     {...field} 
                     className={cn("peer pl-9 pr-10", errors.password && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="password" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 text-sm text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-[-50%] peer-placeholder-shown:top-1/2 peer-focus:text-primary">
+                  <FormLabel htmlFor="password" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 z-10 text-sm bg-card px-1 text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-placeholder-shown:bg-transparent peer-placeholder-shown:px-0 peer-focus:text-primary peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-4 peer-focus:bg-card peer-focus:px-1">
                     Password
                   </FormLabel>
                    <AnimatePresence mode="wait" initial={false}>
