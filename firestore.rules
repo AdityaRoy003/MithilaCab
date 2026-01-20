@@ -148,8 +148,8 @@ service cloud.firestore {
       // WHO CAN READ A RIDE?
       // 1. A participant (passenger or assigned driver).
       // 2. Any signed-in user IF the ride is unassigned (to allow drivers to query for available jobs).
-      // 3. An admin.
-      allow get: if isRideParticipant() || (isSignedIn() && isRideUnassigned()) || isAdmin();
+      // Admin access is removed here to prevent inefficient queries that are blocked by Firestore.
+      allow get: if isRideParticipant() || (isSignedIn() && isRideUnassigned());
       
       // WHO CAN QUERY/LIST RIDES?
       // Any signed-in user can *attempt* a query. The query will only SUCCEED if every
