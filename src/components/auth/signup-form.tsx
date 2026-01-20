@@ -9,7 +9,7 @@ import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Car, KeyRound, Mail, Phone, User as UserIcon, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Car, KeyRound, Mail, Phone, User as UserIcon, Eye, EyeOff, Loader2, Check } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import {
   Form,
   FormControl,
   FormField,
-  FormItem,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -58,6 +57,7 @@ export function SignupForm() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,9 +70,10 @@ export function SignupForm() {
     },
   });
 
-  const { formState: { isSubmitting, errors } } = form;
+  const { formState: { errors } } = form;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setStatus('submitting');
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
@@ -129,10 +130,16 @@ export function SignupForm() {
             });
             errorEmitter.emit('permission-error', permissionError);
         });
-        router.push("/driver");
-      } else {
-        router.push("/home");
       }
+
+      setStatus('success');
+      setTimeout(() => {
+          if (values.role === 'driver') {
+            router.push("/driver");
+          } else {
+            router.push("/home");
+          }
+      }, 1200);
       
     } catch (error: any) {
       console.error("Signup Error:", error);
@@ -149,6 +156,7 @@ export function SignupForm() {
           description: error.message || "An unexpected error occurred. Please try again.",
         });
       }
+      setStatus('idle');
     }
   }
 
@@ -289,15 +297,43 @@ export function SignupForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full font-bold transition-colors" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating Account...
-            </>
-          ) : (
-            'Create Account'
-          )}
+        <Button type="submit" className="w-full font-bold transition-all" disabled={status !== 'idle'}>
+          <AnimatePresence mode="wait">
+            {status === 'idle' && (
+              <motion.span
+                key="idle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                Create Account
+              </motion.span>
+            )}
+            {status === 'submitting' && (
+              <motion.div
+                key="submitting"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center"
+              >
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Account...
+              </motion.div>
+            )}
+            {status === 'success' && (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center"
+              >
+                <Check className="mr-2 h-4 w-4" />
+                Account Created!
+              </motion.div>
+            )}
+          </AnimatePresence>
         </Button>
       </form>
     </Form>
