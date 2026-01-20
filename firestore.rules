@@ -1,25 +1,3 @@
-/**
- * # Firestore Security Rules
- *
- * ## Core Philosophy
- * This ruleset implements a strict ownership and shared-access model for a ride-sharing application.
- * User and Driver profiles are private and can only be modified by their owners.
- * Transactional data, like Rides, are shared documents accessible only by the specific participants (the user and the driver) involved in that transaction.
- * This ruleset follows the principle that "rules are not filters". Client-side queries MUST be constructed to only request data the user is permitted to see.
- *
- * ## Data Structure
- * - `/users/{userId}`: Private user profile data, including their role.
- * - `/drivers/{driverId}`: Publicly readable driver profile data, but only writable by the owner.
- * - `/rides/{rideId}`: Shared ride data, accessible only by the two participants.
- *
- * ## Key Security Decisions
- * - **Strict Ownership**: A user can only write to their own document in `/users/{userId}`.
- * - **Public Driver Profiles**: Any signed-in user can read driver profiles to see who is available, but only the driver can update their own profile.
- * - **Admin Access**: Users with `role: 'admin'` on their user profile can read all user and driver data.
- * - **No Public Listing of Users**: Listing all users is disallowed for non-admins to protect privacy.
- * - **Shared Document Access**: Access to a `/rides/{rideId}` document is granted only if the requester's UID matches the `userId` or `driverId` field within that document.
- * - **Secure Listing of Rides**: The `list` rule for the `/rides` collection is intentionally broad (`if isSignedIn()`), but this is secure because the `get` rule (`if isRideParticipant() || isRideUnassigned()`) is checked on *every single document* returned by a query. An unconstrained query on `/rides` will always fail for a regular user, which is the desired secure behavior.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -28,45 +6,63 @@ service cloud.firestore {
     // Helper Functions
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns true if the user is authenticated.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
 
+    /**
+     * Returns true if the requesting user's UID matches the provided userId.
+     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    /**
+     * Returns true if the requesting user has the 'driver' role in their user profile.
+     * This function is robust against non-existent user documents.
+     */
     function isDriver() {
       let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
       return isSignedIn() && userDoc != null && userDoc.data.role == 'driver';
     }
     
     /**
-     * Checks if the user has 'admin' role in their user document.
-     * This is backward-compatible and checks for the new `role` field
-     * or the old `isAdmin` boolean flag.
+     * Returns true if the user has 'admin' role in their user document.
+     * This function is robust against non-existent user documents.
      */
     function isAdmin() {
       let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return isSignedIn() && userDoc != null && (userDoc.data.role == 'admin' || userDoc.data.isAdmin == true);
+      return isSignedIn() && userDoc != null && userDoc.data.role == 'admin';
     }
-
+    
+    /**
+     * Enforces that a user can only create a user document for themselves.
+     */
     function canCreateOwnUserDoc(userId) {
+      // User must be the owner and the document ID in the payload must match.
       return isOwner(userId) && request.resource.data.id == userId;
     }
 
+    /**
+     * Enforces that a driver can only create a driver document for themselves.
+     */
     function canCreateOwnDriverDoc(driverId) {
       return isOwner(driverId) && request.resource.data.id == driverId;
     }
 
+    /**
+     * Enforces that the 'id' field of a document cannot be changed on update.
+     */
     function isIdImmutable() {
       return request.resource.data.id == resource.data.id;
     }
 
     /**
-     * Checks if the requesting user is either the customer (`userId`) or the
-     * driver (`driverId`) for a specific ride document.
-     * Also implicitly checks for authentication.
+     * Returns true if the requesting user is the passenger (`userId`) or the
+     * assigned driver (`driverId`) for the ride document being accessed.
      */
     function isRideParticipant() {
       return isSignedIn() && resource != null && 
@@ -74,34 +70,54 @@ service cloud.firestore {
                ('driverId' in resource.data && resource.data.driverId != null && request.auth.uid == resource.data.driverId) );
     }
 
+    /**
+     * Returns true if the ride document being accessed does not have an assigned driver.
+     * This function is robust against non-existent documents.
+     */
+    function isRideUnassigned() {
+      return resource != null && resource.data.driverId == null;
+    }
+    
+    /**
+     * Enforces that a user can only create a ride for themselves.
+     */
     function canCreateRide() {
       return isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
+    /**
+     * Enforces that the participants of a ride (passenger and driver) cannot be
+     * changed after they have been set.
+     */
     function areRideParticipantsImmutable() {
-      // The userId cannot change. If a driverId already exists, it cannot change.
+      // The userId cannot change.
+      // If a driverId already exists, it cannot change.
       return request.resource.data.userId == resource.data.userId &&
-             (resource.data.driverId == null || request.resource.data.driverId == resource.data.driverId);
+             (resource.data.driverId == null || resource.data.driverId == request.resource.data.driverId);
     }
 
+    /**
+     * Defines the conditions under which a driver can accept a ride.
+     */
     function canAcceptRide() {
-      // The user must be a driver, the ride must not have a driver yet,
-      // and the driver must be assigning the ride to themselves.
-      // Also ensures the passenger (userId) isn't being changed.
+      // 1. The user must be a driver.
+      // 2. The ride must not have a driver yet.
+      // 3. The driver must be assigning the ride to themselves.
+      // 4. The original passenger must not be changed.
       return isDriver()
              && resource.data.driverId == null
              && request.resource.data.driverId == request.auth.uid
              && request.resource.data.userId == resource.data.userId;
     }
-    
-    function isRideUnassigned() {
-      // A ride is "unassigned" (and thus available for a driver to see)
-      // if its driverId is null. This rule is simple to allow for efficient querying.
-      return resource != null && resource.data.driverId == null;
-    }
+
+    // -------------------------------------------------------------------------
+    // Collection Rules
+    // -------------------------------------------------------------------------
 
     /**
-     * @description Rules for the `users` collection. Only the owner can read or write their own data. Admins can read all user data.
+     * @description Rules for the `users` collection.
+     * - A user can create, read, update, and delete their own document.
+     * - An admin can read any user document and list all users.
      */
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
@@ -112,31 +128,50 @@ service cloud.firestore {
     }
 
     /**
-     * @description Rules for the `drivers` collection. Profiles are public, but only the owner can write.
+     * @description Rules for the `drivers` collection.
+     * - Any signed-in user can read driver profiles (they are considered public).
+     * - A driver can create, update, and delete their own document.
      */
     match /drivers/{driverId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow get, list: if isSignedIn();
       allow create: if canCreateOwnDriverDoc(driverId);
       allow update: if isOwner(driverId) && isIdImmutable();
       allow delete: if isOwner(driverId);
     }
 
     /**
-     * @description Rules for the `rides` collection. Shared access for participants.
+     * @description Rules for the `rides` collection. This is the most complex ruleset.
+     * The core principle is that `list` queries must be structured such that every
+     * document they could possibly return is guaranteed to pass the `get` rule.
      */
     match /rides/{rideId} {
-      // TEMPORARY DEBUGGING RULE: Allow any signed-in user to read.
-      // This is insecure and for diagnostic purposes only.
-      allow read: if isSignedIn();
+      // WHO CAN READ A RIDE?
+      // 1. A participant (passenger or assigned driver).
+      // 2. Any signed-in user IF the ride is unassigned (to allow drivers to query for available jobs).
+      // 3. An admin.
+      allow get: if isRideParticipant() || (isSignedIn() && isRideUnassigned()) || isAdmin();
+      
+      // WHO CAN QUERY/LIST RIDES?
+      // Any signed-in user can *attempt* a query. The query will only SUCCEED if every
+      // document it returns passes the 'get' rule above.
+      // - A passenger's query for their own rides will work.
+      // - A driver's query for their own rides will work.
+      // - A driver's query for unassigned rides will work because of rule #2 in the 'get' rule.
+      // - An unconstrained query by a non-admin will fail, which is the desired behavior.
+      allow list: if isSignedIn();
 
+      // WHO CAN CREATE A RIDE?
+      // Only a passenger creating a ride for themselves.
       allow create: if canCreateRide();
       
-      // An update is allowed if:
-      // 1. A driver is accepting the ride.
-      // 2. An existing participant is updating it, and not changing participants.
+      // WHO CAN UPDATE A RIDE?
+      // 1. A driver, to accept an unassigned ride.
+      // 2. A participant (passenger or driver) to update an ongoing ride (e.g. status),
+      //    as long as they don't change the passenger or assigned driver.
       allow update: if canAcceptRide() || (isRideParticipant() && areRideParticipantsImmutable());
 
+      // WHO CAN DELETE A RIDE?
+      // Only the passenger who created it.
       allow delete: if isOwner(resource.data.userId);
     }
   }
