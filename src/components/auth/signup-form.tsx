@@ -259,8 +259,8 @@ export function SignupForm() {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                 <div className="relative">
-                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                 <div className="relative flex items-center">
+                  <KeyRound className="absolute left-3 h-4 w-4 text-muted-foreground" />
                   <Input 
                     id="password"
                     type={showPassword ? "text" : "password"} 
@@ -276,7 +276,7 @@ export function SignupForm() {
                         exit={{ opacity: 0, x: -5 }}
                         transition={{ duration: 0.2 }}
                         type="button"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground flex items-center justify-center"
+                        className="absolute right-2 inset-y-0 my-auto h-7 w-7 text-muted-foreground flex items-center justify-center"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
