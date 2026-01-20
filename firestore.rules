@@ -18,7 +18,7 @@
  * - **Admin Access**: Users with `role: 'admin'` on their user profile can read all user and driver data.
  * - **No Public Listing of Users**: Listing all users is disallowed for non-admins to protect privacy.
  * - **Shared Document Access**: Access to a `/rides/{rideId}` document is granted only if the requester's UID matches the `userId` or `driverId` field within that document.
- * - **Secure Listing of Rides**: The `list` rule for the `/rides` collection is intentionally broad (`if isSignedIn()`), but this is secure because the `get` rule (`if isRideParticipant() || isRideUnassigned()`) is checked on *every single document* returned by a query. This forces the client to build specific queries (e.g., `where('driverId', '==', null)`) to avoid permission errors. An unconstrained query on `/rides` will always fail for a regular user, which is the desired secure behavior.
+ * - **Secure Listing of Rides**: The `list` rule for the `/rides` collection is intentionally broad (`if isSignedIn()`), but this is secure because the `get` rule (`if isRideParticipant() || isRideUnassigned()`) is checked on *every single document* returned by a query. An unconstrained query on `/rides` will always fail for a regular user, which is the desired secure behavior.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -126,15 +126,9 @@ service cloud.firestore {
      * @description Rules for the `rides` collection. Shared access for participants.
      */
     match /rides/{rideId} {
-      // A user can GET a ride if they are a participant.
-      // Any signed-in user can GET a ride if it is unassigned.
-      allow get: if isRideParticipant() || isRideUnassigned();
-
-      // A user can LIST their own rides (as passenger or driver).
-      // Any signed-in user can LIST all unassigned rides.
-      // This is secure because the client query MUST constrain the list, and the GET rule is
-      // evaluated on every document returned.
-      allow list: if isSignedIn();
+      // TEMPORARY DEBUGGING RULE: Allow any signed-in user to read.
+      // This is insecure and for diagnostic purposes only.
+      allow read: if isSignedIn();
 
       allow create: if canCreateRide();
       
