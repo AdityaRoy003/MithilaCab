@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
 import {
   Card,
   CardContent,
@@ -20,7 +20,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import { Timestamp } from 'firebase/firestore';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,10 +50,14 @@ export function UserList() {
   
   const getFormattedDate = (date: any) => {
     if (!date) return 'N/A';
-    if (date instanceof Timestamp) {
-      return format(date.toDate(), "PPP");
+    try {
+        if (date instanceof Timestamp) {
+            return format(date.toDate(), "PPP");
+        }
+        return format(new Date(date), "PPP");
+    } catch {
+        return 'Invalid Date';
     }
-    return format(new Date(date), "PPP");
   }
 
   return (
@@ -90,10 +93,10 @@ export function UserList() {
                             <TableCell>
                                 <div className="flex items-center gap-3">
                                     <Avatar className="hidden h-9 w-9 sm:flex">
-                                        <AvatarImage src={user.photoURL} alt={user.name} />
-                                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                                        <AvatarImage src={user.photoURL ?? undefined} alt={user.name} />
+                                        <AvatarFallback>{user.name?.charAt(0) ?? 'U'}</AvatarFallback>
                                     </Avatar>
-                                    <div className="font-medium">{user.name}</div>
+                                    <div className="font-medium">{user.name ?? 'Unnamed User'}</div>
                                 </div>
                             </TableCell>
                             <TableCell>{user.email}</TableCell>

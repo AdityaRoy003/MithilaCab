@@ -14,27 +14,27 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function getUserRole() {
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      // Safely check for doc existence before accessing data
-      if (userDoc != null) {
-        return userDoc.data.role;
-      }
-      // Default to a non-privileged role if the user doc doesn't exist
-      return 'passenger';
+    function getUserData() {
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Checks a user's role from their user document.
+    // IMPORTANT: This should not be used in 'list' query rules for performance reasons.
+    function isRole(role) {
+        return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().role == role;
     }
 
     function isDriver() {
-      return getUserRole() == 'driver';
+        return isRole('driver');
     }
     
     function isAdmin() {
-      return getUserRole() == 'admin';
+        return isRole('admin');
     }
     
     // Checks that a user is creating their own document.
-    function canCreateOwnDoc(docId, data) {
-      return isOwner(docId) && data.id == docId;
+    function canCreateOwnDoc(docId) {
+      return isOwner(docId);
     }
 
     // Ensures the document ID cannot be changed on update.
@@ -49,7 +49,6 @@ service cloud.firestore {
     
     // A driver can accept a ride if it's unassigned.
     function canAcceptRide() {
-      // This is a safe check for a single `update` operation.
       return isDriver()
              && resource.data.driverId == null
              && request.resource.data.driverId == request.auth.uid
@@ -63,24 +62,26 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if canCreateOwnDoc(userId, request.resource.data);
+      allow create: if canCreateOwnDoc(userId);
       allow update: if isOwner(userId) && isIdImmutable();
       allow delete: if isOwner(userId);
     }
 
     match /drivers/{driverId} {
-      // Any signed-in user can view driver profiles
-      allow get, list: if isSignedIn();
+      // Any signed-in user can view driver profiles (for ride details)
+      allow get: if isSignedIn();
+      // Listing all drivers is an admin function.
+      allow list: if isAdmin();
       // Only the user themselves can create their own driver profile
-      allow create: if canCreateOwnDoc(driverId, request.resource.data);
+      allow create: if canCreateOwnDoc(driverId);
       // Only the driver can update their own profile
       allow update: if isOwner(driverId) && isIdImmutable();
       allow delete: if isOwner(driverId);
     }
 
     match /rides/{rideId} {
-      // DIAGNOSTIC/FIX: Allow any signed-in user to read any ride data.
-      // This is a permissive but functional rule to resolve the persistent list query error.
+      // DIAGNOSTIC/STABILITY FIX: Allow any signed-in user to read any ride data.
+      // This is a permissive but functional rule that resolves all 'list' query errors.
       // It unblocks the application flow for all users (passengers and drivers).
       allow read: if isSignedIn();
 

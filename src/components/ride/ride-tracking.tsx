@@ -119,16 +119,16 @@ export function RideTracking({ rideDetails, onComplete }: RideTrackingProps) {
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
                 <AvatarImage src={driver.image?.imageUrl} alt={driver.name} data-ai-hint={driver.image?.imageHint} />
-                <AvatarFallback>{driver.name?.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{driver.name?.charAt(0) ?? 'D'}</AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-bold text-lg">{driver.name}</p>
+                <p className="font-bold text-lg">{driver.name ?? 'Driver'}</p>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span>{driver.rating}</span>
+                  <span>{driver.rating?.toFixed(1) ?? 'N/A'}</span>
                 </div>
-                <p className="text-sm text-muted-foreground">{driver.vehicle}</p>
-                 <p className="font-mono text-sm bg-secondary px-2 py-1 rounded-md inline-block mt-1">{driver.licensePlate}</p>
+                <p className="text-sm text-muted-foreground">{driver.vehicle ?? 'Vehicle'}</p>
+                 <p className="font-mono text-sm bg-secondary px-2 py-1 rounded-md inline-block mt-1">{driver.licensePlate ?? 'N/A'}</p>
               </div>
             </div>
             <Button size="icon" variant="outline" className="h-12 w-12 rounded-full">

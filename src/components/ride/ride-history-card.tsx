@@ -12,17 +12,16 @@ interface RideHistoryCardProps {
 export function RideHistoryCard({ ride }: RideHistoryCardProps) {
   const getFormattedDate = (date: any) => {
     if (!date) return 'N/A';
-    if (date instanceof Timestamp) {
-      return format(date.toDate(), "PPP p");
-    }
-    // Fallback for string or number timestamps
     try {
-      const d = new Date(date);
-      if(!isNaN(d.getTime())) return format(d, "PPP p");
+        if (date instanceof Timestamp) {
+            return format(date.toDate(), "PPP p");
+        }
+        const d = new Date(date);
+        if(!isNaN(d.getTime())) return format(d, "PPP p");
+        return 'Invalid Date';
     } catch (e) {
-      // ignore
+        return 'Invalid Date';
     }
-    return 'Invalid Date';
   }
 
   return (
@@ -31,7 +30,7 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
         <div className="flex flex-1 items-start gap-4">
             <Avatar className="w-12 h-12 border">
                 <AvatarImage src={ride.driver?.image?.imageUrl} alt={ride.driver?.name} data-ai-hint={ride.driver?.image?.imageHint} />
-                <AvatarFallback>{ride.driver?.name?.charAt(0) ?? '?'}</AvatarFallback>
+                <AvatarFallback>{ride.driver?.name?.charAt(0) ?? 'D'}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
                 <p className="font-semibold">{getFormattedDate(ride.startTime)}</p>
@@ -55,7 +54,7 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
                 {ride.driver && (
                     <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
                         <Star className="w-3 h-3 text-yellow-500 fill-yellow-500"/>
-                        <span>{ride.driver.rating}</span>
+                        <span>{ride.driver.rating?.toFixed(1) ?? 'N/A'}</span>
                     </div>
                 )}
                 {ride.rating && (

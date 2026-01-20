@@ -47,7 +47,7 @@ function UserMenu() {
                     <Avatar>
                         <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ''} />
                         <AvatarFallback>
-                            {user.displayName?.charAt(0) ?? user.email?.charAt(0)}
+                            {user.displayName?.charAt(0) ?? user.email?.charAt(0) ?? 'U'}
                         </AvatarFallback>
                     </Avatar>
                     <span className="sr-only">Toggle user menu</span>
@@ -56,9 +56,9 @@ function UserMenu() {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                        <p className="text-sm font-medium leading-none">{user.displayName ?? 'User'}</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                            {user.email}
+                            {user.email ?? 'No email'}
                         </p>
                     </div>
                 </DropdownMenuLabel>
@@ -92,7 +92,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, loading } = useUser();
   const { driver, isDriverLoading } = useDriver();
-  const { isAdmin, isAdminLoading } = useAdmin();
+  const { isAdmin } = useAdmin();
   const [open, setOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 

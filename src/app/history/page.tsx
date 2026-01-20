@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 type RideStatusFilter = 'all' | 'completed' | 'cancelled';
 
 export default function HistoryPage() {
-  const { user, isUserLoading: isUserLoading } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [filter, setFilter] = useState<RideStatusFilter>('all');
 
