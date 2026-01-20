@@ -1,13 +1,28 @@
+'use client';
+
+import { useState } from "react";
 import type { Ride } from "@/lib/data";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
-import { IndianRupee, Star, RefreshCw, Download } from "lucide-react";
+import { IndianRupee, Star, RefreshCw, Download, Flag } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import { Badge } from "../ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface RideHistoryCardProps {
   ride: Ride;
@@ -23,6 +38,9 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 
 export function RideHistoryCard({ ride }: RideHistoryCardProps) {
   const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [issueType, setIssueType] = useState('');
+  const [issueDescription, setIssueDescription] = useState('');
 
   const getFormattedDate = (date: any) => {
     if (!date) return 'N/A';
@@ -43,6 +61,22 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
         title: "Coming Soon!",
         description: "Receipt downloads will be available in a future update."
     });
+  };
+
+  const handleReportSubmit = () => {
+    // In a real app, you'd submit this to your backend
+    console.log({
+        rideId: ride.id,
+        issueType,
+        issueDescription,
+    });
+    toast({
+        title: "Report Submitted",
+        description: "Thank you for your feedback. Our support team will review your report shortly.",
+    });
+    setIsDialogOpen(false); // Close dialog
+    setIssueType('');
+    setIssueDescription('');
   };
 
   const isPastRide = ride.status === 'completed' || ride.status === 'cancelled';
@@ -91,7 +125,7 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
              </div>
         </div>
       </CardContent>
-      {(isPastRide || ride.status === 'completed') && (
+      {isPastRide && (
         <CardFooter className="p-4 pt-0 flex items-center justify-end gap-2">
             {ride.status === 'completed' && (
                 <Button onClick={handleDownloadReceipt} variant="outline" size="sm" className="mr-auto">
@@ -99,14 +133,63 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
                     Receipt
                 </Button>
             )}
-            {isPastRide && (
-                <Button asChild variant="ghost" size="sm">
-                    <Link href={`/home?pickup=${encodeURIComponent(ride.pickupLocation)}&destination=${encodeURIComponent(ride.destinationLocation)}`}>
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Rebook
-                    </Link>
-                </Button>
-            )}
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                        <Flag className="mr-2 h-4 w-4" /> Report Issue
+                    </Button>
+                </DialogTrigger>
+                <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
+                    <DialogHeader>
+                        <DialogTitle>Report an issue</DialogTitle>
+                        <DialogDescription>
+                            Your feedback helps us improve.
+                            <br />
+                            <span className="font-semibold text-foreground">Ride to {ride.destinationLocation}</span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="issue-type">Type of Issue</Label>
+                            <Select onValueChange={setIssueType}>
+                                <SelectTrigger id="issue-type">
+                                    <SelectValue placeholder="Select an issue type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="unsafe-ride">Unsafe Ride</SelectItem>
+                                    <SelectItem value="fare-dispute">Fare Dispute</SelectItem>
+                                    <SelectItem value="driver-behavior">Driver Behavior</SelectItem>
+                                    <SelectItem value="item-lost">Lost an item</SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="issue-description">Description</Label>
+                            <Textarea
+                                id="issue-description"
+                                placeholder="Please provide details about the issue."
+                                value={issueDescription}
+                                onChange={(e) => setIssueDescription(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                        <Button type="submit" onClick={handleReportSubmit} disabled={!issueType || !issueDescription}>
+                            Submit Report
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            
+            <Button asChild variant="ghost" size="sm">
+                <Link href={`/home?pickup=${encodeURIComponent(ride.pickupLocation)}&destination=${encodeURIComponent(ride.destinationLocation)}`}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Rebook
+                </Link>
+            </Button>
         </CardFooter>
       )}
     </Card>
