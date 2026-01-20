@@ -14,6 +14,7 @@ import {
   SlidersHorizontal,
   User as UserIcon,
   Settings as SettingsIcon,
+  History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -93,6 +94,13 @@ export default function ProfilePage() {
                     <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
                        <SettingsListItem href="/profile/personal" icon={UserIcon} title="Personal Info" subtitle="Name, email, phone" />
                        <SettingsListItem href="/profile/password" icon={Shield} title="Security" subtitle="Change your password" />
+                    </div>
+                </div>
+
+                <div>
+                    <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">ACTIVITY</h2>
+                    <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                       <SettingsListItem href="/history" icon={History} title="My Rides" subtitle="View your past and upcoming rides" />
                     </div>
                 </div>
 
