@@ -7,7 +7,7 @@ import { useAdmin, useUser, useFirestore, useCollection, useMemoFirebase } from 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
-import { Shield, ArrowRight } from 'lucide-react';
+import { Shield, ArrowRight, Car } from 'lucide-react';
 import Link from 'next/link';
 import { collection, query, where, limit } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
@@ -123,8 +123,30 @@ function AdminWelcome() {
     )
 }
 
+function DriverWelcome() {
+    return (
+        <div className="w-full">
+            <Card className="w-full text-center bg-secondary border-primary/50">
+                <CardHeader>
+                    <CardTitle>Welcome, Driver!</CardTitle>
+                    <CardDescription>You are in passenger mode. Head to your dashboard to start accepting rides.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button asChild size="lg" className="font-bold">
+                        <Link href="/driver">
+                            <Car className="mr-2" />
+                            Go to Driver Dashboard
+                        </Link>
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
+
 export default function HomePage() {
-  const { isAdmin, isAdminLoading } = useAdmin();
+  const { isAdmin, isAdminLoading, role } = useAdmin();
 
   if (isAdminLoading) {
     return (
@@ -135,11 +157,20 @@ export default function HomePage() {
       </AppLayout>
     );
   }
+  
+  const isDriver = role === 'driver' && !isAdmin;
 
   return (
     <AppLayout>
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
-        {isAdmin ? <AdminWelcome /> : <PassengerDashboard />}
+        {isAdmin ? (
+            <AdminWelcome />
+        ) : (
+            <div className="space-y-8">
+                {isDriver && <DriverWelcome />}
+                <PassengerDashboard />
+            </div>
+        )}
       </main>
     </AppLayout>
   );
