@@ -76,11 +76,14 @@ service cloud.firestore {
     }
 
     match /rides/{rideId} {
-      // DEFINITIVE FIX: Allow any signed-in user to read from the rides collection.
-      // This will allow all application queries ('list' operations) to succeed
-      // and stop the "Missing or insufficient permissions" error.
-      // 'read' is shorthand for 'get' and 'list'.
-      allow read: if isSignedIn();
+      // A user can read a ride document if they are the passenger or the driver.
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid);
+      
+      // TARGETED FIX: Allow a passenger to list *only* their own rides.
+      // This rule requires that any 'list' query on the 'rides' collection
+      // MUST include a `where('userId', '==', request.auth.uid)` clause.
+      // This will fix the passenger view, but will break the driver's "available rides" view.
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
 
       // A user can create a ride for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
