@@ -39,7 +39,7 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
              <div className="text-right">
                 <p className="font-bold text-xl flex items-center">
                     <IndianRupee size={20} />
-                    {ride.fareAmount.toFixed(2)}
+                    {ride.fareAmount ? ride.fareAmount.toFixed(2) : 'N/A'}
                 </p>
                 <p className="text-xs text-muted-foreground">Total Fare</p>
              </div>

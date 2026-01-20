@@ -47,6 +47,8 @@ export function AvailableRidesList() {
     });
   };
 
+  const validRides = rides?.filter(ride => ride.status === 'requested' && ride.fareAmount != null);
+
   return (
     <Card>
       <CardHeader>
@@ -62,15 +64,15 @@ export function AvailableRidesList() {
             <Skeleton className="h-28 w-full" />
           </>
         )}
-        {!isLoading && (!rides || rides.length === 0) && (
+        {!isLoading && (!validRides || validRides.length === 0) && (
           <div className="text-center py-10 text-muted-foreground">
             <p>No available rides right now.</p>
             <p>You'll be notified when a new request comes in.</p>
           </div>
         )}
         {!isLoading &&
-          rides &&
-          rides.filter(ride => ride.status === 'requested').map((ride) => (
+          validRides &&
+          validRides.map((ride) => (
             <Card key={ride.id} className="p-4">
               <div className="flex justify-between items-start">
                 <div className="space-y-2">
