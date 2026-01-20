@@ -126,12 +126,11 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                    <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">SUPPORT & REWARDS</h2>
+                    <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">SUPPORT &amp; REWARDS</h2>
                     <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
-                       <SettingsListItem onClick={handleNotImplemented} icon={HelpCircle} title="Help" />
+                       <SettingsListItem href="/profile/safety" icon={ShieldCheck} title="Safety &amp; Support" />
                        <SettingsListItem onClick={handleNotImplemented} icon={Package} title="Parcel - Send Items" />
                        <SettingsListItem href="/profile/payment" icon={CreditCard} title="Payment" />
-                       <SettingsListItem onClick={handleNotImplemented} icon={ShieldCheck} title="Safety" />
                        <SettingsListItem onClick={handleNotImplemented} icon={Gift} title="Refer and Earn" subtitle="Get ₹50" />
                        <SettingsListItem onClick={handleNotImplemented} icon={Award} title="My Rewards" />
                        <SettingsListItem onClick={handleNotImplemented} icon={Ticket} title="Power Pass" />
