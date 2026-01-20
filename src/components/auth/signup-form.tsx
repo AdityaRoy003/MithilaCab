@@ -1,12 +1,13 @@
+
 'use client';
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { Car, KeyRound, Mail, Phone, User as UserIcon } from "lucide-react";
 
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,8 @@ import { useToast } from "@/hooks/use-toast";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -142,35 +145,29 @@ export function SignupForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="role"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel>I am a...</FormLabel>
+              <FormLabel>I am signing up as a...</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  className="flex space-x-4"
+                  className="grid grid-cols-2 gap-4"
                 >
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="passenger" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Passenger
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="driver" />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      Driver
-                    </FormLabel>
-                  </FormItem>
+                    <Label className={cn("flex flex-col items-center justify-center rounded-md border-2 p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors", field.value === 'passenger' ? 'border-primary bg-accent/50' : 'border-muted')}>
+                        <RadioGroupItem value="passenger" className="sr-only" />
+                        <UserIcon className="mb-2 h-6 w-6" />
+                        Passenger
+                    </Label>
+                    <Label className={cn("flex flex-col items-center justify-center rounded-md border-2 p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors", field.value === 'driver' ? 'border-primary bg-accent/50' : 'border-muted')}>
+                        <RadioGroupItem value="driver" className="sr-only" />
+                        <Car className="mb-2 h-6 w-6" />
+                        Driver
+                    </Label>
                 </RadioGroup>
               </FormControl>
               <FormMessage />
@@ -184,7 +181,10 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your Name" {...field} />
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Your Name" {...field} className="pl-9" />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -197,7 +197,10 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com" {...field} />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="name@example.com" {...field} className="pl-9" />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -210,7 +213,10 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input placeholder="9876543210" {...field} />
+                 <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="9876543210" {...field} className="pl-9" />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -223,7 +229,10 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                 <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input type="password" placeholder="••••••••" {...field} className="pl-9" />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -232,12 +241,6 @@ export function SignupForm() {
         <Button type="submit" className="w-full font-bold" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Creating Account...' : 'Create Account'}
         </Button>
-        <div className="mt-4 text-center text-sm">
-          Already have an account?{" "}
-          <Link href="/" className="underline font-medium">
-            Login
-          </Link>
-        </div>
       </form>
     </Form>
   );
