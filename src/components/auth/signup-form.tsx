@@ -18,7 +18,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -161,7 +160,7 @@ export function SignupForm() {
           name="role"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel className="text-center block">I am signing up as a...</FormLabel>
+              <Label className="text-center block">I am signing up as a...</Label>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
@@ -204,13 +203,10 @@ export function SignupForm() {
                   <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
                     id="name" 
-                    placeholder=" " 
+                    placeholder="Full Name" 
                     {...field} 
-                    className={cn("peer pl-9", errors.name && "animate-shake border-destructive")}
+                    className={cn("pl-9", errors.name && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="name" className="absolute left-9 origin-[0] pointer-events-none duration-300 text-muted-foreground top-2 -translate-y-4 scale-75 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-focus:text-primary">
-                    Full Name
-                  </FormLabel>
                 </div>
               </FormControl>
               <FormMessage />
@@ -227,13 +223,10 @@ export function SignupForm() {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
                     id="email" 
-                    placeholder=" " 
+                    placeholder="Email" 
                     {...field} 
-                    className={cn("peer pl-9", errors.email && "animate-shake border-destructive")}
+                    className={cn("pl-9", errors.email && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="email" className="absolute left-9 origin-[0] pointer-events-none duration-300 text-muted-foreground top-2 -translate-y-4 scale-75 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-focus:text-primary">
-                    Email
-                  </FormLabel>
                 </div>
               </FormControl>
               <FormMessage />
@@ -250,13 +243,10 @@ export function SignupForm() {
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
                     id="phone" 
-                    placeholder=" " 
+                    placeholder="Phone Number" 
                     {...field} 
-                    className={cn("peer pl-9", errors.phone && "animate-shake border-destructive")}
+                    className={cn("pl-9", errors.phone && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="phone" className="absolute left-9 origin-[0] pointer-events-none duration-300 text-muted-foreground top-2 -translate-y-4 scale-75 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-focus:text-primary">
-                    Phone Number
-                  </FormLabel>
                 </div>
               </FormControl>
               <FormMessage />
@@ -274,13 +264,10 @@ export function SignupForm() {
                   <Input 
                     id="password"
                     type={showPassword ? "text" : "password"} 
-                    placeholder=" "
+                    placeholder="Password"
                     {...field} 
-                    className={cn("peer pl-9 pr-10", errors.password && "animate-shake border-destructive")}
+                    className={cn("pl-9 pr-10", errors.password && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="password" className="absolute left-9 origin-[0] pointer-events-none duration-300 text-muted-foreground top-2 -translate-y-4 scale-75 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-focus:text-primary">
-                    Password
-                  </FormLabel>
                    <AnimatePresence mode="wait" initial={false}>
                       <motion.button
                         key={showPassword ? "eye-off" : "eye"}
