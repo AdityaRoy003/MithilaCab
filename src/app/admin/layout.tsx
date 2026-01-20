@@ -6,9 +6,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Logo } from '@/components/logo';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Car,
+  ChevronLeft,
   LayoutDashboard,
   LogOut,
   Map,
@@ -26,6 +27,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -35,10 +47,12 @@ function NavLink({
   href,
   icon: Icon,
   children,
+  isCollapsed
 }: {
   href: string;
   icon: React.ElementType;
   children: React.ReactNode;
+  isCollapsed: boolean;
 }) {
   const pathname = usePathname();
   const isActive = pathname === href;
@@ -48,34 +62,35 @@ function NavLink({
       href={href}
       className={cn(
         'flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 transition-all hover:text-white hover:bg-gray-800/80',
-        isActive && 'bg-gray-800 text-white'
+        isActive && 'bg-gray-800 text-white',
+        isCollapsed && 'justify-center'
       )}
     >
-      <Icon className="h-4 w-4" />
-      {children}
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className={cn('truncate', isCollapsed && 'hidden')}>{children}</span>
     </Link>
   );
 }
 
-function SidebarNav() {
+function SidebarNav({ isCollapsed }: { isCollapsed: boolean }) {
     return (
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-            <NavLink href="/admin" icon={LayoutDashboard}>
+            <NavLink href="/admin" icon={LayoutDashboard} isCollapsed={isCollapsed}>
                 Dashboard
             </NavLink>
-            <NavLink href="/admin/users" icon={Users}>
+            <NavLink href="/admin/users" icon={Users} isCollapsed={isCollapsed}>
                 Manage Users
             </NavLink>
-            <NavLink href="/admin/drivers" icon={Car}>
+            <NavLink href="/admin/drivers" icon={Car} isCollapsed={isCollapsed}>
                 Manage Drivers
             </NavLink>
-            <NavLink href="/admin/rides" icon={Map}>
+            <NavLink href="/admin/rides" icon={Map} isCollapsed={isCollapsed}>
                 Ride Monitoring
             </NavLink>
-            <NavLink href="/admin/finance" icon={Wallet}>
+            <NavLink href="/admin/finance" icon={Wallet} isCollapsed={isCollapsed}>
                 Finance
             </NavLink>
-            <NavLink href="/admin/settings" icon={Settings}>
+            <NavLink href="/admin/settings" icon={Settings} isCollapsed={isCollapsed}>
                 Settings
             </NavLink>
         </nav>
@@ -130,10 +145,26 @@ function UserMenu() {
                    <Link href="/home">Back to App</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                </DropdownMenuItem>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        You will be returned to the login page.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleLogout} className={buttonVariants({ variant: "destructive" })}>Log Out</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -153,6 +184,7 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [year, setYear] = useState<number | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -164,9 +196,7 @@ export default function AdminLayout({
   const isLoading = authLoading || profileLoading;
   
   useEffect(() => {
-    // Only perform check after all loading is complete.
     if (!isLoading) {
-      // If loading is done, and we determine the user is not an admin, redirect.
       if (!user || userProfile?.role !== 'admin') {
         router.replace('/home');
       }
@@ -174,12 +204,9 @@ export default function AdminLayout({
   }, [isLoading, user, userProfile, router]);
   
   useEffect(() => {
-    // Set year on the client to avoid hydration mismatch
     setYear(new Date().getFullYear());
   }, []);
 
-
-  // 1. While any authentication or profile fetching is in progress, show a loading screen.
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -193,18 +220,27 @@ export default function AdminLayout({
     );
   }
 
-  // 2. After loading, if the user's role is confirmed to be an admin, render the dashboard.
-  // This check is crucial to prevent non-admins from seeing a flash of the admin UI.
   if (userProfile?.role === 'admin') {
       return (
-        <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <div className={cn(
+            "grid min-h-screen w-full transition-all duration-300",
+            isCollapsed ? "md:grid-cols-[64px_1fr]" : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"
+        )}>
           <aside className="hidden border-r bg-gray-900 text-white md:block">
             <div className="flex h-full max-h-screen flex-col gap-2">
-                <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
-                    <Link href="/home"><Logo /></Link>
+                <div className={cn("flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6", isCollapsed && "justify-center")}>
+                    <Link href="/home" className={cn(isCollapsed && 'w-min')}>
+                        <Logo className={cn(isCollapsed && '[&>span]:hidden')} />
+                    </Link>
                 </div>
                 <div className="flex-1 overflow-auto py-2">
-                    <SidebarNav />
+                    <SidebarNav isCollapsed={isCollapsed} />
+                </div>
+                <div className="mt-auto p-4">
+                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(!isCollapsed)} className="w-full justify-center text-gray-400 hover:bg-gray-800/80 hover:text-white">
+                      <ChevronLeft className={cn("h-5 w-5 transition-transform duration-300", isCollapsed && "rotate-180")} />
+                      <span className="sr-only">Toggle Sidebar</span>
+                  </Button>
                 </div>
             </div>
           </aside>
@@ -227,7 +263,7 @@ export default function AdminLayout({
                           <Link href="/home"><Logo /></Link>
                       </div>
                       <div className="flex-1 overflow-auto py-2">
-                          <SidebarNav />
+                          <SidebarNav isCollapsed={false} />
                       </div>
                   </SheetContent>
                 </Sheet>
@@ -258,8 +294,5 @@ export default function AdminLayout({
       );
   }
   
-  // 3. If loading is done but the user is not an admin, render nothing.
-  // The useEffect above has already initiated the redirect. This prevents the admin UI
-  // from flashing on the screen for a non-admin user.
   return null;
 }
