@@ -208,7 +208,7 @@ export function SignupForm() {
                     {...field} 
                     className={cn("peer pl-9", errors.name && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="name" className="absolute text-base text-muted-foreground duration-300 transform -translate-y-1/2 top-1/2 left-9 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-[-50%] peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-3 peer-focus:text-primary">
+                  <FormLabel htmlFor="name" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 text-sm text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-[-50%] peer-placeholder-shown:top-1/2 peer-focus:text-primary">
                     Full Name
                   </FormLabel>
                 </div>
@@ -231,7 +231,7 @@ export function SignupForm() {
                     {...field} 
                     className={cn("peer pl-9", errors.email && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="email" className="absolute text-base text-muted-foreground duration-300 transform -translate-y-1/2 top-1/2 left-9 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-[-50%] peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-3 peer-focus:text-primary">
+                  <FormLabel htmlFor="email" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 text-sm text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-[-50%] peer-placeholder-shown:top-1/2 peer-focus:text-primary">
                     Email
                   </FormLabel>
                 </div>
@@ -254,7 +254,7 @@ export function SignupForm() {
                     {...field} 
                     className={cn("peer pl-9", errors.phone && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="phone" className="absolute text-base text-muted-foreground duration-300 transform -translate-y-1/2 top-1/2 left-9 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-[-50%] peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-3 peer-focus:text-primary">
+                  <FormLabel htmlFor="phone" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 text-sm text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-[-50%] peer-placeholder-shown:top-1/2 peer-focus:text-primary">
                     Phone Number
                   </FormLabel>
                 </div>
@@ -278,7 +278,7 @@ export function SignupForm() {
                     {...field} 
                     className={cn("peer pl-9 pr-10", errors.password && "animate-shake border-destructive")}
                   />
-                  <FormLabel htmlFor="password" className="absolute text-base text-muted-foreground duration-300 transform -translate-y-1/2 top-1/2 left-9 origin-[0] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-[-50%] peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:top-3 peer-focus:text-primary">
+                  <FormLabel htmlFor="password" className="absolute left-9 origin-[0] duration-300 transform -translate-y-4 scale-75 top-4 text-sm text-muted-foreground peer-placeholder-shown:scale-100 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-[-50%] peer-placeholder-shown:top-1/2 peer-focus:text-primary">
                     Password
                   </FormLabel>
                    <AnimatePresence mode="wait" initial={false}>
