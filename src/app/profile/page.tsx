@@ -15,25 +15,45 @@ import {
   User as UserIcon,
   Settings as SettingsIcon,
   History,
+  Package,
+  CreditCard,
+  ShieldCheck,
+  Gift,
+  Award,
+  Ticket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
-const SettingsListItem = ({ href, icon: Icon, title, subtitle }: { href: string, icon: React.ElementType, title:string, subtitle?: string }) => {
-    return (
-        <Link href={href} className="w-full h-full hover:bg-accent/50 transition-colors block">
-             <div className={cn("flex items-center justify-between p-4 w-full text-left")}>
-                <div className="flex items-center gap-4">
-                    <div className={cn("p-2 rounded-full", "bg-muted")}>
-                       <Icon className={cn("h-5 w-5", "text-primary")} />
-                    </div>
-                    <div>
-                        <p className="font-medium">{title}</p>
-                        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
-                    </div>
+const SettingsListItem = ({ href, icon: Icon, title, subtitle, onClick }: { href?: string, icon: React.ElementType, title:string, subtitle?: string, onClick?: (e: React.MouseEvent) => void }) => {
+    const content = (
+         <div className={cn("flex items-center justify-between p-4 w-full text-left")}>
+            <div className="flex items-center gap-4">
+                <div className={cn("p-2 rounded-full", "bg-muted")}>
+                   <Icon className={cn("h-5 w-5", "text-primary")} />
                 </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                <div>
+                    <p className="font-medium">{title}</p>
+                    {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+                </div>
             </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </div>
+    );
+    
+    const className = "w-full h-full hover:bg-accent/50 transition-colors block";
+
+    if (onClick) {
+        return (
+            <button onClick={onClick} className={className}>
+                {content}
+            </button>
+        )
+    }
+
+    return (
+        <Link href={href!} className={className}>
+             {content}
         </Link>
     );
 }
@@ -101,6 +121,19 @@ export default function ProfilePage() {
                     <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">ACTIVITY</h2>
                     <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
                        <SettingsListItem href="/history" icon={History} title="My Rides" subtitle="View your past and upcoming rides" />
+                    </div>
+                </div>
+
+                <div>
+                    <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">SUPPORT & REWARDS</h2>
+                    <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                       <SettingsListItem onClick={handleNotImplemented} icon={HelpCircle} title="Help" />
+                       <SettingsListItem onClick={handleNotImplemented} icon={Package} title="Parcel - Send Items" />
+                       <SettingsListItem onClick={handleNotImplemented} icon={CreditCard} title="Payment" />
+                       <SettingsListItem onClick={handleNotImplemented} icon={ShieldCheck} title="Safety" />
+                       <SettingsListItem onClick={handleNotImplemented} icon={Gift} title="Refer and Earn" subtitle="Get ₹50" />
+                       <SettingsListItem onClick={handleNotImplemented} icon={Award} title="My Rewards" />
+                       <SettingsListItem onClick={handleNotImplemented} icon={Ticket} title="Power Pass" />
                     </div>
                 </div>
 
