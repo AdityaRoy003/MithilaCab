@@ -24,8 +24,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 const SettingsListItem = ({ href, icon: Icon, title, subtitle, onClick }: { href?: string, icon: React.ElementType, title:string, subtitle?: string, onClick?: (e: React.MouseEvent) => void }) => {
+    const router = useRouter();
     const content = (
          <div className={cn("flex items-center justify-between p-4 w-full text-left")}>
             <div className="flex items-center gap-4">
@@ -43,24 +45,25 @@ const SettingsListItem = ({ href, icon: Icon, title, subtitle, onClick }: { href
     
     const className = "w-full h-full hover:bg-accent/50 transition-colors block";
 
-    if (onClick) {
-        return (
-            <button onClick={onClick} className={className}>
-                {content}
-            </button>
-        )
-    }
+    const handleClick = (e: React.MouseEvent) => {
+      if (onClick) {
+        onClick(e);
+      } else if (href) {
+        router.push(href);
+      }
+    };
 
     return (
-        <Link href={href!} className={className}>
-             {content}
-        </Link>
+        <button onClick={handleClick} className={className}>
+            {content}
+        </button>
     );
 }
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleNotImplemented = (e?: React.MouseEvent) => {
     e?.preventDefault();
@@ -95,11 +98,9 @@ export default function ProfilePage() {
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
         <div className="max-w-2xl mx-auto w-full">
             <div className="flex items-center justify-between mb-6">
-                 <Button variant="ghost" asChild className="-ml-4">
-                    <Link href="/home">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Home
-                    </Link>
+                 <Button variant="ghost" onClick={() => router.push('/home')} className="-ml-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Home
                 </Button>
                 <h1 className="font-headline text-2xl font-bold">Profile</h1>
                 <Button variant="outline" size="icon" className="rounded-full" onClick={handleNotImplemented}>
@@ -129,7 +130,7 @@ export default function ProfilePage() {
                     <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
                        <SettingsListItem onClick={handleNotImplemented} icon={HelpCircle} title="Help" />
                        <SettingsListItem onClick={handleNotImplemented} icon={Package} title="Parcel - Send Items" />
-                       <SettingsListItem onClick={handleNotImplemented} icon={CreditCard} title="Payment" />
+                       <SettingsListItem href="/profile/payment" icon={CreditCard} title="Payment" />
                        <SettingsListItem onClick={handleNotImplemented} icon={ShieldCheck} title="Safety" />
                        <SettingsListItem onClick={handleNotImplemented} icon={Gift} title="Refer and Earn" subtitle="Get ₹50" />
                        <SettingsListItem onClick={handleNotImplemented} icon={Award} title="My Rewards" />
