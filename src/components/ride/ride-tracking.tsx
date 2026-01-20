@@ -84,15 +84,18 @@ export function RideTracking({ rideDetails, onComplete }: RideTrackingProps) {
           />
         )}
         <motion.div
-          className="absolute text-primary"
+          className="absolute"
           initial={{ top: '80%', left: '20%' }}
           animate={{
             top: progress > 40 ? '20%' : '80%',
             left: progress > 40 ? '80%' : '20%',
           }}
-          transition={{ duration: stageIndex >=2 ? 8 : 5, ease: 'easeInOut' }}
+          transition={{ duration: stageIndex >= 2 ? 8 : 5, ease: 'easeInOut' }}
         >
-          <Car size={32} />
+          <div className="relative flex h-8 w-8 items-center justify-center">
+            <div className="absolute h-full w-full animate-ping rounded-full bg-primary/70"></div>
+            <Car size={32} className="relative text-primary-foreground bg-primary p-1 rounded-full shadow-lg" />
+          </div>
         </motion.div>
       </div>
 
