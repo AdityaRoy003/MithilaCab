@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { updateProfile, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import AppLayout from "@/components/app-layout";
@@ -14,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Home, Briefcase } from 'lucide-react';
+import { Home, Briefcase, History, ChevronRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import type { RideType } from '@/lib/data';
@@ -329,6 +330,17 @@ export default function ProfilePage() {
                         </Button>
                     </CardFooter>
                 </form>
+            </Card>
+            <Card>
+                <CardContent className="p-0">
+                    <Link href="/history" className="flex items-center justify-between p-6 w-full">
+                        <div className="flex items-center gap-4">
+                            <History className="h-5 w-5 text-muted-foreground" />
+                            <span className="font-medium">My Rides</span>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    </Link>
+                </CardContent>
             </Card>
           </div>
 

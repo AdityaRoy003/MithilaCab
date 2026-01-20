@@ -14,7 +14,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, History, User, LogOut, Shield, MoreVertical, Bell } from "lucide-react";
+import { Home, History, User, LogOut, Shield, MoreVertical, Bell, ChevronRight } from "lucide-react";
 import { useUser, useAuth, useDriver, useAdmin } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -193,16 +193,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SheetHeader>
         <div className="py-4 flex flex-col h-full">
           <nav className="flex flex-col gap-1">
-            <Button variant="ghost" asChild className="justify-start">
+            <Button variant="ghost" asChild className="justify-between w-full">
               <Link href="/home">
-                <Home className="mr-2" />
-                <span>Book a Ride</span>
+                <div className="flex items-center">
+                    <Home className="mr-2" />
+                    <span>Book a Ride</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground"/>
               </Link>
             </Button>
-            <Button variant="ghost" asChild className="justify-start">
+            <Button variant="ghost" asChild className="justify-between w-full">
               <Link href="/history">
-                <History className="mr-2" />
-                <span>Ride History</span>
+                <div className="flex items-center">
+                    <History className="mr-2" />
+                    <span>Ride History</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground"/>
               </Link>
             </Button>
           </nav>
