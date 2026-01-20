@@ -1,20 +1,39 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import { doc } from 'firebase/firestore';
 import AppLayout from "@/components/app-layout";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useUser, useAuth, useDoc, useMemoFirebase, useFirestore } from "@/firebase";
-import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Home, History, ChevronRight, User as UserIcon, Palette } from 'lucide-react';
-
+import {
+  ArrowLeft,
+  ChevronRight,
+  Heart,
+  HelpCircle,
+  Info,
+  LogOut,
+  Shield,
+  SlidersHorizontal,
+  Trash2,
+  User as UserIcon,
+  Smartphone,
+  FlaskConical,
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface UserProfile {
     id: string;
@@ -24,10 +43,48 @@ interface UserProfile {
     photoURL?: string;
 }
 
-export default function ProfilePage() {
+const SettingsListItem = ({ href, icon: Icon, title, subtitle, isLogout = false, onAction, isDestructive = false, disabled = false }: { href?: string, icon: React.ElementType, title:string, subtitle?: string, isLogout?: boolean, onAction?: () => void, isDestructive?: boolean, disabled?: boolean }) => {
+    const content = (
+        <div className={cn("flex items-center justify-between p-4 w-full text-left", isDestructive && "text-destructive", disabled && "opacity-50")}>
+            <div className="flex items-center gap-4">
+                <div className={cn("p-2 rounded-full", isDestructive ? "bg-destructive/10" : "bg-muted")}>
+                   <Icon className={cn("h-5 w-5", isDestructive ? "text-destructive" : "text-primary")} />
+                </div>
+                <div>
+                    <p className="font-medium">{title}</p>
+                    {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+                </div>
+            </div>
+            {!isLogout && <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+        </div>
+    );
+
+    const commonProps = {
+        onClick: onAction,
+        disabled: disabled,
+        className: "w-full h-full hover:bg-accent/50 transition-colors disabled:hover:bg-transparent disabled:cursor-not-allowed"
+    };
+
+    if (isLogout) {
+        return <button {...commonProps}>{content}</button>
+    }
+    
+    if (href && !disabled) {
+        return (
+            <Link href={href} className={commonProps.className}>
+               {content}
+            </Link>
+        )
+    }
+
+    return <button {...commonProps}>{content}</button>;
+}
+
+export default function SettingsPage() {
   const { user, loading: authLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
+  const router = useRouter();
   const { toast } = useToast();
 
   const userDocRef = useMemoFirebase(() => {
@@ -36,168 +93,114 @@ export default function ProfilePage() {
   }, [firestore, user]);
 
   const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userDocRef);
-
-  const [name, setName] = useState('');
-
-  // State for password change
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-
-  useEffect(() => {
-    if (userProfile) {
-      setName(userProfile.name || '');
-    } else if(user) {
-      setName(user.displayName || '');
-    }
-  }, [user, userProfile]);
-
-  const handlePasswordChange = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!auth.currentUser) return;
-      if (newPassword !== confirmPassword) {
-          toast({ variant: "destructive", title: "Error", description: "New passwords do not match."});
-          return;
-      }
-      if (newPassword.length < 6) {
-          toast({ variant: "destructive", title: "Error", description: "Password must be at least 6 characters."});
-          return;
-      }
-      setIsUpdatingPassword(true);
-      try {
-        const credential = EmailAuthProvider.credential(auth.currentUser.email!, currentPassword);
-        await reauthenticateWithCredential(auth.currentUser, credential);
-        await updatePassword(auth.currentUser, newPassword);
-
-        toast({ title: "Password Updated", description: "Your password has been changed successfully." });
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-      } catch (error: any) {
-          toast({
-              variant: "destructive",
-              title: "Password Update Failed",
-              description: "Could not update password. Please check your current password and try again."
-          });
-      } finally {
-          setIsUpdatingPassword(false);
-      }
-  }
   
+  const handleLogout = () => {
+    auth.signOut().then(() => {
+      router.push("/");
+    });
+  };
+
+  const handleNotImplemented = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    toast({
+      title: "Feature coming soon!",
+      description: "This feature is not yet available."
+    })
+  }
+
   const loading = authLoading || profileLoading;
 
   if (loading) {
       return (
           <AppLayout>
               <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
-                  <h1 className="font-headline text-3xl font-bold mb-6">My Profile</h1>
-                   <div className="grid gap-8 md:grid-cols-3">
-                    <div className="md:col-span-2 space-y-8">
-                        <Skeleton className="h-48 w-full" />
-                        <Skeleton className="h-64 w-full" />
-                        <Skeleton className="h-64 w-full" />
-                    </div>
-                    <div className="space-y-8">
-                        <div className="flex items-center flex-col text-center">
-                            <Skeleton className="h-32 w-32 rounded-full mb-4" />
-                            <Skeleton className="h-10 w-24" />
-                        </div>
-                    </div>
-                   </div>
+                  <div className="max-w-2xl mx-auto w-full">
+                      <Skeleton className="h-10 w-48 mb-6" />
+                      <div className="space-y-4">
+                        <Skeleton className="h-8 w-24 mb-2" />
+                        <Skeleton className="h-56 w-full" />
+                        <Skeleton className="h-8 w-24 mb-2" />
+                        <Skeleton className="h-56 w-full" />
+                      </div>
+                  </div>
               </main>
           </AppLayout>
       )
   }
 
-  if (!user) {
+  if (!user || !userProfile) {
     return null;
   }
 
   return (
     <AppLayout>
-      <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
-        <h1 className="font-headline text-3xl font-bold mb-6">My Profile</h1>
-        <div className="grid gap-8 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-4">
-            <Card>
-                <CardContent className="p-0">
-                    <Link href="/profile/personal" className="flex items-center justify-between p-6 w-full hover:bg-accent/50 transition-colors rounded-t-lg">
-                        <div className="flex items-center gap-4">
-                            <UserIcon className="h-5 w-5 text-muted-foreground" />
-                            <span className="font-medium">Personal Information</span>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+      <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
+        <div className="max-w-2xl mx-auto w-full">
+            <div className="flex items-center justify-between mb-6">
+                 <Button variant="ghost" asChild className="-ml-4">
+                    <Link href="/home">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
                     </Link>
-                    <hr/>
-                    <Link href="/profile/saved-addresses" className="flex items-center justify-between p-6 w-full hover:bg-accent/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                            <Home className="h-5 w-5 text-muted-foreground" />
-                            <span className="font-medium">Saved Addresses</span>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </Link>
-                    <hr/>
-                     <Link href="/profile/preferences" className="flex items-center justify-between p-6 w-full hover:bg-accent/50 transition-colors rounded-b-lg">
-                        <div className="flex items-center gap-4">
-                            <Palette className="h-5 w-5 text-muted-foreground" />
-                            <span className="font-medium">Preferences</span>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </Link>
-                </CardContent>
-            </Card>
+                </Button>
+                <h1 className="font-headline text-2xl font-bold">Settings</h1>
+                <Button variant="outline" size="icon" className="rounded-full" onClick={handleNotImplemented}>
+                    <HelpCircle className="h-5 w-5" />
+                    <span className="sr-only">Help</span>
+                </Button>
+            </div>
             
-            <Card>
-                <form onSubmit={handlePasswordChange}>
-                    <CardHeader>
-                        <CardTitle>Change Password</CardTitle>
-                        <CardDescription>Update your account's password. It's recommended to use a strong, unique password.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="current-password">Current Password</Label>
-                            <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="new-password">New Password</Label>
-                            <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="confirm-password">Confirm New Password</Label>
-                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                         <Button type="submit" disabled={isUpdatingPassword} className="font-bold">
-                            {isUpdatingPassword ? 'Updating...' : 'Update Password'}
-                        </Button>
-                    </CardFooter>
-                </form>
-            </Card>
+            <div className="space-y-8">
+                <div>
+                    <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">GENERAL</h2>
+                    <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                       <SettingsListItem href="/profile/personal" icon={UserIcon} title="Profile" subtitle={userProfile.phone || userProfile.email} />
+                       <SettingsListItem href="/profile/saved-addresses" icon={Heart} title="Favourites" subtitle="Manage favourite locations" />
+                       <SettingsListItem href="/profile/preferences" icon={SlidersHorizontal} title="Preferences" subtitle="Manage preferences" />
+                       <SettingsListItem isLogout onAction={handleNotImplemented} icon={Smartphone} title="App shortcuts" subtitle="Create shortcuts on home launcher" />
+                       <SettingsListItem href="/profile/password" icon={Shield} title="Security" subtitle="Change your password" />
+                    </div>
+                </div>
 
-            <Card>
-                <CardContent className="p-0">
-                    <Link href="/history" className="flex items-center justify-between p-6 w-full hover:bg-accent/50 transition-colors rounded-lg">
-                        <div className="flex items-center gap-4">
-                            <History className="h-5 w-5 text-muted-foreground" />
-                            <span className="font-medium">My Rides</span>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </Link>
-                </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-8">
-             <div className="flex items-center flex-col text-center">
-                <Avatar className="h-32 w-32 mb-4">
-                  <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ''} />
-                  <AvatarFallback className="text-4xl">{name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <Button variant="outline">Change Photo</Button>
-             </div>
-          </div>
+                 <div>
+                    <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">OTHERS</h2>
+                    <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                       <SettingsListItem isLogout onAction={handleNotImplemented} icon={Info} title="About" subtitle="App version 1.0.0" />
+                       <SettingsListItem isLogout onAction={handleNotImplemented} icon={FlaskConical} title="Subscribe to Beta" subtitle="Get early access to latest features" />
+                       <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                             <SettingsListItem isLogout onAction={()=>{}} icon={LogOut} title="Logout" />
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleLogout} className={buttonVariants({ variant: "destructive" })}>Log Out</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                       <AlertDialog>
+                           <AlertDialogTrigger asChild>
+                              <SettingsListItem isLogout onAction={()=>{}} icon={Trash2} title="Delete Account" isDestructive />
+                           </Tritter>
+                           <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action is permanent and cannot be undone. All your data will be deleted.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleNotImplemented} className={buttonVariants({ variant: "destructive" })}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                       </AlertDialog>
+                    </div>
+                </div>
+            </div>
         </div>
       </main>
     </AppLayout>
