@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { updateProfile } from 'firebase/auth';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
@@ -44,6 +44,7 @@ export default function PersonalInfoPage() {
     const auth = useAuth();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const router = useRouter();
 
     const userDocRef = useMemoFirebase(() => {
         if (!user) return null;
@@ -138,11 +139,9 @@ export default function PersonalInfoPage() {
         <AppLayout>
             <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
                 <div className="mb-6">
-                    <Button variant="ghost" asChild>
-                        <Link href="/profile">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Profile
-                        </Link>
+                    <Button variant="ghost" onClick={() => router.push('/profile')}>
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Profile
                     </Button>
                 </div>
                 <h1 className="font-headline text-3xl font-bold mb-6">Personal Information</h1>

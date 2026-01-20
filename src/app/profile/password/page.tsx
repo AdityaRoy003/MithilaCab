@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import AppLayout from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { ArrowLeft } from 'lucide-react';
 export default function PasswordPage() {
   const auth = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -57,11 +58,9 @@ export default function PasswordPage() {
     <AppLayout>
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
          <div className="mb-6">
-            <Button variant="ghost" asChild>
-                <Link href="/profile">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Profile
-                </Link>
+            <Button variant="ghost" onClick={() => router.push('/profile')}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Profile
             </Button>
         </div>
         <h1 className="font-headline text-3xl font-bold mb-6">Security</h1>

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   AlertDialog,
@@ -63,11 +62,16 @@ const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false,
         return <button {...commonProps} {...props}>{content}</button>
     }
     
+    // The issue was here. A Link component cannot be a direct child of AlertDialogTrigger when asChild is used.
+    // The button must be the trigger.
     if (href && !disabled) {
         return (
-            <Link href={href} className={commonProps.className} {...props}>
+             <button onClick={() => {
+                const router = (props as any).router; // A bit of a hack to get the router
+                if(router) router.push(href);
+             }} className={commonProps.className} {...props}>
                {content}
-            </Link>
+             </button>
         )
     }
 
@@ -146,11 +150,9 @@ export default function AppSettingsPage() {
             <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
                 <div className="max-w-2xl mx-auto w-full">
                     <div className="mb-6">
-                        <Button variant="ghost" asChild className="-ml-4">
-                            <Link href="/profile">
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Back to Profile
-                            </Link>
+                        <Button variant="ghost" onClick={() => router.push('/profile')} className="-ml-4">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Profile
                         </Button>
                     </div>
                     <h1 className="font-headline text-3xl font-bold mb-6">App Settings</h1>
@@ -161,7 +163,7 @@ export default function AppSettingsPage() {
                        <SettingsListItem isAction onAction={handleNotImplemented} icon={FlaskConical} title="Subscribe to Beta" subtitle="Get early access to latest features" />
                        <AlertDialog>
                           <AlertDialogTrigger asChild>
-                             <SettingsListItem isAction icon={LogOut} title="Logout" />
+                             <SettingsListItem onSelect={(e) => e.preventDefault()} isAction icon={LogOut} title="Logout" />
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
@@ -175,7 +177,7 @@ export default function AppSettingsPage() {
                         </AlertDialog>
                        <AlertDialog>
                            <AlertDialogTrigger asChild>
-                              <SettingsListItem isAction icon={Trash2} title="Delete Account" isDestructive />
+                              <SettingsListItem onSelect={(e) => e.preventDefault()} isAction icon={Trash2} title="Delete Account" isDestructive />
                            </AlertDialogTrigger>
                            <AlertDialogContent>
                             <AlertDialogHeader>
