@@ -2,11 +2,12 @@ import type { Ride } from "@/lib/data";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
-import { IndianRupee, Star, RefreshCw } from "lucide-react";
+import { IndianRupee, Star, RefreshCw, Download } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import { Badge } from "../ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 interface RideHistoryCardProps {
   ride: Ride;
@@ -21,6 +22,8 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 }
 
 export function RideHistoryCard({ ride }: RideHistoryCardProps) {
+  const { toast } = useToast();
+
   const getFormattedDate = (date: any) => {
     if (!date) return 'N/A';
     try {
@@ -34,6 +37,13 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
         return 'Invalid Date';
     }
   }
+
+  const handleDownloadReceipt = () => {
+    toast({
+        title: "Coming Soon!",
+        description: "Receipt downloads will be available in a future update."
+    });
+  };
 
   const isPastRide = ride.status === 'completed' || ride.status === 'cancelled';
 
@@ -81,14 +91,22 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
              </div>
         </div>
       </CardContent>
-      {isPastRide && (
-        <CardFooter className="p-4 pt-0 justify-end">
-            <Button asChild variant="ghost" size="sm">
-                <Link href={`/home?pickup=${encodeURIComponent(ride.pickupLocation)}&destination=${encodeURIComponent(ride.destinationLocation)}`}>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Rebook
-                </Link>
-            </Button>
+      {(isPastRide || ride.status === 'completed') && (
+        <CardFooter className="p-4 pt-0 flex items-center justify-end gap-2">
+            {ride.status === 'completed' && (
+                <Button onClick={handleDownloadReceipt} variant="outline" size="sm" className="mr-auto">
+                    <Download className="mr-2 h-4 w-4" />
+                    Receipt
+                </Button>
+            )}
+            {isPastRide && (
+                <Button asChild variant="ghost" size="sm">
+                    <Link href={`/home?pickup=${encodeURIComponent(ride.pickupLocation)}&destination=${encodeURIComponent(ride.destinationLocation)}`}>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Rebook
+                    </Link>
+                </Button>
+            )}
         </CardFooter>
       )}
     </Card>
