@@ -13,13 +13,23 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AvailableRidesList } from './available-rides-list';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function DriverPage() {
   const { driver, isDriverLoading } = useDriver();
   const firestore = useFirestore();
   const router = useRouter();
 
-  if (isDriverLoading) {
+  useEffect(() => {
+    if (!isDriverLoading && !driver) {
+      // This case should ideally not be hit if the user manually navigates here
+      // as the Driver Mode switch wouldn't be visible.
+      // We redirect them to the passenger homepage as a fallback.
+      router.replace('/home');
+    }
+  }, [isDriverLoading, driver, router]);
+
+  if (isDriverLoading || !driver) {
     return (
       <AppLayout>
         <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-8">
@@ -44,14 +54,6 @@ export default function DriverPage() {
         </main>
       </AppLayout>
     );
-  }
-
-  if (!driver) {
-    // This case should ideally not be hit if the user manually navigates here
-    // as the Driver Mode switch wouldn't be visible.
-    // We redirect them to the passenger homepage as a fallback.
-    router.replace('/home');
-    return null;
   }
 
   const handleAvailabilityChange = (isAvailable: boolean) => {
