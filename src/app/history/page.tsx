@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
-import { collection, query, where, orderBy, QueryConstraint } from "firebase/firestore";
+import { collection, query, where, orderBy } from "firebase/firestore";
 import AppLayout from "@/components/app-layout";
 import { RideHistoryItem } from "@/components/ride/ride-history-item";
 import type { Ride } from "@/lib/data";
@@ -18,21 +18,23 @@ export default function HistoryPage() {
 
   const ridesQuery = useMemoFirebase(() => {
     if (!user) return null;
-
-    const constraints: QueryConstraint[] = [
-      where('userId', '==', user.uid),
-      orderBy('startTime', 'desc')
-    ];
-
-    if (filter !== 'all') {
-      constraints.push(where('status', '==', filter));
-    }
-
-    return query(collection(firestore, 'rides'), ...constraints);
-  }, [firestore, user, filter]);
+    // Simplify the query to only fetch by userId. Filtering by status will be done on the client.
+    return query(
+        collection(firestore, 'rides'), 
+        where('userId', '==', user.uid), 
+        orderBy('startTime', 'desc')
+    );
+  }, [firestore, user]);
 
   const { data: rides, isLoading: areRidesLoading } = useCollection<Ride>(ridesQuery);
   const isLoading = isUserLoading || (user && areRidesLoading);
+
+  const filteredRides = useMemo(() => {
+      if (!rides) return [];
+      if (filter === 'all') return rides;
+      return rides.filter(ride => ride.status === filter);
+  }, [rides, filter]);
+
 
   const renderContent = () => {
       if (isLoading) {
@@ -45,13 +47,13 @@ export default function HistoryPage() {
         );
       }
 
-      if (user && rides && rides.length > 0) {
-        return rides.map((ride) => (
+      if (user && filteredRides && filteredRides.length > 0) {
+        return filteredRides.map((ride) => (
           <RideHistoryItem key={ride.id} ride={ride} />
         ));
       }
       
-      if (user && (!rides || rides.length === 0)) {
+      if (user && (!filteredRides || filteredRides.length === 0)) {
           return (
               <div className="text-center py-10">
               <h3 className="text-xl font-semibold">No rides found</h3>
