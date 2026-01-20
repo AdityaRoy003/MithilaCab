@@ -184,7 +184,7 @@ export default function SettingsPage() {
                        <AlertDialog>
                            <AlertDialogTrigger asChild>
                               <SettingsListItem isLogout onAction={()=>{}} icon={Trash2} title="Delete Account" isDestructive />
-                           </Tritter>
+                           </AlertDialogTrigger>
                            <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
