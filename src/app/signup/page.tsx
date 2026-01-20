@@ -61,7 +61,7 @@ export default function SignupPage() {
                 <h1 className="font-headline text-4xl font-bold">Join MithilaCab</h1>
                 <p className="text-muted-foreground">Your ride, your way.</p>
             </div>
-            <Card className="shadow-2xl">
+            <Card className="shadow-lg">
               <CardHeader>
                 <CardDescription>
                   Create your account to get started. It's quick and easy!
@@ -90,7 +90,7 @@ export default function SignupPage() {
             className="object-cover dark:brightness-[0.3]"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
         <div className="absolute bottom-10 left-10 right-10">
             <div className="p-8 rounded-xl bg-black/50 backdrop-blur-lg border border-white/10">
                  <blockquote className="text-white text-xl font-medium leading-relaxed">
