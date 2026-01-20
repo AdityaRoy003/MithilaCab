@@ -36,12 +36,6 @@ service cloud.firestore {
       return request.resource.data.id == resource.data.id;
     }
 
-    function isRideParticipant() {
-      return isSignedIn() && resource != null && 
-             ( ('userId' in resource.data && request.auth.uid == resource.data.userId) || 
-               ('driverId' in resource.data && resource.data.driverId != null && request.auth.uid == resource.data.driverId) );
-    }
-
     function canCreateRide() {
       return isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
@@ -79,22 +73,16 @@ service cloud.firestore {
     }
 
     match /rides/{rideId} {
-      // This rule is designed to be efficient for list queries.
-      // It allows a read if the user is the passenger, the assigned driver, OR if the ride is unassigned.
-      // Importantly, it only reads from the document being requested and does not perform other `get`s.
-      allow get: if isSignedIn() && (
-        (resource.data.userId == request.auth.uid) ||
-        (resource.data.driverId == request.auth.uid) ||
-        (resource.data.driverId == null)
-      );
-
-      // A query will only succeed if the 'get' rule is true for ALL potential documents.
-      allow list: if isSignedIn();
+      // --- DIAGNOSTIC RULE ---
+      // This rule is intentionally simplified to diagnose the passenger query issue.
+      // It will break the driver's ability to see available rides.
+      // A user can read a ride document ONLY if they are the passenger on that ride.
+      allow read: if request.auth.uid == resource.data.userId;
 
       allow create: if canCreateRide();
       
-      // Update rules CAN use more expensive checks like isDriver() because they operate on a single document.
-      allow update: if canAcceptRide() || (isRideParticipant() && areRideParticipantsImmutable());
+      // Update rule is complex, but doesn't affect the read query.
+      allow update: if (isOwner(resource.data.userId) && areRideParticipantsImmutable()) || canAcceptRide();
 
       allow delete: if isOwner(resource.data.userId);
     }
