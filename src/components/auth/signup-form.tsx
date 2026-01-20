@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { motion } from "framer-motion";
 import { Car, KeyRound, Mail, Phone, User as UserIcon, Eye, EyeOff, Loader2 } from "lucide-react";
 
 
@@ -46,6 +47,11 @@ const formSchema = z.object({
     required_error: "You need to select a role.",
   }),
 });
+
+const roles = [
+    { value: 'passenger' as const, label: 'Passenger', icon: UserIcon },
+    { value: 'driver' as const, label: 'Driver', icon: Car },
+];
 
 export function SignupForm() {
   const router = useRouter();
@@ -160,18 +166,28 @@ export function SignupForm() {
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  className="grid grid-cols-2 gap-4"
+                  className="relative grid grid-cols-2 gap-4"
                 >
-                    <Label className={cn("flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer transition-all", field.value === 'passenger' ? 'border-primary bg-primary/10 shadow-md' : 'border-muted hover:bg-accent/50')}>
-                        <RadioGroupItem value="passenger" className="sr-only" />
-                        <UserIcon className="mb-2 h-6 w-6" />
-                        Passenger
-                    </Label>
-                    <Label className={cn("flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer transition-all", field.value === 'driver' ? 'border-primary bg-primary/10 shadow-md' : 'border-muted hover:bg-accent/50')}>
-                        <RadioGroupItem value="driver" className="sr-only" />
-                        <Car className="mb-2 h-6 w-6" />
-                        Driver
-                    </Label>
+                    {roles.map((role) => (
+                        <Label
+                            key={role.value}
+                            className={cn(
+                                "relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer transition-colors",
+                                field.value === role.value ? 'border-primary' : 'border-muted hover:bg-accent/50'
+                            )}
+                        >
+                            {field.value === role.value && (
+                                <motion.div
+                                    layoutId="role-highlight"
+                                    className="absolute inset-0 rounded-md bg-primary/10 shadow-inner"
+                                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                />
+                            )}
+                            <RadioGroupItem value={role.value} className="sr-only" />
+                            <role.icon className={cn("relative z-10 mb-2 h-6 w-6", field.value === role.value && "text-primary")} />
+                            <span className={cn("relative z-10", field.value === role.value && "text-primary font-semibold")}>{role.label}</span>
+                        </Label>
+                    ))}
                 </RadioGroup>
               </FormControl>
               <FormMessage />
