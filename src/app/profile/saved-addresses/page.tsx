@@ -23,7 +23,7 @@ interface UserProfile {
 }
 
 export default function SavedAddressesPage() {
-  const { user, loading: authLoading } = useUser();
+  const { user, isUserLoading: authLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function SavedAddressesPage() {
     return doc(firestore, 'users', user.uid);
   }, [firestore, user]);
 
-  const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userDocRef);
+  const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
   const [homeAddress, setHomeAddress] = useState('');
   const [workAddress, setWorkAddress] = useState('');

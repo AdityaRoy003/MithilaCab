@@ -65,7 +65,7 @@ const SettingsListItem = ({ href, icon: Icon, title, subtitle, onClick }: { href
 }
 
 export default function ProfilePage() {
-  const { user, loading: authLoading } = useUser();
+  const { user, isUserLoading: authLoading } = useUser();
   const { role, isAdminLoading } = useAdmin();
   const { toast } = useToast();
   const router = useRouter();

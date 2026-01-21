@@ -40,7 +40,7 @@ interface UserProfile {
 
 
 export default function PersonalInfoPage() {
-    const { user, loading: authLoading } = useUser();
+    const { user, isUserLoading: authLoading } = useUser();
     const auth = useAuth();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -51,7 +51,7 @@ export default function PersonalInfoPage() {
         return doc(firestore, 'users', user.uid);
     }, [firestore, user]);
 
-    const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userDocRef);
+    const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');

@@ -26,7 +26,7 @@ interface UserProfile {
 }
 
 export default function PreferencesPage() {
-  const { user, loading: authLoading } = useUser();
+  const { user, isUserLoading: authLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function PreferencesPage() {
     return doc(firestore, 'users', user.uid);
   }, [firestore, user]);
 
-  const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(userDocRef);
+  const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
   const [defaultRideType, setDefaultRideType] = useState<RideType>('Standard');
   const [language, setLanguage] = useState('en');

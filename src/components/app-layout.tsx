@@ -119,7 +119,7 @@ function UserMenu() {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading } = useUser();
+  const { user, isUserLoading: loading } = useUser();
   const { driver, isDriverLoading } = useDriver();
   const { isAdmin } = useAdmin();
   const [open, setOpen] = useState(false);
