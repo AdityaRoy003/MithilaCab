@@ -20,6 +20,7 @@ import {
   Wallet,
   FileBadge,
   BarChart,
+  LifeBuoy,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -97,6 +98,9 @@ function SidebarNav({ isCollapsed }: { isCollapsed: boolean }) {
             </NavLink>
             <NavLink href="/admin/analytics" icon={BarChart} isCollapsed={isCollapsed}>
                 Analytics
+            </NavLink>
+            <NavLink href="/admin/support" icon={LifeBuoy} isCollapsed={isCollapsed}>
+                Support & Safety
             </NavLink>
             <NavLink href="/admin/settings" icon={Settings} isCollapsed={isCollapsed}>
                 Settings
