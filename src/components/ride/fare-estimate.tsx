@@ -1,11 +1,21 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import type { Ride } from '@/lib/data';
+import type { Ride, RideType } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowRight, Clock, Map, IndianRupee } from 'lucide-react';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+
+interface PlatformSettings {
+    rideTypeSettings: {
+        Standard: { baseFare: number; perKmRate: number };
+        Premium: { baseFare: number; perKmRate: number };
+        SUV: { baseFare: number; perKmRate: number };
+    };
+}
 
 interface FareEstimateProps {
   rideDetails: Partial<Ride>;
@@ -17,15 +27,27 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
   const [isLoading, setIsLoading] = useState(true);
   const [estimate, setEstimate] = useState<{ distance: string; time: number; fare: number } | null>(null);
 
+  const firestore = useFirestore();
+  const settingsDocRef = useMemoFirebase(() => doc(firestore, 'settings', 'platform'), [firestore]);
+  const { data: settings, isLoading: settingsLoading } = useDoc<PlatformSettings>(settingsDocRef);
+
+
   useEffect(() => {
+    // Wait until settings are loaded before calculating
+    if (!settings) {
+        setIsLoading(true);
+        return;
+    };
+    
     // This effect runs only on the client, avoiding hydration mismatches from Math.random().
-    const multipliers = { Standard: 1, Premium: 1.5, SUV: 2.0 };
-    const multiplier = multipliers[rideDetails.rideType || 'Standard'];
+    const rideType = rideDetails.rideType || 'Standard';
+    const rideSettings = settings.rideTypeSettings[rideType] || settings.rideTypeSettings.Standard;
     
     const dist = Math.random() * 20 + 2;
-    const baseFare = 40;
-    const perKmRate = 12;
-    const finalFare = Math.round((baseFare + dist * perKmRate) * multiplier);
+    const baseFare = rideSettings.baseFare;
+    const perKmRate = rideSettings.perKmRate;
+
+    const finalFare = Math.round(baseFare + dist * perKmRate);
     const travelTime = Math.round(dist * 2.5);
 
     setEstimate({
@@ -36,10 +58,10 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
 
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1500); // Simulate calculation time
+    }, 500); // Simulate calculation time
 
     return () => clearTimeout(timer);
-  }, [rideDetails.rideType]);
+  }, [rideDetails.rideType, settings]);
 
   const handleConfirm = () => {
     if (estimate) {
@@ -47,7 +69,7 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
     }
   };
   
-  const showSkeletons = isLoading || !estimate;
+  const showSkeletons = isLoading || settingsLoading || !estimate;
 
   return (
     <div className="w-full max-w-md mx-auto">

@@ -332,9 +332,64 @@
         "currency": {
           "type": "string",
           "description": "The default currency code for the platform (e.g., 'INR')."
+        },
+        "rideTypeSettings": {
+          "type": "object",
+          "description": "Pricing settings for different ride types.",
+          "properties": {
+            "Standard": {
+              "type": "object",
+              "properties": {
+                "baseFare": {
+                  "type": "number"
+                },
+                "perKmRate": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "baseFare",
+                "perKmRate"
+              ]
+            },
+            "Premium": {
+              "type": "object",
+              "properties": {
+                "baseFare": {
+                  "type": "number"
+                },
+                "perKmRate": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "baseFare",
+                "perKmRate"
+              ]
+            },
+            "SUV": {
+              "type": "object",
+              "properties": {
+                "baseFare": {
+                  "type": "number"
+                },
+                "perKmRate": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "baseFare",
+                "perKmRate"
+              ]
+            }
+          }
         }
       },
-      "required": ["commissionRate", "currency"]
+      "required": [
+        "commissionRate",
+        "currency",
+        "rideTypeSettings"
+      ]
     }
   },
   "auth": {
