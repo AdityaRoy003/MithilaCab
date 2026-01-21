@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -364,6 +365,12 @@ export function SignupForm() {
             )}
           </AnimatePresence>
         </Button>
+         <div className="mt-4 text-center text-sm">
+            Already have an account?{" "}
+            <Link href="/login" className="underline font-medium hover:text-primary transition-colors">
+                Login
+            </Link>
+        </div>
       </form>
     </Form>
   );

@@ -120,7 +120,7 @@ function UserMenu() {
 
     const handleLogout = () => {
         auth.signOut().then(() => {
-          router.push("/");
+          router.push("/login");
         });
       };
 

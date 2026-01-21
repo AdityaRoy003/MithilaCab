@@ -43,7 +43,7 @@ export default function AppSettingsPage() {
 
     const handleLogout = () => {
         auth.signOut().then(() => {
-          router.push("/");
+          router.push("/login");
         });
     };
 
@@ -80,7 +80,7 @@ export default function AppSettingsPage() {
             await deleteUser(user);
     
             toast({ title: "Account Deleted", description: "Your account and all associated data have been permanently removed." });
-            router.push('/');
+            router.push('/login');
     
         } catch (error: any) {
             console.error("Delete Account Error:", error);

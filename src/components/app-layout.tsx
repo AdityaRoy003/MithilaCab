@@ -47,7 +47,7 @@ function UserMenu() {
 
     const handleLogout = () => {
         auth.signOut().then(() => {
-          router.push("/");
+          router.push("/login");
         });
     };
 
@@ -148,7 +148,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/");
+      router.push("/login");
     }
   }, [loading, user, router]);
 
