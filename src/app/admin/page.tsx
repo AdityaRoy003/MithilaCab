@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, CarFront, Activity, IndianRupee, FileBadge, Map } from 'lucide-react';
+import { Users, Car, CarFront, Activity, IndianRupee, FileBadge, Map } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { Ride, Driver } from '@/lib/data';
@@ -55,7 +55,7 @@ export default function AdminDashboardPage() {
         className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3"
       >
         <motion.div variants={itemVariants}>
-          <Card>
+          <Card className="shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Revenue
@@ -73,12 +73,12 @@ export default function AdminDashboardPage() {
           </Card>
         </motion.div>
         <motion.div variants={itemVariants}>
-          <Card>
+          <Card className="shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Rides
               </CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              <Car className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               {isLoading ? <Skeleton className='h-8 w-16' /> : (
@@ -91,7 +91,7 @@ export default function AdminDashboardPage() {
           </Card>
         </motion.div>
         <motion.div variants={itemVariants}>
-          <Card>
+          <Card className="shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Active Drivers
@@ -109,7 +109,7 @@ export default function AdminDashboardPage() {
           </Card>
         </motion.div>
         <motion.div variants={itemVariants}>
-          <Card>
+          <Card className="shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -125,7 +125,7 @@ export default function AdminDashboardPage() {
           </Card>
         </motion.div>
         <motion.div variants={itemVariants}>
-            <Card>
+            <Card className="shadow-md">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Verification Queue</CardTitle>
                     <FileBadge className="h-4 w-4 text-muted-foreground" />
