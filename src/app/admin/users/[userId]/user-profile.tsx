@@ -1,19 +1,32 @@
 'use client';
 
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
+import { doc, collection, query, where, Timestamp, updateDoc } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Mail, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { RideRow } from '@/app/admin/ride-row';
 import { Table, TableBody, TableHeader, TableRow, TableHead } from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 interface UserProfileData {
     id: string;
@@ -28,6 +41,7 @@ interface UserProfileData {
 export function UserProfile({ userId }: { userId: string }) {
     const firestore = useFirestore();
     const router = useRouter();
+    const { toast } = useToast();
 
     const userDocRef = useMemoFirebase(() => doc(firestore, 'users', userId), [firestore, userId]);
     const { data: user, isLoading: userLoading } = useDoc<UserProfileData>(userDocRef);
@@ -40,6 +54,24 @@ export function UserProfile({ userId }: { userId: string }) {
     const { data: rides, isLoading: ridesLoading } = useCollection<Ride>(ridesQuery);
 
     const isLoading = userLoading || ridesLoading;
+    
+    const handleSuspendUser = async (currentStatus: boolean) => {
+        const userRef = doc(firestore, 'users', userId);
+        try {
+            await updateDoc(userRef, { isSuspended: !currentStatus });
+            toast({
+                title: `User ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
+                description: `The user account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Update Failed",
+                description: "Could not update the user's status.",
+            });
+        }
+    };
+
 
     if (isLoading) {
         return (
@@ -104,7 +136,33 @@ export function UserProfile({ userId }: { userId: string }) {
                                 </CardDescription>
                             </div>
                         </div>
-                        {user.isSuspended && <Badge variant="destructive">Suspended</Badge>}
+                        <div className="flex items-center gap-2">
+                            {user.isSuspended && <Badge variant="destructive">Suspended</Badge>}
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="outline" size="sm" className={user.isSuspended ? "text-green-600 border-green-600 hover:bg-green-50 hover:text-green-700" : "text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive"}>
+                                        {user.isSuspended ? 'Un-suspend' : 'Suspend'}
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action will {user.isSuspended ? 're-activate' : 'suspend'} the user's account. They {user.isSuspended ? 'will be able to' : 'will not be able to'} access the platform.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={() => handleSuspendUser(user.isSuspended || false)}
+                                            className={!user.isSuspended ? buttonVariants({ variant: "destructive" }) : ''}
+                                        >
+                                            {user.isSuspended ? 'Yes, Un-suspend' : 'Yes, Suspend'}
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
