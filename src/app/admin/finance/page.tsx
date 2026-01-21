@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { IndianRupee, Clock, Zap, Plus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Ride, Driver, Incentive } from '@/lib/data';
+import type { Ride, Incentive } from '@/lib/data';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -58,6 +58,13 @@ const incentiveSchema = z.object({
   bonusType: z.enum(['fixed', 'percentage']),
 });
 
+const mockPayouts = [
+    { id: 'p1', driver: 'Ramesh Kumar', amount: 4500.50, date: '2024-07-25', status: 'Paid Out'},
+    { id: 'p2', driver: 'Sita Devi', amount: 5230.00, date: '2024-07-25', status: 'Paid Out'},
+    { id: 'p3', driver: 'Amit Singh', amount: 3800.75, date: '2024-07-18', status: 'Paid Out'},
+    { id: 'p4', driver: 'Ramesh Kumar', amount: 4800.00, date: '2024-07-18', status: 'Paid Out'},
+];
+
 interface PlatformSettings {
     commissionRate: number;
     currency: string;
@@ -77,9 +84,6 @@ export default function FinancePage() {
     [firestore]
   );
   const { data: completedRides, isLoading: ridesLoading } = useCollection<Ride>(ridesQuery);
-
-  const driversQuery = useMemoFirebase(() => collection(firestore, 'drivers'), [firestore]);
-  const { data: drivers, isLoading: driversLoading } = useCollection<Driver>(driversQuery);
   
   const incentivesQuery = useMemoFirebase(() => query(collection(firestore, 'incentives'), where('isActive', '==', true)), [firestore]);
   const { data: incentives, isLoading: incentivesLoading } = useCollection<Incentive>(incentivesQuery);
@@ -89,7 +93,7 @@ export default function FinancePage() {
     defaultValues: {
       title: "",
       description: "",
-      bonusAmount: '' as any,
+      bonusAmount: '',
       bonusType: 'fixed',
     },
   });
@@ -105,17 +109,11 @@ export default function FinancePage() {
     form.reset();
   }
 
-  const driverMap = useMemo(() => {
-    if (!drivers) return new Map();
-    return new Map(drivers.map(d => [d.id, d]));
-  }, [drivers]);
-
   const financialStats = useMemo(() => {
     if (!completedRides) return {
       todayRevenue: 0,
       thisWeeksEarnings: 0,
       weeklyData: Array(7).fill({ name: '...', revenue: 0, commission: 0 }),
-      recentEarnings: []
     };
 
     const today = new Date();
@@ -145,18 +143,6 @@ export default function FinancePage() {
       };
     });
 
-    // Recent Driver Earnings
-    const recentEarnings = completedRides
-      .sort((a, b) => (b.startTime?.toDate ? b.startTime.toDate().getTime() : 0) - (a.startTime?.toDate ? a.startTime.toDate().getTime() : 0))
-      .slice(0, 4)
-      .map(ride => ({
-        id: ride.id,
-        driver: driverMap.get(ride.driverId!)?.name || 'Unknown Driver',
-        amount: ride.fareAmount * (1 - COMMISSION_RATE),
-        date: ride.startTime?.toDate ? format(ride.startTime.toDate(), 'yyyy-MM-dd') : 'N/A',
-        status: 'Paid Out' // Mock status
-      }));
-
     // This Week's Driver Earnings
     const weekStartsOn = 1; // Monday
     const dayOfWeek = getDay(today);
@@ -174,11 +160,10 @@ export default function FinancePage() {
       todayRevenue,
       thisWeeksEarnings,
       weeklyData,
-      recentEarnings
     };
-  }, [completedRides, driverMap, COMMISSION_RATE]);
+  }, [completedRides, COMMISSION_RATE]);
 
-  const isLoading = ridesLoading || driversLoading || incentivesLoading || settingsLoading;
+  const isLoading = ridesLoading || incentivesLoading || settingsLoading;
 
   return (
     <div className="space-y-8">
@@ -289,13 +274,13 @@ export default function FinancePage() {
           </Card>
         </motion.div>
 
-        {/* Recent Driver Earnings Table */}
+        {/* Recent Driver Payouts Table */}
         <motion.div variants={itemVariants} className="lg:col-span-2">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>Recent Driver Earnings</CardTitle>
-                        <CardDescription>A log of recent ride earnings for drivers.</CardDescription>
+                        <CardTitle>Recent Payouts</CardTitle>
+                        <CardDescription>A log of recent payouts to drivers.</CardDescription>
                     </div>
                     <Button size="sm">View All</Button>
                 </CardHeader>
@@ -305,12 +290,12 @@ export default function FinancePage() {
                           <TableHeader>
                               <TableRow>
                                   <TableHead>Driver</TableHead>
-                                  <TableHead className="text-right">Earning</TableHead>
+                                  <TableHead className="text-right">Amount</TableHead>
                                   <TableHead className="text-right">Status</TableHead>
                               </TableRow>
                           </TableHeader>
                           <TableBody>
-                              {financialStats.recentEarnings.map(payout => (
+                              {mockPayouts.map(payout => (
                                   <TableRow key={payout.id}>
                                       <TableCell>
                                           <div className="font-medium">{payout.driver}</div>
@@ -318,14 +303,14 @@ export default function FinancePage() {
                                       </TableCell>
                                       <TableCell className="text-right font-mono">₹{payout.amount.toFixed(2)}</TableCell>
                                       <TableCell className="text-right">
-                                          <Badge variant={payout.status === 'Completed' ? 'default' : 'outline'}>{payout.status}</Badge>
+                                          <Badge variant={payout.status === 'Paid Out' ? 'default' : 'outline'}>{payout.status}</Badge>
                                       </TableCell>
                                   </TableRow>
                               ))}
-                               {financialStats.recentEarnings.length === 0 && (
+                               {mockPayouts.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={3} className="h-24 text-center">
-                                        No recent earnings to display.
+                                        No recent payouts to display.
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -342,7 +327,7 @@ export default function FinancePage() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Incentives & Bonuses</CardTitle>
+                    <CardTitle>Incentives & Promotions</CardTitle>
                     <CardDescription>Manage special earnings programs for drivers.</CardDescription>
                 </div>
                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -447,6 +432,21 @@ export default function FinancePage() {
                  {!incentivesLoading && (!incentives || incentives.length === 0) && (
                     <p className="text-muted-foreground col-span-3 text-center py-8">No incentives created yet.</p>
                  )}
+            </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Refund Processing Panel */}
+      <motion.div variants={itemVariants}>
+        <Card>
+            <CardHeader>
+                <CardTitle>Refund Processing</CardTitle>
+                <CardDescription>Approve or deny refund requests from passengers.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                    <p>Refund processing panel coming soon.</p>
+                </div>
             </CardContent>
         </Card>
       </motion.div>
