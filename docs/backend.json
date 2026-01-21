@@ -152,6 +152,10 @@
           "type": "boolean",
           "description": "Indicates if the driver's account is suspended."
         },
+        "isVerified": {
+          "type": "boolean",
+          "description": "Indicates if the driver's documents have been verified."
+        },
         "image": {
           "type": "object",
           "description": "Represents a placeholder image with metadata.",

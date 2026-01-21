@@ -121,6 +121,8 @@ export function SignupForm() {
             imageHint: "person smiling"
           },
           dateJoined: serverTimestamp(),
+          isSuspended: false,
+          isVerified: false,
         };
         const driverDocRef = doc(firestore, "drivers", user.uid);
         setDoc(driverDocRef, driverProfile).catch(async (serverError) => {

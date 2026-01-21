@@ -41,7 +41,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal, MessageSquare, Trash2 } from 'lucide-react';
+import { MoreHorizontal, MessageSquare, Trash2, CheckCircle, FileText, BarChart } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -57,6 +57,7 @@ interface Driver {
   image?: { imageUrl?: string; imageHint?: string; };
   dateJoined?: Timestamp;
   isSuspended?: boolean;
+  isVerified?: boolean;
 }
 
 export function DriverList() {
@@ -122,6 +123,38 @@ export function DriverList() {
         description: "Direct messaging will be available in a future update.",
     });
   };
+  
+  const handleVerifyDriver = async (driverId: string, currentStatus: boolean) => {
+    const driverRef = doc(firestore, 'drivers', driverId);
+    try {
+        await updateDoc(driverRef, { isVerified: !currentStatus });
+        toast({
+            title: `Driver ${!currentStatus ? 'Verified' : 'Un-verified'}`,
+            description: `The driver has been successfully ${!currentStatus ? 'verified' : 'marked as unverified'}.`,
+        });
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Update Failed",
+            description: "Could not update the driver's verification status.",
+        });
+    }
+  };
+
+  const handleViewDocuments = () => {
+    toast({
+        title: "Feature Coming Soon",
+        description: "Viewing driver documents will be available in a future update.",
+    });
+  };
+
+  const handleViewPerformance = () => {
+      toast({
+          title: "Feature Coming Soon",
+          description: "A detailed performance dashboard is coming soon.",
+      });
+  };
+
 
   return (
     <Card>
@@ -168,6 +201,16 @@ export function DriverList() {
                                     {driver.isAvailable ? 'Available' : 'Offline'}
                                 </Badge>
                                 {driver.isSuspended && <Badge variant="destructive" className="ml-2">Suspended</Badge>}
+                                {driver.isVerified ? (
+                                    <Badge variant="secondary" className="ml-2 border-green-600">
+                                        <CheckCircle className="mr-1 h-3 w-3 text-green-600" />
+                                        Verified
+                                    </Badge>
+                                ) : (
+                                    <Badge variant="outline" className="ml-2 border-yellow-600 text-yellow-600">
+                                        Not Verified
+                                    </Badge>
+                                )}
                             </TableCell>
                             <TableCell className="hidden md:table-cell">{driver.rating?.toFixed(1) || 'N/A'}</TableCell>
                             <TableCell className="hidden md:table-cell">{getFormattedDate(driver.dateJoined)}</TableCell>
@@ -181,8 +224,35 @@ export function DriverList() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem onClick={() => router.push(`/admin/drivers/${driver.id}`)}>View profile</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handleViewDocuments}><FileText className="mr-2 h-4 w-4" /> View Documents</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handleViewPerformance}><BarChart className="mr-2 h-4 w-4" /> View Performance</DropdownMenuItem>
                                         <DropdownMenuItem onClick={handleSendMessage}><MessageSquare className="mr-2 h-4 w-4" /> Send Message</DropdownMenuItem>
                                         <DropdownMenuSeparator />
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className={driver.isVerified ? "text-yellow-600 focus:text-yellow-600" : "text-green-600 focus:text-green-600"}>
+                                                    {driver.isVerified ? 'Mark as Unverified' : 'Verify Driver'}
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action will {driver.isVerified ? 'revoke verification for' : 'verify'} this driver.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => handleVerifyDriver(driver.id, driver.isVerified || false)}
+                                                        className={!driver.isVerified ? buttonVariants({ variant: "default" }) : ''}
+                                                    >
+                                                        {driver.isVerified ? 'Yes, Un-verify' : 'Yes, Verify'}
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
                                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className={driver.isSuspended ? "text-green-600 focus:text-green-600" : "text-destructive focus:text-destructive"}>

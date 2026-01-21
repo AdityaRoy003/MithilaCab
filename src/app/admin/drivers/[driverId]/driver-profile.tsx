@@ -1,8 +1,8 @@
 'use client';
 
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, where } from 'firebase/firestore';
-import type { Driver, Ride } from '@/lib/data';
+import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
+import type { Ride } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,11 +10,25 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Car, Mail, Phone, Star } from 'lucide-react';
+import { ArrowLeft, Car, Mail, Phone, Star, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { RideRow } from '@/app/admin/ride-row';
 import { Table, TableBody, TableHeader, TableRow, TableHead } from '@/components/ui/table';
 
+interface Driver {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  isAvailable: boolean;
+  rating: number;
+  vehicle: string;
+  licensePlate: string;
+  image?: { imageUrl?: string; imageHint?: string; };
+  dateJoined?: Timestamp;
+  isSuspended?: boolean;
+  isVerified?: boolean;
+}
 
 export function DriverProfile({ driverId }: { driverId: string }) {
     const firestore = useFirestore();
@@ -98,6 +112,11 @@ export function DriverProfile({ driverId }: { driverId: string }) {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
+                             {driver.isVerified && (
+                                <Badge variant='secondary' className="border-green-600">
+                                    <CheckCircle className="mr-1 h-4 w-4 text-green-600" /> Verified
+                                </Badge>
+                            )}
                             <Badge variant={driver.isAvailable ? 'default' : 'outline'}>
                                 {driver.isAvailable ? 'Available' : 'Offline'}
                             </Badge>
