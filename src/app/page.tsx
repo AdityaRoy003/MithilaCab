@@ -13,19 +13,34 @@ export default function LandingPage() {
   const heroImage = PlaceHolderImages.find(img => img.id === 'mithila-hero');
   const appScreenImage = PlaceHolderImages.find(img => img.id === 'app-screen-1');
 
+  const headline = "Discover Mithila";
+  const subHeadline = "One Ride at a Time";
+
+  // Animation variants for the hero section content
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
+        staggerChildren: 0.1,
       },
     },
   };
-
+  
+  // Staggered animation for each word in the headline
+  const wordVariants = {
+      hidden: { opacity: 0, y: 20 },
+      show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 10 } }
+  };
+  
+  // Animation for the paragraph and search bar
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { ease: 'easeOut', duration: 0.5 } },
+    show: { 
+        y: 0, 
+        opacity: 1, 
+        transition: { type: 'spring', stiffness: 100, damping: 12, delay: 0.8 } 
+    },
   };
 
   return (
@@ -57,7 +72,7 @@ export default function LandingPage() {
               <Image
                 src={heroImage.imageUrl}
                 alt={heroImage.description}
-                layout="fill"
+                fill
                 objectFit="cover"
                 quality={100}
                 priority
@@ -74,11 +89,17 @@ export default function LandingPage() {
           >
             <motion.h1 
               className="font-headline text-5xl md:text-7xl font-extrabold tracking-tighter"
-              variants={itemVariants}
+              aria-label={`${headline} ${subHeadline}`}
             >
-              Discover Mithila
+              {headline.split(" ").map((word, index) => (
+                <motion.span key={index} variants={wordVariants} className="inline-block mr-4">{word}</motion.span>
+              ))}
               <br/>
-              <span className="text-primary">One Ride at a Time</span>
+              <span className="text-primary">
+                {subHeadline.split(" ").map((word, index) => (
+                    <motion.span key={index} variants={wordVariants} className="inline-block mr-3">{word}</motion.span>
+                ))}
+              </span>
             </motion.h1>
             <motion.p 
               className="mt-4 max-w-xl mx-auto text-lg text-foreground/80"
@@ -99,7 +120,11 @@ export default function LandingPage() {
                       className="h-12 w-full rounded-full border-none pl-12 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                 </div>
-                <Button type="submit" size="lg" className="rounded-full font-bold">
+                <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="rounded-full font-bold transition-all duration-300 hover:shadow-lg hover:shadow-primary/40"
+                >
                   Find a Ride
                 </Button>
               </form>
@@ -108,7 +133,7 @@ export default function LandingPage() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.5}}
+            transition={{ delay: 2, duration: 0.5, ease: "easeInOut"}}
             className="absolute bottom-10 left-1/2 -translate-x-1/2"
           >
              <ChevronDown className="h-8 w-8 animate-bounce text-foreground/50" />
