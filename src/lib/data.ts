@@ -34,6 +34,15 @@ export interface Ride {
   };
 }
 
+export interface Incentive {
+  id: string;
+  title: string;
+  description: string;
+  bonusAmount: number;
+  bonusType: 'fixed' | 'percentage';
+  isActive: boolean;
+}
+
 const getDriverImage = (id: string): ImagePlaceholder => {
     const placeholder = PlaceHolderImages.find(img => img.id === id);
     if (!placeholder) {

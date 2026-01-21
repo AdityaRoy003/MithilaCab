@@ -274,6 +274,50 @@
         "status",
         "rideType"
       ]
+    },
+    "Incentive": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Incentive",
+      "type": "object",
+      "description": "Represents a promotional incentive for drivers.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the incentive."
+        },
+        "title": {
+          "type": "string",
+          "description": "The name of the incentive program (e.g., 'Weekend Warrior')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description of the incentive's goal."
+        },
+        "bonusAmount": {
+          "type": "number",
+          "description": "The bonus amount or percentage."
+        },
+        "bonusType": {
+          "type": "string",
+          "description": "The type of bonus.",
+          "enum": [
+            "fixed",
+            "percentage"
+          ]
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Whether the incentive is currently active."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "bonusAmount",
+        "bonusType",
+        "isActive"
+      ]
     }
   },
   "auth": {
@@ -327,6 +371,22 @@
             {
               "name": "rideId",
               "description": "The unique identifier for the ride."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/incentives/{incentiveId}",
+        "definition": {
+          "entityName": "Incentive",
+          "schema": {
+            "$ref": "#/backend/entities/Incentive"
+          },
+          "description": "Stores driver incentive programs.",
+          "params": [
+            {
+              "name": "incentiveId",
+              "description": "The unique identifier for the incentive."
             }
           ]
         }

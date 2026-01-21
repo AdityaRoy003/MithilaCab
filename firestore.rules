@@ -108,5 +108,13 @@ service cloud.firestore {
       // DELETE: The passenger can delete their ride, or an admin can.
       allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
+    
+    match /incentives/{incentiveId} {
+      // Admins can create, update, and delete incentives.
+      allow write: if isAdmin();
+      
+      // All signed-in users (including drivers) can read and list incentives.
+      allow get, list: if isSignedIn();
+    }
   }
 }
