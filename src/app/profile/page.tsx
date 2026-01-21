@@ -22,6 +22,9 @@ import {
   Ticket,
   IndianRupee,
   BarChart,
+  BookOpen,
+  Wrench,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -122,6 +125,15 @@ export default function ProfilePage() {
                                  <SettingsListItem href="/driver/earnings" icon={IndianRupee} title="Earnings" subtitle="View your ride earnings" />
                                  <SettingsListItem href="/driver/performance" icon={BarChart} title="Performance" subtitle="Your ratings and ride statistics" />
                                  <SettingsListItem href="/profile/password" icon={Shield} title="Security" subtitle="Change your password" />
+                              </div>
+                          </div>
+                           <div>
+                              <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">RESOURCES & GROWTH</h2>
+                              <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                                 <SettingsListItem href="/driver/training" icon={BookOpen} title="Training Modules" subtitle="Improve your skills and earnings" />
+                                 <SettingsListItem onClick={handleNotImplemented} icon={Wrench} title="Vehicle Log" subtitle="Track fuel and maintenance" />
+                                 <SettingsListItem onClick={handleNotImplemented} icon={Users} title="Community Hub" subtitle="Connect with other drivers" />
+                                 <SettingsListItem onClick={handleNotImplemented} icon={Award} title="Achievements" subtitle="Your badges and milestones" />
                               </div>
                           </div>
                           
