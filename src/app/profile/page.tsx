@@ -124,11 +124,19 @@ export default function ProfilePage() {
                                  <SettingsListItem href="/profile/password" icon={Shield} title="Security" subtitle="Change your password" />
                               </div>
                           </div>
+                          
+                          <div>
+                              <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">SUPPORT & PREFERENCES</h2>
+                              <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                                 <SettingsListItem href="/profile/safety" icon={ShieldCheck} title="Safety & Support" subtitle="Insurance, emergency contacts" />
+                                 <SettingsListItem href="/profile/preferences" icon={SlidersHorizontal} title="App Preferences" subtitle="Language, accessibility" />
+                              </div>
+                          </div>
   
                           <div>
                               <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">GENERAL</h2>
                               <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
-                                 <SettingsListItem href="/profile/settings" icon={SettingsIcon} title="App Settings" subtitle="About, logout, and more" />
+                                 <SettingsListItem href="/profile/settings" icon={SettingsIcon} title="App Settings" subtitle="Theme, notifications, logout" />
                               </div>
                           </div>
                       </div>

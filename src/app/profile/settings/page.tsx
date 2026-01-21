@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,60 +24,52 @@ import {
   FlaskConical,
   Info,
   LogOut,
-  Smartphone,
+  Moon,
+  Sun,
+  Laptop,
+  Bell,
+  Lock,
   Trash2,
 } from 'lucide-react';
 import AppLayout from '@/components/app-layout';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 
-const SettingsListItem = ({ href, icon: Icon, title, subtitle, isAction = false, onAction, isDestructive = false, disabled = false, ...props }: { href?: string, icon: React.ElementType, title:string, subtitle?: string, isAction?: boolean, onAction?: (e: React.MouseEvent<Element, MouseEvent>) => void, isDestructive?: boolean, disabled?: boolean, [key:string]: any }) => {
-    const content = (
-        <div className={cn("flex items-center justify-between p-4 w-full text-left", isDestructive && "text-destructive", disabled && "opacity-50")}>
-            <div className="flex items-center gap-4">
-                <div className={cn("p-2 rounded-full", isDestructive ? "bg-destructive/10" : "bg-muted")}>
-                   <Icon className={cn("h-5 w-5", isDestructive ? "text-destructive" : "text-primary")} />
-                </div>
-                <div>
-                    <p className="font-medium">{title}</p>
-                    {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
-                </div>
-            </div>
-            {!isAction && <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+function ThemeToggle() {
+    const { setTheme, theme } = useTheme();
+
+    return (
+        <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted p-1">
+            <Button
+                variant={theme === 'light' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setTheme('light')}
+                className="justify-start gap-2"
+            >
+                <Sun /> Light
+            </Button>
+            <Button
+                variant={theme === 'dark' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setTheme('dark')}
+                className="justify-start gap-2"
+            >
+                <Moon /> Dark
+            </Button>
+            <Button
+                variant={theme === 'system' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setTheme('system')}
+                className="justify-start gap-2"
+            >
+                <Laptop /> System
+            </Button>
         </div>
     );
-
-    const commonProps = {
-        onClick: (e: React.MouseEvent<Element, MouseEvent>) => {
-          if (props.onClick) {
-            props.onClick(e)
-          }
-          if (onAction) {
-            onAction(e)
-          }
-        },
-        disabled: disabled,
-        className: "w-full h-full hover:bg-accent/50 transition-colors disabled:hover:bg-transparent disabled:cursor-not-allowed"
-    };
-
-    if (isAction) {
-        return <button {...commonProps} {...props}>{content}</button>
-    }
-    
-    // The issue was here. A Link component cannot be a direct child of AlertDialogTrigger when asChild is used.
-    // The button must be the trigger.
-    if (href && !disabled) {
-        return (
-             <button onClick={() => {
-                const router = (props as any).router; // A bit of a hack to get the router
-                if(router) router.push(href);
-             }} className={commonProps.className} {...props}>
-               {content}
-             </button>
-        )
-    }
-
-    return <button {...commonProps} {...props}>{content}</button>;
 }
+
 
 export default function AppSettingsPage() {
     const auth = useAuth();
@@ -157,41 +150,120 @@ export default function AppSettingsPage() {
                     </div>
                     <h1 className="font-headline text-3xl font-bold mb-6">App Settings</h1>
 
-                    <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
-                       <SettingsListItem isAction onAction={handleNotImplemented} icon={Smartphone} title="App shortcuts" subtitle="Create shortcuts on home launcher" />
-                       <SettingsListItem isAction onAction={handleNotImplemented} icon={Info} title="About" subtitle="App version 1.0.0" />
-                       <SettingsListItem isAction onAction={handleNotImplemented} icon={FlaskConical} title="Subscribe to Beta" subtitle="Get early access to latest features" />
-                       <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                             <SettingsListItem onSelect={(e) => e.preventDefault()} isAction icon={LogOut} title="Logout" />
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleLogout} className={buttonVariants({ variant: "destructive" })}>Log Out</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                       <AlertDialog>
-                           <AlertDialogTrigger asChild>
-                              <SettingsListItem onSelect={(e) => e.preventDefault()} isAction icon={Trash2} title="Delete Account" isDestructive />
-                           </AlertDialogTrigger>
-                           <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action is permanent and cannot be undone. All your data will be deleted.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDeleteAccount} className={buttonVariants({ variant: "destructive" })}>Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                       </AlertDialog>
+                    <div className="space-y-8">
+                        <Card>
+                             <CardHeader>
+                                <CardTitle>Display</CardTitle>
+                                <CardDescription>Customize the app's appearance.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    <Label>Theme</Label>
+                                    <ThemeToggle />
+                                </div>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><Bell /> Notification Preferences</CardTitle>
+                                <CardDescription>Choose how you want to be notified.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label>Push Notifications</Label>
+                                        <p className="text-xs text-muted-foreground">For ride status, promos, etc.</p>
+                                    </div>
+                                    <Switch defaultChecked onCheckedChange={() => handleNotImplemented()} />
+                                </div>
+                                <Separator />
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label>SMS Alerts</Label>
+                                        <p className="text-xs text-muted-foreground">For critical updates and OTPs.</p>
+                                    </div>
+                                    <Switch onCheckedChange={() => handleNotImplemented()} />
+                                </div>
+                                <Separator />
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label>Email Newsletters</Label>
+                                        <p className="text-xs text-muted-foreground">Receive offers and news.</p>
+                                    </div>
+                                    <Switch onCheckedChange={() => handleNotImplemented()} />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><Lock /> Privacy Controls</CardTitle>
+                                <CardDescription>Manage your data and privacy settings.</CardDescription>
+                            </CardHeader>
+                             <CardContent className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label>Location Sharing</Label>
+                                        <p className="text-xs text-muted-foreground">Shared with driver during a ride.</p>
+                                    </div>
+                                    <Switch defaultChecked disabled />
+                                </div>
+                                <Separator />
+                                 <Button variant="link" className="p-0 h-auto" onClick={handleNotImplemented}>Manage your data</Button>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>About & Actions</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <Button variant="ghost" className="w-full justify-between" onClick={handleNotImplemented}>
+                                    <div className="flex items-center gap-2"><Info /> About</div>
+                                    <span className="text-muted-foreground text-xs">Version 1.0.0</span>
+                                </Button>
+                                <Button variant="ghost" className="w-full justify-between" onClick={handleNotImplemented}>
+                                    <div className="flex items-center gap-2"><FlaskConical /> Subscribe to Beta</div>
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive gap-2">
+                                            <LogOut /> Logout
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleLogout} className={buttonVariants({ variant: "destructive" })}>Log Out</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive gap-2">
+                                            <Trash2 /> Delete Account
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action is permanent and cannot be undone. All your data will be deleted.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDeleteAccount} className={buttonVariants({ variant: "destructive" })}>Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </main>
