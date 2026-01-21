@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AvailableRidesList } from './available-rides-list';
 import { AssignedRidesList } from './assigned-rides-list';
 import type { Ride } from '@/lib/data';
+import { MapPin } from 'lucide-react';
 
 export default function DriverPage() {
   const { driver, isDriverLoading } = useDriver();
@@ -110,14 +111,14 @@ export default function DriverPage() {
               <CardHeader>
                 <CardTitle>Your Status</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="flex items-center space-x-4 rounded-md border p-4">
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      Available for rides
+                      Available for Rides
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Toggle to start or stop receiving new ride requests.
+                      Toggle this to go online, offline, or take a break.
                     </p>
                   </div>
                   <Switch
@@ -125,6 +126,18 @@ export default function DriverPage() {
                     onCheckedChange={handleAvailabilityChange}
                     aria-label="Toggle driver availability"
                   />
+                </div>
+                <div className="flex items-center space-x-4 rounded-md border p-4">
+                  <MapPin className="h-5 w-5 text-green-500" />
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      Location Tracking
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      GPS is active to ensure accurate ride matching.
+                    </p>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                 </div>
               </CardContent>
             </Card>
