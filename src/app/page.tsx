@@ -6,7 +6,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, MapPin } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 export default function LandingPage() {
   const heroImage = PlaceHolderImages.find(img => img.id === 'mithila-hero');
@@ -66,7 +67,7 @@ export default function LandingPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
           <motion.div 
-            className="relative z-10 p-4"
+            className="relative z-10 p-4 w-full"
             variants={containerVariants}
             initial="hidden"
             animate="show"
@@ -87,11 +88,21 @@ export default function LandingPage() {
             </motion.p>
             <motion.div
               variants={itemVariants}
-              className="mt-8 flex justify-center gap-4"
+              className="mt-8 w-full max-w-lg mx-auto"
             >
-              <Button size="lg" className="font-bold text-lg" asChild>
-                <Link href="/login">Get Started <ArrowRight className="ml-2"/></Link>
-              </Button>
+              <form action="/login" className="flex gap-2 bg-background p-2 rounded-full shadow-lg border">
+                <div className="relative flex-1">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      name="destination"
+                      placeholder="Enter your destination..."
+                      className="h-12 w-full rounded-full border-none pl-12 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                </div>
+                <Button type="submit" size="lg" className="rounded-full font-bold">
+                  Find a Ride
+                </Button>
+              </form>
             </motion.div>
           </motion.div>
           <motion.div 
