@@ -1,37 +1,24 @@
 'use client';
 
 import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, where, updateDoc } from 'firebase/firestore';
+import { doc, collection, query, where } from 'firebase/firestore';
 import type { Driver, Ride } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Car, Mail, Phone, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { RideRow } from '@/app/admin/ride-row';
 import { Table, TableBody, TableHeader, TableRow, TableHead } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 
 
 export function DriverProfile({ driverId }: { driverId: string }) {
     const firestore = useFirestore();
     const router = useRouter();
-    const { toast } = useToast();
 
     const driverDocRef = useMemoFirebase(() => doc(firestore, 'drivers', driverId), [firestore, driverId]);
     const { data: driver, isLoading: driverLoading } = useDoc<Driver>(driverDocRef);
@@ -45,23 +32,6 @@ export function DriverProfile({ driverId }: { driverId: string }) {
 
     const isLoading = driverLoading || ridesLoading;
     
-    const handleSuspendDriver = async (currentStatus: boolean) => {
-        const driverRef = doc(firestore, 'drivers', driverId);
-        try {
-            await updateDoc(driverRef, { isSuspended: !currentStatus });
-            toast({
-                title: `Driver ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
-                description: `The driver account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
-            });
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Update Failed",
-                description: "Could not update the driver's status.",
-            });
-        }
-    };
-
 
     if (isLoading) {
         return (
@@ -132,30 +102,6 @@ export function DriverProfile({ driverId }: { driverId: string }) {
                                 {driver.isAvailable ? 'Available' : 'Offline'}
                             </Badge>
                              {driver.isSuspended && <Badge variant="destructive">Suspended</Badge>}
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className={driver.isSuspended ? "text-green-600 border-green-600 hover:bg-green-50 hover:text-green-700" : "text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive"}>
-                                        {driver.isSuspended ? 'Un-suspend' : 'Suspend'}
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This action will {driver.isSuspended ? 're-activate' : 'suspend'} the driver's account. They {driver.isSuspended ? 'will be able to' : 'will not be able to'} accept rides.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            onClick={() => handleSuspendDriver(driver.isSuspended || false)}
-                                            className={!driver.isSuspended ? buttonVariants({ variant: "destructive" }) : ''}
-                                        >
-                                            {driver.isSuspended ? 'Yes, Un-suspend' : 'Yes, Suspend'}
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
                         </div>
                     </div>
                 </CardHeader>
