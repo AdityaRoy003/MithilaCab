@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, CarFront, Activity, IndianRupee, FileBadge, Map, FileDown, TrendingUp, Filter, Repeat } from 'lucide-react';
+import { Users, CarFront, Activity, IndianRupee, FileBadge, Map } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { Ride, Driver } from '@/lib/data';
@@ -182,60 +182,6 @@ export default function AdminDashboardPage() {
                 </CardContent>
             </Card>
         </motion.div>
-      </motion.div>
-
-       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-      >
-        <h2 className="font-headline text-2xl font-bold mb-4">Analytics & Reporting</h2>
-        <div className="grid gap-4 md:gap-8 grid-cols-1 lg:grid-cols-2 xl:grid-cols-4">
-            <motion.div variants={itemVariants}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base"><FileDown /> Custom Reports</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">Export CSV/PDF of rides, users, and earnings data.</p>
-                         <Button variant="outline" className="mt-4 w-full">Generate Report</Button>
-                    </CardContent>
-                </Card>
-            </motion.div>
-            <motion.div variants={itemVariants}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base"><TrendingUp /> Trend Analysis</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">Compare growth metrics over weeks or months.</p>
-                        <Button variant="outline" className="mt-4 w-full">View Trends</Button>
-                    </CardContent>
-                </Card>
-            </motion.div>
-            <motion.div variants={itemVariants}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base"><Filter /> Driver Onboarding Funnel</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">Track conversion from signup to first ride.</p>
-                        <Button variant="outline" className="mt-4 w-full">Analyze Funnel</Button>
-                    </CardContent>
-                </Card>
-            </motion.div>
-             <motion.div variants={itemVariants}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base"><Repeat /> User Retention</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">Monitor repeat ride behavior and user loyalty.</p>
-                        <Button variant="outline" className="mt-4 w-full">View Dashboard</Button>
-                    </CardContent>
-                </Card>
-            </motion.div>
-        </div>
       </motion.div>
     </div>
   );
