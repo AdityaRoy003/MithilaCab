@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import {
   Card,
   CardContent,
@@ -21,7 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +30,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface User {
   id: string;
@@ -38,10 +51,12 @@ interface User {
   phone: string;
   photoURL?: string;
   dateJoined?: Timestamp;
+  isSuspended?: boolean;
 }
 
 export function UserList() {
   const firestore = useFirestore();
+  const { toast } = useToast();
   const usersQuery = useMemoFirebase(
     () => query(collection(firestore, 'users'), orderBy('dateJoined', 'desc')),
     [firestore]
@@ -59,6 +74,30 @@ export function UserList() {
         return 'Invalid Date';
     }
   }
+  
+  const handleSuspendUser = async (userId: string, currentStatus: boolean) => {
+    const userRef = doc(firestore, 'users', userId);
+    try {
+        await updateDoc(userRef, { isSuspended: !currentStatus });
+        toast({
+            title: `User ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
+            description: `The user account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
+        });
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Update Failed",
+            description: "Could not update the user's status.",
+        });
+    }
+  };
+
+  const handleNotImplemented = (feature: string) => {
+      toast({
+        title: "Feature coming soon!",
+        description: `${feature} is not yet available.`
+      });
+  };
 
   return (
     <Card>
@@ -89,14 +128,17 @@ export function UserList() {
                 </TableHeader>
                 <TableBody>
                     {users && users.map(user => (
-                        <TableRow key={user.id}>
+                        <TableRow key={user.id} className={user.isSuspended ? "opacity-50 bg-muted/20" : ""}>
                             <TableCell>
                                 <div className="flex items-center gap-3">
                                     <Avatar className="hidden h-9 w-9 sm:flex">
                                         <AvatarImage src={user.photoURL ?? undefined} alt={user.name} />
                                         <AvatarFallback>{user.name?.charAt(0) ?? 'U'}</AvatarFallback>
                                     </Avatar>
-                                    <div className="font-medium">{user.name ?? 'Unnamed User'}</div>
+                                    <div>
+                                        <div className="font-medium">{user.name ?? 'Unnamed User'}</div>
+                                        {user.isSuspended && <Badge variant="destructive" className="mt-1">Suspended</Badge>}
+                                    </div>
                                 </div>
                             </TableCell>
                             <TableCell>{user.email}</TableCell>
@@ -112,10 +154,36 @@ export function UserList() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem>View profile</DropdownMenuItem>
-                                        <DropdownMenuItem>View ride history</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleNotImplemented('View profile')}>View profile</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleNotImplemented('View ride history')}>View ride history</DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-destructive">Suspend user</DropdownMenuItem>
+                                         <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem
+                                                    onSelect={(e) => e.preventDefault()}
+                                                    className={user.isSuspended ? "text-green-600 focus:text-green-700" : "text-destructive focus:text-destructive"}
+                                                >
+                                                    {user.isSuspended ? 'Un-suspend user' : 'Suspend user'}
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action will {user.isSuspended ? 're-activate' : 'suspend'} the user's account. They {user.isSuspended ? 'will be able to' : 'will not be able to'} access the platform.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => handleSuspendUser(user.id, user.isSuspended || false)}
+                                                        className={!user.isSuspended ? buttonVariants({ variant: "destructive" }) : ''}
+                                                    >
+                                                        {user.isSuspended ? 'Yes, Un-suspend' : 'Yes, Suspend'}
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>

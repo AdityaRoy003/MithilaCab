@@ -56,6 +56,10 @@
                 }
             }
         },
+        "isSuspended": {
+          "type": "boolean",
+          "description": "Indicates if the user's account is suspended."
+        },
         "role": {
           "type": "string",
           "description": "Defines the user's role, granting different permissions.",
@@ -143,6 +147,10 @@
         "isAvailable": {
           "type": "boolean",
           "description": "Indicates if the driver is available for new rides."
+        },
+        "isSuspended": {
+          "type": "boolean",
+          "description": "Indicates if the driver's account is suspended."
         },
         "image": {
           "type": "object",

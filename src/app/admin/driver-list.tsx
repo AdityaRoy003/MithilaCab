@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import {
   Card,
   CardContent,
@@ -22,7 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 
 interface Driver {
@@ -43,10 +55,12 @@ interface Driver {
   vehicle: string;
   image?: { imageUrl?: string; imageHint?: string; };
   dateJoined?: Timestamp;
+  isSuspended?: boolean;
 }
 
 export function DriverList() {
   const firestore = useFirestore();
+  const { toast } = useToast();
   const driversQuery = useMemoFirebase(
     () => query(collection(firestore, 'drivers'), orderBy('dateJoined', 'desc')),
     [firestore]
@@ -64,6 +78,30 @@ export function DriverList() {
         return 'Invalid Date';
     }
   }
+  
+  const handleSuspendDriver = async (driverId: string, currentStatus: boolean) => {
+    const driverRef = doc(firestore, 'drivers', driverId);
+    try {
+        await updateDoc(driverRef, { isSuspended: !currentStatus });
+        toast({
+            title: `Driver ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
+            description: `The driver account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
+        });
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Update Failed",
+            description: "Could not update the driver's status.",
+        });
+    }
+  };
+
+  const handleNotImplemented = (feature: string) => {
+      toast({
+        title: "Feature coming soon!",
+        description: `${feature} is not yet available.`
+      });
+  };
 
   return (
     <Card>
@@ -94,7 +132,7 @@ export function DriverList() {
                 </TableHeader>
                 <TableBody>
                     {drivers && drivers.map(driver => (
-                        <TableRow key={driver.id}>
+                        <TableRow key={driver.id} className={driver.isSuspended ? "opacity-50 bg-muted/20" : ""}>
                             <TableCell>
                                 <div className="flex items-center gap-3">
                                     <Avatar className="hidden h-9 w-9 sm:flex">
@@ -108,6 +146,7 @@ export function DriverList() {
                                 <Badge variant={driver.isAvailable ? 'default' : 'outline'}>
                                     {driver.isAvailable ? 'Available' : 'Offline'}
                                 </Badge>
+                                {driver.isSuspended && <Badge variant="destructive" className="ml-2">Suspended</Badge>}
                             </TableCell>
                             <TableCell className="hidden md:table-cell">{driver.rating?.toFixed(1) || 'N/A'}</TableCell>
                             <TableCell className="hidden md:table-cell">{getFormattedDate(driver.dateJoined)}</TableCell>
@@ -121,11 +160,37 @@ export function DriverList() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem>View profile</DropdownMenuItem>
-                                        <DropdownMenuItem>Verify documents</DropdownMenuItem>
-                                        <DropdownMenuItem>View performance</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleNotImplemented('View profile')}>View profile</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleNotImplemented('Verify documents')}>Verify documents</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleNotImplemented('View performance')}>View performance</DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-destructive">Suspend driver</DropdownMenuItem>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem
+                                                    onSelect={(e) => e.preventDefault()}
+                                                    className={driver.isSuspended ? "text-green-600 focus:text-green-700" : "text-destructive focus:text-destructive"}
+                                                >
+                                                    {driver.isSuspended ? 'Un-suspend driver' : 'Suspend driver'}
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action will {driver.isSuspended ? 're-activate' : 'suspend'} the driver's account. They {driver.isSuspended ? 'will be able to' : 'will not be able to'} accept rides.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => handleSuspendDriver(driver.id, driver.isSuspended || false)}
+                                                        className={!driver.isSuspended ? buttonVariants({ variant: "destructive" }) : ''}
+                                                    >
+                                                        {driver.isSuspended ? 'Yes, Un-suspend' : 'Yes, Suspend'}
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
