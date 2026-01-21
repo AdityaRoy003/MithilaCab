@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -59,7 +58,8 @@ function NavLink({
   isCollapsed: boolean;
 }) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive = pathname.startsWith(href) && (href !== '/admin' || pathname === '/admin');
+
 
   return (
     <Link
@@ -87,6 +87,9 @@ function SidebarNav({ isCollapsed }: { isCollapsed: boolean }) {
             </NavLink>
             <NavLink href="/admin/drivers" icon={Car} isCollapsed={isCollapsed}>
                 Manage Drivers
+            </NavLink>
+             <NavLink href="/admin/staff" icon={Users} isCollapsed={isCollapsed}>
+                Manage Staff
             </NavLink>
             <NavLink href="/admin/verification" icon={FileBadge} isCollapsed={isCollapsed}>
                 Verification Queue
@@ -286,7 +289,7 @@ export default function AdminLayout({
                 <UserMenu />
               </div>
             </header>
-            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40 overflow-hidden">
+            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40 overflow-auto">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={pathname}

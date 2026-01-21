@@ -124,6 +124,7 @@ export default function ProfilePage() {
                           <div>
                               <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">ADMIN ACTIONS</h2>
                               <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                                 <SettingsListItem href="/admin/staff" icon={Users} title="Manage Staff" subtitle="Create admins, manage roles" />
                                  <SettingsListItem href="/admin/users" icon={Users} title="Manage Users" />
                                  <SettingsListItem href="/admin/drivers" icon={Car} title="Manage Drivers" />
                                  <SettingsListItem href="/admin/rides" icon={Map} title="Ride Monitoring" />
