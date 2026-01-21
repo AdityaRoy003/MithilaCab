@@ -24,6 +24,7 @@ import { motion } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 const settingsSchema = z.object({
   commissionRate: z.coerce.number().min(0).max(100, { message: 'Commission must be between 0 and 100.' }),
