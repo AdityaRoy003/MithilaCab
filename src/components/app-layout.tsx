@@ -14,7 +14,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, History, User, LogOut, Shield, MoreVertical, Bell, ChevronRight } from "lucide-react";
+import { User, LogOut, Shield, Bell } from "lucide-react";
 import { useUser, useAuth, useDriver, useAdmin } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -42,12 +42,21 @@ function UserMenu() {
     const { isAdmin } = useAdmin();
     const auth = useAuth();
     const router = useRouter();
+    const { driver, isDriverLoading } = useDriver();
+    const pathname = usePathname();
 
     const handleLogout = () => {
         auth.signOut().then(() => {
           router.push("/");
         });
-      };
+    };
+
+    const isDriverMode = pathname.startsWith('/driver');
+
+    const handleRoleChange = (isDriverMode: boolean) => {
+      router.push(isDriverMode ? '/driver' : '/home');
+    };
+
 
     if (!user) {
         return null;
@@ -79,7 +88,7 @@ function UserMenu() {
                  <DropdownMenuItem asChild>
                   <Link href="/profile">
                     <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                    <span>Profile & Settings</span>
                   </Link>
                 </DropdownMenuItem>
                 {isAdmin && (
@@ -89,6 +98,21 @@ function UserMenu() {
                             <span>Admin Dashboard</span>
                         </Link>
                     </DropdownMenuItem>
+                )}
+                {!isDriverLoading && driver && !isAdmin && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <div className="flex items-center justify-between w-full cursor-pointer">
+                                <Label htmlFor="driver-mode-switch" className="font-normal pr-4 cursor-pointer">Driver Mode</Label>
+                                <Switch
+                                    id="driver-mode-switch"
+                                    checked={isDriverMode}
+                                    onCheckedChange={handleRoleChange}
+                                />
+                            </div>
+                        </DropdownMenuItem>
+                    </>
                 )}
                 <DropdownMenuSeparator />
                 <AlertDialog>
@@ -118,11 +142,7 @@ function UserMenu() {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
   const { user, isUserLoading: loading } = useUser();
-  const { driver, isDriverLoading } = useDriver();
-  const { isAdmin } = useAdmin();
-  const [open, setOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
 
@@ -131,12 +151,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.push("/");
     }
   }, [loading, user, router]);
-
-  const isDriverMode = pathname.startsWith('/driver');
-
-  const handleRoleChange = (isDriverMode: boolean) => {
-    router.push(isDriverMode ? '/driver' : '/home');
-  };
 
   if (loading || !user) {
     return (
@@ -157,7 +171,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-    <Sheet open={open} onOpenChange={setOpen}>
       <div className="flex flex-col min-h-screen w-full">
         <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-6 sticky top-0 z-30">
             <Link href="/home">
@@ -180,58 +193,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </SheetContent>
               </Sheet>
               <UserMenu />
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical />
-                </Button>
-              </SheetTrigger>
             </div>
         </header>
         {children}
       </div>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Menu</SheetTitle>
-        </SheetHeader>
-        <div className="py-4 flex flex-col h-full">
-          <nav className="flex flex-col gap-1">
-            <Button variant="ghost" asChild className="justify-between w-full">
-              <Link href="/home">
-                <div className="flex items-center">
-                    <Home className="mr-2" />
-                    <span>Book a Ride</span>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground"/>
-              </Link>
-            </Button>
-            <Button variant="ghost" asChild className="justify-between w-full">
-              <Link href="/history">
-                <div className="flex items-center">
-                    <History className="mr-2" />
-                    <span>Ride History</span>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground"/>
-              </Link>
-            </Button>
-          </nav>
-          <div className="mt-auto">
-            {!isDriverLoading && driver && !isAdmin && (
-              <>
-                <Separator className="my-4" />
-                <div className="flex items-center justify-between p-2 rounded-md">
-                    <Label htmlFor="driver-mode" className="font-semibold cursor-pointer">Driver Mode</Label>
-                    <Switch
-                        id="driver-mode"
-                        checked={isDriverMode}
-                        onCheckedChange={handleRoleChange}
-                    />
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
     </>
   );
 }
