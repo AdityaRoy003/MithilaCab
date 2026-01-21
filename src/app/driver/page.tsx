@@ -32,13 +32,17 @@ export default function DriverPage() {
     );
   }, [firestore, driver]);
 
-  const { data: assignedRides, isLoading: areAssignedRidesLoading } = useCollection<Ride>(assignedRidesQuery);
+  const { data: assignedRides } = useCollection<Ride>(assignedRidesQuery);
 
-  const hasAssignedRide = assignedRides && assignedRides.length > 0;
+  const handleAvailabilityChange = (isAvailable: boolean) => {
+    if (!driver) return;
+    const driverRef = doc(firestore, 'drivers', driver.id);
+    updateDocumentNonBlocking(driverRef, { isAvailable });
+  };
 
-  const isLoading = isDriverLoading || (driver && areAssignedRidesLoading);
-
-  if (isLoading) {
+  // First, handle the primary loading state for the driver's profile itself.
+  // This ensures we don't flash the "Access Denied" message for a real driver.
+  if (isDriverLoading) {
     return (
       <AppLayout>
         <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-8">
@@ -65,6 +69,7 @@ export default function DriverPage() {
     );
   }
   
+  // After we're done loading, if there's still no driver, they can't access this page.
   if (!driver) {
       return (
           <AppLayout>
@@ -88,11 +93,8 @@ export default function DriverPage() {
       );
   }
 
-
-  const handleAvailabilityChange = (isAvailable: boolean) => {
-    const driverRef = doc(firestore, 'drivers', driver.id);
-    updateDocumentNonBlocking(driverRef, { isAvailable });
-  };
+  // If we reach here, we have a valid driver. Render the dashboard.
+  const hasAssignedRide = assignedRides && assignedRides.length > 0;
 
   return (
     <AppLayout>
