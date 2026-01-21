@@ -35,6 +35,7 @@ import {
 import { Logo } from "./logo";
 import { Separator } from "./ui/separator";
 import { NotificationsPanel } from "./notifications-panel";
+import { ThemeToggle } from "./theme-toggle";
 
 function UserMenu() {
     const { user } = useUser();
@@ -163,6 +164,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Logo/>
             </Link>
             <div className="flex items-center gap-2 ml-auto">
+              <ThemeToggle />
               <Sheet open={notificationsOpen} onOpenChange={setNotificationsOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
