@@ -90,7 +90,7 @@ export default function LandingPage() {
               className="mt-8 flex justify-center gap-4"
             >
               <Button size="lg" className="font-bold text-lg" asChild>
-                <Link href="/signup">Get Started <ArrowRight className="ml-2"/></Link>
+                <Link href="/login">Get Started <ArrowRight className="ml-2"/></Link>
               </Button>
             </motion.div>
           </motion.div>
