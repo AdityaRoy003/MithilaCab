@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,9 +23,6 @@ import {
   FlaskConical,
   Info,
   LogOut,
-  Moon,
-  Sun,
-  Laptop,
   Bell,
   Lock,
   Trash2,
@@ -36,39 +32,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-
-function ThemeToggle() {
-    const { setTheme, theme } = useTheme();
-
-    return (
-        <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted p-1">
-            <Button
-                variant={theme === 'light' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setTheme('light')}
-                className="justify-start gap-2"
-            >
-                <Sun /> Light
-            </Button>
-            <Button
-                variant={theme === 'dark' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setTheme('dark')}
-                className="justify-start gap-2"
-            >
-                <Moon /> Dark
-            </Button>
-            <Button
-                variant={theme === 'system' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setTheme('system')}
-                className="justify-start gap-2"
-            >
-                <Laptop /> System
-            </Button>
-        </div>
-    );
-}
 
 
 export default function AppSettingsPage() {
@@ -151,19 +114,6 @@ export default function AppSettingsPage() {
                     <h1 className="font-headline text-3xl font-bold mb-6">App Settings</h1>
 
                     <div className="space-y-8">
-                        <Card>
-                             <CardHeader>
-                                <CardTitle>Display</CardTitle>
-                                <CardDescription>Customize the app's appearance.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                    <Label>Theme</Label>
-                                    <ThemeToggle />
-                                </div>
-                            </CardContent>
-                        </Card>
-                        
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2"><Bell /> Notification Preferences</CardTitle>
