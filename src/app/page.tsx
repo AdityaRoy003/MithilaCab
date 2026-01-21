@@ -130,13 +130,15 @@ export default function LandingPage() {
               </form>
             </motion.div>
           </motion.div>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 2, duration: 0.5, ease: "easeInOut"}}
             className="absolute bottom-10 left-1/2 -translate-x-1/2"
           >
-             <ChevronDown className="h-8 w-8 animate-bounce text-foreground/50" />
+             <Link href="#features" aria-label="Scroll to next section">
+                <ChevronDown className="h-8 w-8 animate-bounce text-foreground/50 cursor-pointer hover:text-primary transition-colors" />
+             </Link>
           </motion.div>
         </section>
 
