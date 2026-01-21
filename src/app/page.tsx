@@ -81,7 +81,7 @@ export default function LandingPage() {
         <section ref={heroRef} className="relative h-screen flex items-center justify-center text-center overflow-hidden">
           {heroImage && (
               <motion.div 
-                className="absolute inset-0 w-full h-[150%] -top-[25%]"
+                className="absolute inset-0 w-full h-full"
                 style={{ y: backgroundY }}
               >
                 <Image
