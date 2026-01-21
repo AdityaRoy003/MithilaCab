@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, Suspense } from 'react';
+import { useMemo, Suspense, useEffect } from 'react';
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin, useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { collection, query, where, limit } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
 import { RideHistoryItem } from '@/components/ride/ride-history-item';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 function PassengerDashboard() {
     const { user } = useUser();
@@ -128,28 +128,6 @@ function AdminWelcome() {
     )
 }
 
-function DriverWelcome() {
-    return (
-        <div className="w-full">
-            <Card className="w-full text-center bg-secondary border-primary/50">
-                <CardHeader>
-                    <CardTitle>Welcome, Driver!</CardTitle>
-                    <CardDescription>You are in passenger mode. Head to your dashboard to start accepting rides.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button asChild size="lg" className="font-bold">
-                        <Link href="/driver">
-                            <Car className="mr-2" />
-                            Go to Driver Dashboard
-                        </Link>
-                    </Button>
-                </CardContent>
-            </Card>
-        </div>
-    )
-}
-
-
 function PassengerDashboardWrapper() {
     return (
         <Suspense fallback={<HomePageLoadingSkeleton />}>
@@ -160,8 +138,18 @@ function PassengerDashboardWrapper() {
 
 export default function HomePage() {
   const { isAdmin, isAdminLoading, role } = useAdmin();
+  const router = useRouter();
 
-  if (isAdminLoading) {
+  const isLoading = isAdminLoading;
+  const isDriver = !isLoading && role === 'driver' && !isAdmin;
+
+  useEffect(() => {
+    if (isDriver) {
+      router.replace('/driver');
+    }
+  }, [isDriver, router]);
+
+  if (isLoading || isDriver) {
     return (
       <AppLayout>
         <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
@@ -170,8 +158,6 @@ export default function HomePage() {
       </AppLayout>
     );
   }
-  
-  const isDriver = role === 'driver' && !isAdmin;
 
   return (
     <AppLayout>
@@ -179,10 +165,7 @@ export default function HomePage() {
         {isAdmin ? (
             <AdminWelcome />
         ) : (
-            <div className="space-y-8">
-                {isDriver && <DriverWelcome />}
-                <PassengerDashboardWrapper />
-            </div>
+            <PassengerDashboardWrapper />
         )}
       </main>
     </AppLayout>
