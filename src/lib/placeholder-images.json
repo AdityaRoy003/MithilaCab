@@ -38,9 +38,9 @@
     },
     {
       "id": "mithila-hero",
-      "description": "A serene landscape from the Mithila region of Bihar, perhaps showing a river or lush green fields.",
-      "imageUrl": "https://images.unsplash.com/photo-1620766165522-6354b6a6a02b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      "imageHint": "Bihar landscape"
+      "description": "A vibrant and intricate Madhubani painting, showcasing the rich artistic heritage of the Mithila region.",
+      "imageUrl": "https://images.unsplash.com/photo-1618828232323-8d264a619082?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "Madhubani painting"
     },
     {
       "id": "app-screen-1",

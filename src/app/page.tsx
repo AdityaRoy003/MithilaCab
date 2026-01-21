@@ -122,7 +122,7 @@ export default function LandingPage() {
               className="mt-4 max-w-xl mx-auto text-lg text-foreground/80"
               variants={itemVariants}
             >
-              Your trusted partner for exploring the heart of Bihar. Reliable, safe, and always on time.
+              Your trusted partner for exploring the landmarks and culture of Mithila. Reliable, safe, and always on time.
             </motion.p>
             <motion.div
               variants={itemVariants}
