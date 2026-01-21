@@ -19,9 +19,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Percent, IndianRupee, Car, CarFront, Truck, Zap } from 'lucide-react';
+import { Percent, IndianRupee, Car, CarFront, Truck, Zap, Users, Plus, Send, Smartphone, FileWarning } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 
 const settingsSchema = z.object({
   commissionRate: z.coerce.number().min(0).max(100, { message: 'Commission must be between 0 and 100.' }),
@@ -108,6 +110,13 @@ export default function AdminSettingsPage() {
         toast({ title: 'Settings Saved', description: 'Platform settings have been updated.' });
     }
 
+    const handleNotImplemented = () => {
+        toast({
+            title: "Feature Coming Soon",
+            description: "This functionality will be available in a future update.",
+        });
+    };
+
     if (isLoading) {
         return (
              <div className="space-y-8">
@@ -150,7 +159,6 @@ export default function AdminSettingsPage() {
                             {form.formState.isSubmitting ? 'Saving...' : 'Save All Settings'}
                         </Button>
                     </div>
-            
                     <div className="grid lg:grid-cols-2 gap-8">
                         <Card>
                             <CardHeader>
@@ -219,6 +227,93 @@ export default function AdminSettingsPage() {
                     </div>
                 </form>
             </Form>
+
+            <Separator />
+
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle className="flex items-center gap-2"><Users />Role-Based Access Control</CardTitle>
+                        <CardDescription>Create and manage admin roles and their permissions.</CardDescription>
+                    </div>
+                    <Button onClick={handleNotImplemented}><Plus className="mr-2 h-4 w-4" /> Add Role</Button>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Role</TableHead>
+                                <TableHead>Permissions</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell>Admin</TableCell>
+                                <TableCell>Full Access</TableCell>
+                                <TableCell className="text-right">
+                                <Button variant="outline" size="sm" onClick={handleNotImplemented}>Manage</Button>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>Support</TableCell>
+                                <TableCell>Manage users, view rides, process refunds</TableCell>
+                                <TableCell className="text-right">
+                                <Button variant="outline" size="sm" onClick={handleNotImplemented}>Manage</Button>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Send />Notification Manager</CardTitle>
+                    <CardDescription>Send system-wide alerts or updates to all users and drivers.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="notification-title">Title</Label>
+                            <Input id="notification-title" placeholder="e.g., Service Maintenance" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="notification-message">Message</Label>
+                            <Textarea id="notification-message" placeholder="Enter your system-wide message here..." />
+                        </div>
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button onClick={handleNotImplemented}>Send Notification</Button>
+                </CardFooter>
+            </Card>
+
+            <div className="grid lg:grid-cols-2 gap-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Smartphone />App Version Monitor</CardTitle>
+                        <CardDescription>Track which users are on outdated app versions.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                            <p>App version monitor coming soon.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><FileWarning />Error Logs Viewer</CardTitle>
+                        <CardDescription>See backend/API failures and debug info.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                            <p>Error log viewer coming soon.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
         </motion.div>
     )
 }
