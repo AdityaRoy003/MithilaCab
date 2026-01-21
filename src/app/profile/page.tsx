@@ -25,6 +25,9 @@ import {
   BookOpen,
   Wrench,
   Users,
+  Car,
+  Map,
+  Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -100,6 +103,54 @@ export default function ProfilePage() {
     return null;
   }
   
+  if (role === 'admin') {
+      return (
+          <AppLayout>
+              <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
+                  <div className="max-w-2xl mx-auto w-full">
+                      <div className="flex items-center justify-between mb-6">
+                          <Button variant="ghost" onClick={() => router.push('/admin')} className="-ml-4">
+                              <ArrowLeft className="mr-2 h-4 w-4" />
+                              Back to Dashboard
+                          </Button>
+                          <h1 className="font-headline text-2xl font-bold">Admin Profile</h1>
+                          <Button variant="outline" size="icon" className="rounded-full" onClick={handleNotImplemented}>
+                              <HelpCircle className="h-5 w-5" />
+                              <span className="sr-only">Help</span>
+                          </Button>
+                      </div>
+                      
+                      <div className="space-y-8">
+                          <div>
+                              <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">ADMIN ACTIONS</h2>
+                              <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                                 <SettingsListItem href="/admin/users" icon={Users} title="Manage Users" />
+                                 <SettingsListItem href="/admin/drivers" icon={Car} title="Manage Drivers" />
+                                 <SettingsListItem href="/admin/rides" icon={Map} title="Ride Monitoring" />
+                                 <SettingsListItem href="/admin/finance" icon={Wallet} title="Finance" />
+                              </div>
+                          </div>
+                           <div>
+                              <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">ACCOUNT SETTINGS</h2>
+                              <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                                 <SettingsListItem href="/profile/personal" icon={UserIcon} title="Personal Info" subtitle="Name, email, phone" />
+                                 <SettingsListItem href="/profile/password" icon={Shield} title="Security" subtitle="Change your password" />
+                              </div>
+                          </div>
+                          
+                          <div>
+                              <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">GENERAL</h2>
+                              <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                                 <SettingsListItem href="/profile/settings" icon={SettingsIcon} title="App Settings" subtitle="Theme, notifications, logout" />
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </main>
+          </AppLayout>
+      )
+  }
+
   if (role === 'driver') {
       return (
           <AppLayout>
