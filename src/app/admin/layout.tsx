@@ -42,7 +42,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -64,8 +64,8 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2 text-gray-400 transition-all hover:text-white hover:bg-gray-800/80',
-        isActive && 'bg-gray-800 text-white',
+        'flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground/80 transition-colors hover:text-sidebar-accent-foreground hover:bg-sidebar-accent',
+        isActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
         isCollapsed && 'justify-center'
       )}
     >
@@ -238,9 +238,9 @@ export default function AdminLayout({
             "grid min-h-screen w-full transition-all duration-300",
             isCollapsed ? "md:grid-cols-[64px_1fr]" : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"
         )}>
-          <aside className="hidden border-r bg-gray-900 text-white md:block">
+          <aside className="hidden border-r bg-sidebar text-sidebar-foreground md:block">
             <div className="flex h-full max-h-screen flex-col gap-2">
-                <div className={cn("flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6", isCollapsed && "justify-center")}>
+                <div className={cn("flex h-14 items-center border-b border-sidebar-border px-4 lg:h-[60px] lg:px-6", isCollapsed && "justify-center")}>
                     <Link href="/home" className={cn(isCollapsed && 'w-min')}>
                         <Logo className={cn(isCollapsed && '[&>span]:hidden')} />
                     </Link>
@@ -249,7 +249,7 @@ export default function AdminLayout({
                     <SidebarNav isCollapsed={isCollapsed} />
                 </div>
                 <div className="mt-auto p-4">
-                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(!isCollapsed)} className="w-full justify-center text-gray-400 hover:bg-gray-800/80 hover:text-white">
+                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(!isCollapsed)} className="w-full justify-center text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                       <ChevronLeft className={cn("h-5 w-5 transition-transform duration-300", isCollapsed && "rotate-180")} />
                       <span className="sr-only">Toggle Sidebar</span>
                   </Button>
@@ -270,8 +270,8 @@ export default function AdminLayout({
                       <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="flex flex-col bg-gray-900 text-white p-0">
-                      <div className="flex h-14 items-center border-b border-gray-800 px-4 lg:h-[60px] lg:px-6">
+                  <SheetContent side="left" className="flex flex-col bg-sidebar text-sidebar-foreground p-0">
+                      <div className="flex h-14 items-center border-b border-sidebar-border px-4 lg:h-[60px] lg:px-6">
                           <Link href="/home"><Logo /></Link>
                       </div>
                       <div className="flex-1 overflow-auto py-2">
