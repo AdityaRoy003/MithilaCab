@@ -140,16 +140,8 @@ export default function HomePage() {
   const { isAdmin, isAdminLoading, role } = useAdmin();
   const router = useRouter();
 
-  const isLoading = isAdminLoading;
-  const isDriver = !isLoading && role === 'driver' && !isAdmin;
-
-  useEffect(() => {
-    if (isDriver) {
-      router.replace('/driver');
-    }
-  }, [isDriver, router]);
-
-  if (isLoading || isDriver) {
+  // If we are still determining the user's role, show a loading screen.
+  if (isAdminLoading) {
     return (
       <AppLayout>
         <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
@@ -159,6 +151,20 @@ export default function HomePage() {
     );
   }
 
+  // Once loading is complete, decide what to do.
+  if (role === 'driver') {
+    // If the user is a driver, redirect them and show a loading screen while it happens.
+    router.replace('/driver');
+    return (
+      <AppLayout>
+        <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
+          <HomePageLoadingSkeleton />
+        </main>
+      </AppLayout>
+    );
+  }
+  
+  // If not a driver, render the appropriate view for an admin or passenger.
   return (
     <AppLayout>
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
