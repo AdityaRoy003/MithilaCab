@@ -119,7 +119,7 @@ export default function ProfilePage() {
                               <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">DRIVER SETTINGS</h2>
                               <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
                                  <SettingsListItem href="/profile/driver" icon={UserIcon} title="Personal & Vehicle Info" subtitle="Name, contact, vehicle details" />
-                                 <SettingsListItem onClick={handleNotImplemented} icon={IndianRupee} title="Earnings" subtitle="View your ride earnings" />
+                                 <SettingsListItem href="/driver/earnings" icon={IndianRupee} title="Earnings" subtitle="View your ride earnings" />
                                  <SettingsListItem onClick={handleNotImplemented} icon={BarChart} title="Performance" subtitle="Your ratings and ride statistics" />
                                  <SettingsListItem href="/profile/password" icon={Shield} title="Security" subtitle="Change your password" />
                               </div>
