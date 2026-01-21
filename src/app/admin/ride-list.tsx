@@ -53,6 +53,7 @@ export function RideList() {
                     <TableHead className="hidden md:table-cell">Trip</TableHead>
                     <TableHead className="text-right">Fare</TableHead>
                     <TableHead className="hidden md:table-cell text-right">Date</TableHead>
+                    <TableHead><span className="sr-only">Actions</span></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -61,7 +62,7 @@ export function RideList() {
                     ))}
                     {(!rides || rides.length === 0) && (
                         <TableRow>
-                            <TableCell colSpan={6} className="h-24 text-center">No rides found.</TableCell>
+                            <TableCell colSpan={7} className="h-24 text-center">No rides found.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>

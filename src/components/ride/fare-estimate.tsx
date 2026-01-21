@@ -5,11 +5,13 @@ import type { Ride, RideType } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Clock, Map, IndianRupee } from 'lucide-react';
+import { ArrowRight, Clock, Map, IndianRupee, Zap } from 'lucide-react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { Badge } from '../ui/badge';
 
 interface PlatformSettings {
+    surgeMultiplier?: number;
     rideTypeSettings: {
         Standard: { baseFare: number; perKmRate: number };
         Premium: { baseFare: number; perKmRate: number };
@@ -25,7 +27,7 @@ interface FareEstimateProps {
 
 export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const [estimate, setEstimate] = useState<{ distance: string; time: number; fare: number } | null>(null);
+  const [estimate, setEstimate] = useState<{ distance: string; time: number; fare: number, surgeMultiplier: number; } | null>(null);
 
   const firestore = useFirestore();
   const settingsDocRef = useMemoFirebase(() => doc(firestore, 'settings', 'platform'), [firestore]);
@@ -42,18 +44,20 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
     // This effect runs only on the client, avoiding hydration mismatches from Math.random().
     const rideType = rideDetails.rideType || 'Standard';
     const rideSettings = settings.rideTypeSettings[rideType] || settings.rideTypeSettings.Standard;
+    const surgeMultiplier = settings.surgeMultiplier ?? 1;
     
     const dist = Math.random() * 20 + 2;
     const baseFare = rideSettings.baseFare;
     const perKmRate = rideSettings.perKmRate;
 
-    const finalFare = Math.round(baseFare + dist * perKmRate);
+    const finalFare = Math.round((baseFare + dist * perKmRate) * surgeMultiplier);
     const travelTime = Math.round(dist * 2.5);
 
     setEstimate({
       distance: dist.toFixed(1),
       time: travelTime,
       fare: finalFare,
+      surgeMultiplier,
     });
 
     const timer = setTimeout(() => {
@@ -120,6 +124,12 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
                 <p className="font-headline font-bold text-4xl text-accent flex items-center justify-center">
                     <IndianRupee size={30} className="mt-1" />{estimate.fare.toFixed(2)}
                 </p>
+                {estimate.surgeMultiplier > 1 && (
+                    <Badge variant="destructive" className="mt-2 animate-pulse">
+                        <Zap className="mr-1 h-3 w-3" />
+                        Surge Pricing Active: {estimate.surgeMultiplier}x
+                    </Badge>
+                )}
             </div>
            )}
 

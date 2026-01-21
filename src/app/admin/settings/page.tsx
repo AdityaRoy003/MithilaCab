@@ -19,13 +19,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Percent, IndianRupee, Car, CarFront, Truck } from 'lucide-react';
+import { Percent, IndianRupee, Car, CarFront, Truck, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
 
 const settingsSchema = z.object({
   commissionRate: z.coerce.number().min(0).max(100, { message: 'Commission must be between 0 and 100.' }),
   currency: z.string().min(3, { message: 'Currency code must be 3 characters.' }).max(3),
+  surgeMultiplier: z.coerce.number().min(1, { message: 'Surge multiplier must be at least 1.' }),
   standardBaseFare: z.coerce.number().min(0),
   standardPerKmRate: z.coerce.number().min(0),
   premiumBaseFare: z.coerce.number().min(0),
@@ -37,6 +38,7 @@ const settingsSchema = z.object({
 interface PlatformSettings {
     commissionRate: number;
     currency: string;
+    surgeMultiplier?: number;
     rideTypeSettings?: {
         Standard: { baseFare: number; perKmRate: number };
         Premium: { baseFare: number; perKmRate: number };
@@ -56,6 +58,7 @@ export default function AdminSettingsPage() {
         defaultValues: {
             commissionRate: 0,
             currency: 'INR',
+            surgeMultiplier: 1,
             standardBaseFare: 40,
             standardPerKmRate: 12,
             premiumBaseFare: 60,
@@ -70,6 +73,7 @@ export default function AdminSettingsPage() {
             form.reset({
                 commissionRate: settings.commissionRate * 100, // Display as percentage
                 currency: settings.currency,
+                surgeMultiplier: settings.surgeMultiplier ?? 1,
                 standardBaseFare: settings.rideTypeSettings?.Standard.baseFare ?? 40,
                 standardPerKmRate: settings.rideTypeSettings?.Standard.perKmRate ?? 12,
                 premiumBaseFare: settings.rideTypeSettings?.Premium.baseFare ?? 60,
@@ -84,6 +88,7 @@ export default function AdminSettingsPage() {
         const updatedSettings = {
             commissionRate: values.commissionRate / 100, // Store as decimal
             currency: values.currency.toUpperCase(),
+            surgeMultiplier: values.surgeMultiplier,
             rideTypeSettings: {
                 Standard: {
                     baseFare: values.standardBaseFare,
@@ -162,6 +167,20 @@ export default function AdminSettingsPage() {
                                             <div className="relative">
                                                 <Input type="number" placeholder="20" {...field} className="pl-8" />
                                                 <Percent className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            </div>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="surgeMultiplier"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Global Surge Multiplier</FormLabel>
+                                            <div className="relative">
+                                                <Input type="number" placeholder="1.0" step="0.1" {...field} className="pl-8" />
+                                                <Zap className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             </div>
                                             <FormMessage />
                                         </FormItem>

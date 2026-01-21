@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, CarFront, Activity, IndianRupee, FileBadge } from 'lucide-react';
+import { Users, CarFront, Activity, IndianRupee, FileBadge, Map } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import type { Ride, Driver } from '@/lib/data';
@@ -169,12 +169,15 @@ export default function AdminDashboardPage() {
         <motion.div variants={itemVariants}>
             <Card>
                 <CardHeader>
-                    <CardTitle>Revenue Analytics</CardTitle>
-                    <CardDescription>A breakdown of revenue over the last month.</CardDescription>
+                    <CardTitle>Real-time Ride Heatmap</CardTitle>
+                    <CardDescription>Visualize high-demand zones and driver locations.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="h-96 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-                        <p>Revenue chart coming soon.</p>
+                        <div className="text-center">
+                            <Map className="h-12 w-12 mx-auto mb-2" />
+                            <p>Ride heatmap feature coming soon.</p>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

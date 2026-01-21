@@ -7,8 +7,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { IndianRupee } from 'lucide-react';
+import { IndianRupee, MoreHorizontal } from 'lucide-react';
 import type { Ride, Driver } from '@/lib/data';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface RideRowProps {
     ride: Ride;
@@ -24,9 +27,17 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 
 export function RideRow({ ride }: RideRowProps) {
     const firestore = useFirestore();
+    const { toast } = useToast();
 
     const driverDocRef = useMemoFirebase(() => ride.driverId ? doc(firestore, 'drivers', ride.driverId) : null, [firestore, ride.driverId]);
     const { data: driver, isLoading: driverLoading } = useDoc<Driver>(driverDocRef);
+    
+    const handleNotImplemented = () => {
+        toast({
+            title: "Feature Coming Soon",
+            description: "This functionality will be available in a future update.",
+        });
+    };
 
     const getFormattedDate = (date: any) => {
         if (!date) return 'N/A';
@@ -71,6 +82,20 @@ export function RideRow({ ride }: RideRowProps) {
             </TableCell>
              <TableCell className="hidden md:table-cell text-right text-xs text-muted-foreground">
                 {getFormattedDate(ride.startTime)}
+            </TableCell>
+            <TableCell>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={handleNotImplemented}>Manually Assign Driver</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleNotImplemented}>View Cancellation Details</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </TableCell>
         </TableRow>
     );

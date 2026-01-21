@@ -349,6 +349,10 @@
           "type": "number",
           "description": "The percentage (0-1) of the fare taken as commission."
         },
+        "surgeMultiplier": {
+          "type": "number",
+          "description": "A global multiplier for fares during peak times (e.g., 1.5 for 50% surge)."
+        },
         "currency": {
           "type": "string",
           "description": "The default currency code for the platform (e.g., 'INR')."
