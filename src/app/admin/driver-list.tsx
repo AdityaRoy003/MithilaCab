@@ -43,6 +43,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 
 interface Driver {
@@ -61,6 +62,7 @@ interface Driver {
 export function DriverList() {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const router = useRouter();
   const driversQuery = useMemoFirebase(
     () => query(collection(firestore, 'drivers'), orderBy('dateJoined', 'desc')),
     [firestore]
@@ -160,7 +162,7 @@ export function DriverList() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem onClick={() => handleNotImplemented('View profile')}>View profile</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => router.push(`/admin/drivers/${driver.id}`)}>View profile</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleNotImplemented('Verify documents')}>Verify documents</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleNotImplemented('View performance')}>View performance</DropdownMenuItem>
                                         <DropdownMenuSeparator />

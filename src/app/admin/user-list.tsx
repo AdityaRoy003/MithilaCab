@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: string;
@@ -57,6 +58,7 @@ interface User {
 export function UserList() {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const router = useRouter();
   const usersQuery = useMemoFirebase(
     () => query(collection(firestore, 'users'), orderBy('dateJoined', 'desc')),
     [firestore]
@@ -154,7 +156,7 @@ export function UserList() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem onClick={() => handleNotImplemented('View profile')}>View profile</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => router.push(`/admin/users/${user.id}`)}>View profile</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleNotImplemented('View ride history')}>View ride history</DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                          <AlertDialog>
