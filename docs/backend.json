@@ -228,6 +228,10 @@
           "type": "number",
           "description": "The fare amount for the ride."
         },
+        "distance": {
+          "type": "number",
+          "description": "The estimated distance of the ride in kilometers."
+        },
         "startTime": {
           "type": "string",
           "description": "The start time of the ride.",

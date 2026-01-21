@@ -9,7 +9,7 @@ import { ArrowRight, Clock, Map, IndianRupee } from 'lucide-react';
 
 interface FareEstimateProps {
   rideDetails: Partial<Ride>;
-  onConfirm: (estimatedFare: number) => void;
+  onConfirm: (estimate: { fare: number; distance: number; }) => void;
   onCancel: () => void;
 }
 
@@ -43,7 +43,7 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
 
   const handleConfirm = () => {
     if (estimate) {
-      onConfirm(estimate.fare);
+      onConfirm({ fare: estimate.fare, distance: parseFloat(estimate.distance) });
     }
   };
   

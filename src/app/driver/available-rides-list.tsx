@@ -23,7 +23,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { IndianRupee, MapPin } from 'lucide-react';
+import { IndianRupee, MapPin, Map } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function AvailableRidesList() {
@@ -78,7 +78,7 @@ export function AvailableRidesList() {
           validRides.map((ride) => (
             <Card key={ride.id} className="p-4">
               <div className="flex justify-between items-start">
-                <div className="space-y-2">
+                <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-primary" />
                     <p className="font-medium">{ride.pickupLocation}</p>
@@ -88,12 +88,23 @@ export function AvailableRidesList() {
                     <p className="font-medium">{ride.destinationLocation}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-xl flex items-center">
-                    <IndianRupee size={20} />
-                    {ride.fareAmount.toFixed(2)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Est. Fare</p>
+                <div className="flex items-start gap-4 pl-4">
+                    <div className="text-right">
+                        <p className="font-bold text-xl flex items-center justify-end">
+                            <IndianRupee size={20} />
+                            {ride.fareAmount.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Est. Fare</p>
+                    </div>
+                    {ride.distance && (
+                        <div className="text-right">
+                            <p className="font-bold text-xl flex items-center justify-end">
+                                <Map size={16} className="mr-1" />
+                                {ride.distance.toFixed(1)} km
+                            </p>
+                            <p className="text-xs text-muted-foreground">Distance</p>
+                        </div>
+                    )}
                 </div>
               </div>
               <CardFooter className="p-0 pt-4">

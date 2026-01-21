@@ -49,7 +49,7 @@ export function BookingFlow({ initialPickup, initialDestination }: BookingFlowPr
     setBookingState('estimating');
   };
 
-  const handleFareConfirm = (estimatedFare: number) => {
+  const handleFareConfirm = (estimate: { fare: number, distance: number }) => {
     if (!user || !rideDetails.pickupLocation || !rideDetails.destinationLocation || !rideDetails.rideType)
       return;
 
@@ -64,7 +64,8 @@ export function BookingFlow({ initialPickup, initialDestination }: BookingFlowPr
       },
       pickupLocation: rideDetails.pickupLocation,
       destinationLocation: rideDetails.destinationLocation,
-      fareAmount: estimatedFare,
+      fareAmount: estimate.fare,
+      distance: estimate.distance,
       status: 'requested',
       startTime: serverTimestamp(),
       rideType: rideDetails.rideType,
@@ -74,7 +75,8 @@ export function BookingFlow({ initialPickup, initialDestination }: BookingFlowPr
     setRideDetails(prev => ({
         ...prev,
         ...newRideData,
-        fareAmount: estimatedFare,
+        fareAmount: estimate.fare,
+        distance: estimate.distance,
     }));
 
 
