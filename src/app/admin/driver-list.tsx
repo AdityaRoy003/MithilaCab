@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import {
@@ -41,10 +42,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal, MessageSquare, Trash2, CheckCircle, FileText, BarChart } from 'lucide-react';
+import { MoreHorizontal, MessageSquare, Trash2, CheckCircle, FileText, BarChart, ShieldAlert } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface Driver {
   id: string;
@@ -57,6 +59,7 @@ interface Driver {
   image?: { imageUrl?: string; imageHint?: string; };
   dateJoined?: Timestamp;
   isSuspended?: boolean;
+  suspensionReason?: string;
   isVerified?: boolean;
 }
 
@@ -64,6 +67,7 @@ export function DriverList() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const [suspensionReason, setSuspensionReason] = useState('');
 
   const driversQuery = useMemoFirebase(
     () => query(collection(firestore, 'drivers'), orderBy('dateJoined', 'desc')),
@@ -83,14 +87,27 @@ export function DriverList() {
     }
   }
 
-  const handleSuspendDriver = async (driverId: string, currentStatus: boolean) => {
+  const handleSuspendDriver = async (driverId: string, currentStatus: boolean, reason: string) => {
+      if (!currentStatus && !reason) {
+          toast({
+              variant: "destructive",
+              title: "Reason Required",
+              description: "Please provide a reason for suspending the driver.",
+          });
+          return;
+      }
+      
       const driverRef = doc(firestore, 'drivers', driverId);
       try {
-          await updateDoc(driverRef, { isSuspended: !currentStatus });
+          await updateDoc(driverRef, { 
+              isSuspended: !currentStatus,
+              suspensionReason: !currentStatus ? reason : null,
+          });
           toast({
               title: `Driver ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
               description: `The driver account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
           });
+          setSuspensionReason('');
       } catch (error) {
           toast({
               variant: "destructive",
@@ -148,14 +165,6 @@ export function DriverList() {
     });
   };
 
-  const handleViewPerformance = () => {
-      toast({
-          title: "Feature Coming Soon",
-          description: "A detailed performance dashboard is coming soon.",
-      });
-  };
-
-
   return (
     <Card>
       <CardHeader>
@@ -185,7 +194,7 @@ export function DriverList() {
                     {drivers && drivers.map(driver => (
                         <TableRow 
                             key={driver.id} 
-                            className={cn(driver.isSuspended ? "opacity-50 bg-muted/20" : "")}
+                            className={cn(driver.isSuspended ? "bg-muted/30" : "")}
                         >
                             <TableCell>
                                 <div className="flex items-center gap-3">
@@ -197,20 +206,22 @@ export function DriverList() {
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <Badge variant={driver.isAvailable ? 'default' : 'outline'}>
-                                    {driver.isAvailable ? 'Available' : 'Offline'}
-                                </Badge>
-                                {driver.isSuspended && <Badge variant="destructive" className="ml-2">Suspended</Badge>}
-                                {driver.isVerified ? (
-                                    <Badge variant="secondary" className="ml-2 border-green-600">
-                                        <CheckCircle className="mr-1 h-3 w-3 text-green-600" />
-                                        Verified
+                                <div className='flex flex-wrap gap-1'>
+                                    <Badge variant={driver.isAvailable ? 'default' : 'outline'}>
+                                        {driver.isAvailable ? 'Available' : 'Offline'}
                                     </Badge>
-                                ) : (
-                                    <Badge variant="outline" className="ml-2 border-yellow-600 text-yellow-600">
-                                        Not Verified
-                                    </Badge>
-                                )}
+                                    {driver.isSuspended && <Badge variant="destructive" className="items-center"><ShieldAlert className="mr-1 h-3 w-3" />Suspended</Badge>}
+                                    {driver.isVerified ? (
+                                        <Badge variant="secondary" className="border-green-600">
+                                            <CheckCircle className="mr-1 h-3 w-3 text-green-600" />
+                                            Verified
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="outline" className="ml-2 border-yellow-600 text-yellow-600">
+                                            Not Verified
+                                        </Badge>
+                                    )}
+                                </div>
                             </TableCell>
                             <TableCell className="hidden md:table-cell">{driver.rating?.toFixed(1) || 'N/A'}</TableCell>
                             <TableCell className="hidden md:table-cell">{getFormattedDate(driver.dateJoined)}</TableCell>
@@ -225,7 +236,7 @@ export function DriverList() {
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem onClick={() => router.push(`/admin/drivers/${driver.id}`)}>View profile</DropdownMenuItem>
                                         <DropdownMenuItem onClick={handleViewDocuments}><FileText className="mr-2 h-4 w-4" /> View Documents</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={handleViewPerformance}><BarChart className="mr-2 h-4 w-4" /> View Performance</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => router.push(`/admin/drivers/${driver.id}/performance`)}><BarChart className="mr-2 h-4 w-4" /> View Performance</DropdownMenuItem>
                                         <DropdownMenuItem onClick={handleSendMessage}><MessageSquare className="mr-2 h-4 w-4" /> Send Message</DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <AlertDialog>
@@ -264,12 +275,19 @@ export function DriverList() {
                                                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                                     <AlertDialogDescription>
                                                         This action will {driver.isSuspended ? 're-activate' : 'suspend'} the driver's account. They {driver.isSuspended ? 'will be able to' : 'will not be able to'} accept rides.
+                                                        {!driver.isSuspended && " Please provide a reason."}
                                                     </AlertDialogDescription>
+                                                     {!driver.isSuspended && (
+                                                        <div className="space-y-2 pt-2 text-left">
+                                                            <Label htmlFor="suspension-reason">Reason</Label>
+                                                            <Textarea id="suspension-reason" placeholder="e.g., Violated community guidelines by..." onChange={(e) => setSuspensionReason(e.target.value)} />
+                                                        </div>
+                                                    )}
                                                 </AlertDialogHeader>
                                                 <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogCancel onClick={() => setSuspensionReason('')}>Cancel</AlertDialogCancel>
                                                     <AlertDialogAction
-                                                        onClick={() => handleSuspendDriver(driver.id, driver.isSuspended || false)}
+                                                        onClick={() => handleSuspendDriver(driver.id, driver.isSuspended || false, suspensionReason)}
                                                         className={!driver.isSuspended ? buttonVariants({ variant: "destructive" }) : ''}
                                                     >
                                                         {driver.isSuspended ? 'Yes, Un-suspend' : 'Yes, Suspend'}

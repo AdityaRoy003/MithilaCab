@@ -10,11 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Mail, Phone } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ArrowLeft, Mail, Phone, ShieldAlert, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { RideRow } from '@/app/admin/ride-row';
 import { Table, TableBody, TableHeader, TableRow, TableHead } from '@/components/ui/table';
-
 
 interface UserProfileData {
     id: string;
@@ -24,6 +24,7 @@ interface UserProfileData {
     photoURL?: string;
     dateJoined?: Timestamp;
     isSuspended?: boolean;
+    suspensionReason?: string;
 }
 
 export function UserProfile({ userId }: { userId: string }) {
@@ -89,6 +90,16 @@ export function UserProfile({ userId }: { userId: string }) {
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to user list
                 </Button>
             </div>
+
+            {user.isSuspended && (
+                 <Alert variant="destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>Account Suspended</AlertTitle>
+                    <AlertDescription>
+                        <strong>Reason:</strong> {user.suspensionReason || 'No reason provided.'}
+                    </AlertDescription>
+                </Alert>
+            )}
             
             <Card>
                 <CardHeader>
@@ -107,6 +118,9 @@ export function UserProfile({ userId }: { userId: string }) {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
+                             <Button size="sm" variant="outline" onClick={() => router.push(`/admin/users/${user.id}/activity`)}>
+                                <Activity className="mr-2 h-4 w-4" /> Activity Log
+                            </Button>
                             {user.isSuspended && <Badge variant="destructive">Suspended</Badge>}
                         </div>
                     </div>

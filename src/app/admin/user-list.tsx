@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import {
@@ -41,9 +42,11 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal, MessageSquare, Trash2 } from 'lucide-react';
+import { MoreHorizontal, MessageSquare, Trash2, ShieldAlert } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface User {
   id: string;
@@ -53,12 +56,14 @@ interface User {
   photoURL?: string;
   dateJoined?: Timestamp;
   isSuspended?: boolean;
+  suspensionReason?: string;
 }
 
 export function UserList() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const [suspensionReason, setSuspensionReason] = useState('');
 
   const usersQuery = useMemoFirebase(
     () => query(collection(firestore, 'users'), orderBy('dateJoined', 'desc')),
@@ -78,14 +83,27 @@ export function UserList() {
     }
   }
 
-    const handleSuspendUser = async (userId: string, currentStatus: boolean) => {
+    const handleSuspendUser = async (userId: string, currentStatus: boolean, reason: string) => {
+        if (!currentStatus && !reason) {
+          toast({
+              variant: "destructive",
+              title: "Reason Required",
+              description: "Please provide a reason for suspending the user.",
+          });
+          return;
+        }
+
         const userRef = doc(firestore, 'users', userId);
         try {
-            await updateDoc(userRef, { isSuspended: !currentStatus });
+            await updateDoc(userRef, { 
+              isSuspended: !currentStatus,
+              suspensionReason: !currentStatus ? reason : null,
+            });
             toast({
                 title: `User ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
                 description: `The user account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
             });
+            setSuspensionReason('');
         } catch (error) {
             toast({
                 variant: "destructive",
@@ -148,7 +166,7 @@ export function UserList() {
                     {users && users.map(user => (
                         <TableRow 
                             key={user.id} 
-                            className={cn(user.isSuspended ? "opacity-50 bg-muted/20" : "")}
+                            className={cn(user.isSuspended ? "bg-muted/30" : "")}
                         >
                             <TableCell>
                                 <div className="flex items-center gap-3">
@@ -158,7 +176,7 @@ export function UserList() {
                                     </Avatar>
                                     <div>
                                         <div className="font-medium">{user.name ?? 'Unnamed User'}</div>
-                                        {user.isSuspended && <Badge variant="destructive" className="mt-1">Suspended</Badge>}
+                                        {user.isSuspended && <Badge variant="destructive" className="mt-1 items-center"><ShieldAlert className='mr-1 h-3 w-3'/>Suspended</Badge>}
                                     </div>
                                 </div>
                             </TableCell>
@@ -188,12 +206,19 @@ export function UserList() {
                                                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                                     <AlertDialogDescription>
                                                     This action will {user.isSuspended ? 're-activate' : 'suspend'} the user's account. They {user.isSuspended ? 'will be able to' : 'will not be able to'} access the platform.
+                                                     {!user.isSuspended && " Please provide a reason."}
                                                     </AlertDialogDescription>
+                                                    {!user.isSuspended && (
+                                                        <div className="space-y-2 pt-2 text-left">
+                                                            <Label htmlFor="suspension-reason">Reason</Label>
+                                                            <Textarea id="suspension-reason" placeholder="e.g., Violated community guidelines..." onChange={(e) => setSuspensionReason(e.target.value)} />
+                                                        </div>
+                                                    )}
                                                 </AlertDialogHeader>
                                                 <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogCancel onClick={() => setSuspensionReason('')}>Cancel</AlertDialogCancel>
                                                     <AlertDialogAction
-                                                        onClick={() => handleSuspendUser(user.id, user.isSuspended || false)}
+                                                        onClick={() => handleSuspendUser(user.id, user.isSuspended || false, suspensionReason)}
                                                         className={!user.isSuspended ? buttonVariants({ variant: "destructive" }) : ''}
                                                     >
                                                         {user.isSuspended ? 'Yes, Un-suspend' : 'Yes, Suspend'}

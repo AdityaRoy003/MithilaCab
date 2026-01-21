@@ -29,7 +29,7 @@ export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
   const handleSubmit = () => {
     if (rideDetails.id) {
         const rideRef = doc(firestore, 'rides', rideDetails.id);
-        updateDocumentNonBlocking(rideRef, { status: 'completed', rating, comment });
+        updateDocumentNonBlocking(rideRef, { rating, comment });
     }
     
     toast({

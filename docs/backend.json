@@ -60,6 +60,10 @@
           "type": "boolean",
           "description": "Indicates if the user's account is suspended."
         },
+        "suspensionReason": {
+          "type": "string",
+          "description": "The reason why the user's account was suspended."
+        },
         "role": {
           "type": "string",
           "description": "Defines the user's role, granting different permissions.",
@@ -151,6 +155,10 @@
         "isSuspended": {
           "type": "boolean",
           "description": "Indicates if the driver's account is suspended."
+        },
+        "suspensionReason": {
+          "type": "string",
+          "description": "The reason why the driver's account was suspended."
         },
         "isVerified": {
           "type": "boolean",

@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Car, Mail, Phone, Star, CheckCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ArrowLeft, Car, Mail, Phone, Star, CheckCircle, ShieldAlert, BarChart } from 'lucide-react';
 import { format } from 'date-fns';
 import { RideRow } from '@/app/admin/ride-row';
 import { Table, TableBody, TableHeader, TableRow, TableHead } from '@/components/ui/table';
@@ -27,6 +28,7 @@ interface Driver {
   image?: { imageUrl?: string; imageHint?: string; };
   dateJoined?: Timestamp;
   isSuspended?: boolean;
+  suspensionReason?: string;
   isVerified?: boolean;
 }
 
@@ -94,6 +96,16 @@ export function DriverProfile({ driverId }: { driverId: string }) {
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to driver list
                 </Button>
             </div>
+
+            {driver.isSuspended && (
+                 <Alert variant="destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>Account Suspended</AlertTitle>
+                    <AlertDescription>
+                        <strong>Reason:</strong> {driver.suspensionReason || 'No reason provided.'}
+                    </AlertDescription>
+                </Alert>
+            )}
             
             <Card>
                 <CardHeader>
@@ -121,6 +133,9 @@ export function DriverProfile({ driverId }: { driverId: string }) {
                                 {driver.isAvailable ? 'Available' : 'Offline'}
                             </Badge>
                              {driver.isSuspended && <Badge variant="destructive">Suspended</Badge>}
+                             <Button size="sm" variant="outline" onClick={() => router.push(`/admin/drivers/${driver.id}/performance`)}>
+                                <BarChart className="mr-2 h-4 w-4" /> Performance
+                            </Button>
                         </div>
                     </div>
                 </CardHeader>

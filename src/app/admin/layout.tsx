@@ -18,6 +18,7 @@ import {
   User,
   Users,
   Wallet,
+  FileBadge,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -83,6 +84,9 @@ function SidebarNav({ isCollapsed }: { isCollapsed: boolean }) {
             </NavLink>
             <NavLink href="/admin/drivers" icon={Car} isCollapsed={isCollapsed}>
                 Manage Drivers
+            </NavLink>
+            <NavLink href="/admin/verification" icon={FileBadge} isCollapsed={isCollapsed}>
+                Verification Queue
             </NavLink>
             <NavLink href="/admin/rides" icon={Map} isCollapsed={isCollapsed}>
                 Ride Monitoring
