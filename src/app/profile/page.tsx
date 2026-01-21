@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import AppLayout from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/firebase";
+import { useUser, useAdmin } from "@/firebase";
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   ArrowLeft,
@@ -21,6 +20,8 @@ import {
   Gift,
   Award,
   Ticket,
+  IndianRupee,
+  BarChart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -62,6 +63,7 @@ const SettingsListItem = ({ href, icon: Icon, title, subtitle, onClick }: { href
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
+  const { role, isAdminLoading } = useAdmin();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -73,7 +75,9 @@ export default function ProfilePage() {
     })
   }
 
-  if (authLoading) {
+  const isLoading = authLoading || isAdminLoading;
+
+  if (isLoading) {
       return (
           <AppLayout>
               <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
@@ -91,6 +95,47 @@ export default function ProfilePage() {
 
   if (!user) {
     return null;
+  }
+  
+  if (role === 'driver') {
+      return (
+          <AppLayout>
+              <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
+                  <div className="max-w-2xl mx-auto w-full">
+                      <div className="flex items-center justify-between mb-6">
+                          <Button variant="ghost" onClick={() => router.push('/home')} className="-ml-4">
+                              <ArrowLeft className="mr-2 h-4 w-4" />
+                              Back to Home
+                          </Button>
+                          <h1 className="font-headline text-2xl font-bold">Driver Profile</h1>
+                          <Button variant="outline" size="icon" className="rounded-full" onClick={handleNotImplemented}>
+                              <HelpCircle className="h-5 w-5" />
+                              <span className="sr-only">Help</span>
+                          </Button>
+                      </div>
+                      
+                      <div className="space-y-8">
+                          <div>
+                              <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">DRIVER SETTINGS</h2>
+                              <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                                 <SettingsListItem href="/profile/driver" icon={UserIcon} title="Personal & Vehicle Info" subtitle="Name, contact, vehicle details" />
+                                 <SettingsListItem onClick={handleNotImplemented} icon={IndianRupee} title="Earnings" subtitle="View your ride earnings" />
+                                 <SettingsListItem onClick={handleNotImplemented} icon={BarChart} title="Performance" subtitle="Your ratings and ride statistics" />
+                                 <SettingsListItem href="/profile/password" icon={Shield} title="Security" subtitle="Change your password" />
+                              </div>
+                          </div>
+  
+                          <div>
+                              <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">GENERAL</h2>
+                              <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
+                                 <SettingsListItem href="/profile/settings" icon={SettingsIcon} title="App Settings" subtitle="About, logout, and more" />
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </main>
+          </AppLayout>
+      )
   }
 
   return (
@@ -126,9 +171,9 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                    <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">SUPPORT &amp; REWARDS</h2>
+                    <h2 className="text-sm font-semibold text-muted-foreground px-4 mb-2">SUPPORT & REWARDS</h2>
                     <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
-                       <SettingsListItem href="/profile/safety" icon={ShieldCheck} title="Safety &amp; Support" />
+                       <SettingsListItem href="/profile/safety" icon={ShieldCheck} title="Safety & Support" />
                        <SettingsListItem onClick={handleNotImplemented} icon={Package} title="Parcel - Send Items" />
                        <SettingsListItem href="/profile/payment" icon={CreditCard} title="Payment" />
                        <SettingsListItem onClick={handleNotImplemented} icon={Gift} title="Refer and Earn" subtitle="Get ₹50" />
