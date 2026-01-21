@@ -141,13 +141,27 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Only redirect if loading is finished and the role is definitively 'driver'.
     if (!isAdminLoading && role === 'driver') {
       router.replace('/driver');
     }
   }, [isAdminLoading, role, router]);
 
-  // If we are still determining the user's role, or if the user is a driver (and is being redirected), show a loading screen.
-  if (isAdminLoading || role === 'driver') {
+  // We are loading if the admin/role status is being determined.
+  if (isAdminLoading) {
+    return (
+      <AppLayout>
+        <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
+          <HomePageLoadingSkeleton />
+        </main>
+      </AppLayout>
+    );
+  }
+
+  // If loading is done and the user is a driver, we show a loader
+  // while the useEffect above performs the redirection. This prevents
+  // the passenger dashboard from flashing.
+  if (role === 'driver') {
     return (
       <AppLayout>
         <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
@@ -157,13 +171,16 @@ export default function HomePage() {
     );
   }
   
-  // If not a driver, render the appropriate view for an admin or passenger.
+  // If loading is done and the user is not a driver, render the
+  // appropriate dashboard for an admin or passenger.
   return (
     <AppLayout>
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
         {isAdmin ? (
             <AdminWelcome />
         ) : (
+            // This will render if role is 'passenger' or undefined/null.
+            // This is the desired fallback for non-drivers.
             <PassengerDashboardWrapper />
         )}
       </main>
