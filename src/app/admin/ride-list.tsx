@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import {
   Card,
   CardContent,
@@ -19,20 +19,27 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { RideRow } from './ride-row';
 import type { Ride } from '@/lib/data';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export function RideList() {
   const firestore = useFirestore();
   const ridesQuery = useMemoFirebase(
-    () => query(collection(firestore, 'rides'), orderBy('startTime', 'desc')),
+    () => query(collection(firestore, 'rides'), orderBy('startTime', 'desc'), limit(5)),
     [firestore]
   );
   const { data: rides, isLoading } = useCollection<Ride>(ridesQuery);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Ride Monitoring</CardTitle>
-        <CardDescription>A real-time overview of all rides on the platform.</CardDescription>
+      <CardHeader className='flex-row items-center justify-between'>
+          <div>
+              <CardTitle>Recent Rides</CardTitle>
+              <CardDescription>A list of the most recent rides across the platform.</CardDescription>
+          </div>
+          <Button asChild variant="outline">
+              <Link href="/admin/rides">View All</Link>
+          </Button>
       </CardHeader>
       <CardContent>
         {isLoading && (
@@ -49,10 +56,8 @@ export function RideList() {
                     <TableRow>
                     <TableHead>Status</TableHead>
                     <TableHead>Passenger</TableHead>
-                    <TableHead>Driver</TableHead>
-                    <TableHead className="hidden md:table-cell">Trip</TableHead>
+                    <TableHead className="hidden md:table-cell">Driver</TableHead>
                     <TableHead className="text-right">Fare</TableHead>
-                    <TableHead className="hidden md:table-cell text-right">Date</TableHead>
                     <TableHead><span className="sr-only">Actions</span></TableHead>
                     </TableRow>
                 </TableHeader>
@@ -62,7 +67,7 @@ export function RideList() {
                     ))}
                     {(!rides || rides.length === 0) && (
                         <TableRow>
-                            <TableCell colSpan={7} className="h-24 text-center">No rides found.</TableCell>
+                            <TableCell colSpan={5} className="h-24 text-center">No rides found.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>

@@ -2,13 +2,14 @@
 
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Car, CarFront, Activity, IndianRupee, FileBadge, Map } from 'lucide-react';
+import { Users, Car, CarFront, IndianRupee, FileBadge, Map } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, Timestamp } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import type { Ride, Driver } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { RideList } from './ride-list';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -52,7 +53,7 @@ export default function AdminDashboardPage() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3"
+        className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3 xl:grid-cols-5"
       >
         <motion.div variants={itemVariants}>
           <Card className="shadow-md">
@@ -149,22 +150,7 @@ export default function AdminDashboardPage() {
         className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3"
       >
         <motion.div variants={itemVariants} className="xl:col-span-2">
-            <Card>
-                <CardHeader className='flex-row items-center justify-between'>
-                    <div>
-                        <CardTitle>Recent Rides</CardTitle>
-                        <CardDescription>A list of the most recent rides across the platform.</CardDescription>
-                    </div>
-                    <Button asChild variant="outline">
-                        <Link href="/admin/rides">View All</Link>
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    <div className="h-96 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-                        <p>Recent rides table coming soon.</p>
-                    </div>
-                </CardContent>
-            </Card>
+            <RideList />
         </motion.div>
         <motion.div variants={itemVariants}>
             <Card>
