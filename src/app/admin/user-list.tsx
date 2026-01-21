@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import {
   Card,
   CardContent,
@@ -21,6 +21,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -40,7 +41,7 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, MessageSquare, Trash2 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -94,6 +95,30 @@ export function UserList() {
         }
     };
 
+    const handleDeleteUser = async (userId: string) => {
+        const userRef = doc(firestore, 'users', userId);
+        try {
+            await deleteDoc(userRef);
+            toast({
+                title: "User Deleted",
+                description: "The user account has been permanently removed.",
+            });
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Deletion Failed",
+                description: "Could not delete the user's account.",
+            });
+        }
+    };
+
+    const handleSendMessage = () => {
+        toast({
+            title: "Feature Coming Soon",
+            description: "Direct messaging will be available in a future update.",
+        });
+    };
+
   return (
     <Card>
       <CardHeader>
@@ -141,41 +166,64 @@ export function UserList() {
                             <TableCell className="hidden md:table-cell">{user.phone}</TableCell>
                             <TableCell className="hidden md:table-cell">{getFormattedDate(user.dateJoined)}</TableCell>
                             <TableCell>
-                                <AlertDialog>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                <MoreHorizontal className="h-4 w-4" />
-                                                <span className="sr-only">Toggle menu</span>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => router.push(`/admin/users/${user.id}`)}>View profile</DropdownMenuItem>
-                                             <AlertDialogTrigger asChild>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Toggle menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => router.push(`/admin/users/${user.id}`)}>View profile</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handleSendMessage}><MessageSquare className="mr-2 h-4 w-4" /> Send Message</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
                                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className={user.isSuspended ? "text-green-600 focus:text-green-600" : "text-destructive focus:text-destructive"}>
                                                     {user.isSuspended ? 'Un-suspend' : 'Suspend'}
                                                 </DropdownMenuItem>
                                             </AlertDialogTrigger>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                               This action will {user.isSuspended ? 're-activate' : 'suspend'} the user's account. They {user.isSuspended ? 'will be able to' : 'will not be able to'} access the platform.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction
-                                                onClick={() => handleSuspendUser(user.id, user.isSuspended || false)}
-                                                className={!user.isSuspended ? buttonVariants({ variant: "destructive" }) : ''}
-                                            >
-                                                {user.isSuspended ? 'Yes, Un-suspend' : 'Yes, Suspend'}
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                    This action will {user.isSuspended ? 're-activate' : 'suspend'} the user's account. They {user.isSuspended ? 'will be able to' : 'will not be able to'} access the platform.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => handleSuspendUser(user.id, user.isSuspended || false)}
+                                                        className={!user.isSuspended ? buttonVariants({ variant: "destructive" }) : ''}
+                                                    >
+                                                        {user.isSuspended ? 'Yes, Un-suspend' : 'Yes, Suspend'}
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete User
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Delete User?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete the user's account and remove all their associated data. Note: this does not delete their Firebase Auth record.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className={buttonVariants({ variant: "destructive" })}>
+                                                        Yes, Delete
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                         </TableRow>
                     ))}
