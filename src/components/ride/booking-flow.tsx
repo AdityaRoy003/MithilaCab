@@ -57,6 +57,11 @@ export function BookingFlow({ initialPickup, initialDestination }: BookingFlowPr
 
     const newRideData = {
       userId: user.uid,
+      passenger: {
+        name: user.displayName,
+        photoURL: user.photoURL,
+        phone: user.phoneNumber,
+      },
       pickupLocation: rideDetails.pickupLocation,
       destinationLocation: rideDetails.destinationLocation,
       fareAmount: estimatedFare,

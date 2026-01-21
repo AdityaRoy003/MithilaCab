@@ -1,22 +1,14 @@
 'use client';
 
 import type { Ride } from '@/lib/data';
-import { useDoc, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import { IndianRupee, MapPin, Phone, User, CheckCircle, XCircle, PlayCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { buttonVariants } from '@/components/ui/button';
-
-interface UserProfile {
-    name?: string;
-    photoURL?: string;
-    phone?: string;
-}
 
 interface AssignedRideCardProps {
     ride: Ride;
@@ -25,10 +17,7 @@ interface AssignedRideCardProps {
 export function AssignedRideCard({ ride }: AssignedRideCardProps) {
     const firestore = useFirestore();
     const { toast } = useToast();
-
-    // Fetch passenger details
-    const userDocRef = useMemoFirebase(() => ride.userId ? doc(firestore, 'users', ride.userId) : null, [firestore, ride.userId]);
-    const { data: passenger, isLoading: isPassengerLoading } = useDoc<UserProfile>(userDocRef);
+    const passenger = ride.passenger;
 
     const rideRef = doc(firestore, 'rides', ride.id);
 
@@ -43,15 +32,9 @@ export function AssignedRideCard({ ride }: AssignedRideCardProps) {
     };
 
     const handleCancelTrip = () => {
-        // When a driver cancels, we set driverId back to null so it can be reassigned.
-        // We also change the status back to 'requested'.
         updateDocumentNonBlocking(rideRef, { status: 'requested', driverId: null });
         toast({ variant: 'destructive', title: 'Ride Cancelled', description: 'The ride has been returned to the available pool.' });
     };
-
-    if (isPassengerLoading) {
-        return <Skeleton className="h-48 w-full" />;
-    }
 
     return (
         <Card className="bg-card shadow-md">
@@ -79,7 +62,7 @@ export function AssignedRideCard({ ride }: AssignedRideCardProps) {
                  <div className="flex items-center justify-between p-3 rounded-md border bg-muted/20">
                     <div className="flex items-center gap-3">
                         <Avatar>
-                            <AvatarImage src={passenger?.photoURL ?? undefined} alt={passenger?.name} />
+                            <AvatarImage src={passenger?.photoURL ?? undefined} alt={passenger?.name ?? 'Passenger'} />
                             <AvatarFallback><User /></AvatarFallback>
                         </Avatar>
                         <div>
@@ -87,8 +70,10 @@ export function AssignedRideCard({ ride }: AssignedRideCardProps) {
                             <p className="text-sm text-muted-foreground">OTP for pickup: <span className="font-bold text-foreground">1234</span></p>
                         </div>
                     </div>
-                    <Button size="icon" variant="outline" className="rounded-full h-11 w-11">
-                        <Phone />
+                    <Button asChild size="icon" variant="outline" className="rounded-full h-11 w-11" disabled={!passenger?.phone}>
+                        <a href={`tel:${passenger?.phone}`}>
+                            <Phone />
+                        </a>
                     </Button>
                 </div>
             </CardContent>

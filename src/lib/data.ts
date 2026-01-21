@@ -26,6 +26,11 @@ export interface Ride {
   rating?: number;
   rideType?: RideType;
   comment?: string;
+  passenger?: {
+    name?: string | null;
+    photoURL?: string | null;
+    phone?: string | null;
+  };
 }
 
 const getDriverImage = (id: string): ImagePlaceholder => {

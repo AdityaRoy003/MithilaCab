@@ -207,6 +207,15 @@
           "type": "string",
           "description": "Reference to Driver. (Relationship: Driver 1:N Ride)"
         },
+        "passenger": {
+            "type": "object",
+            "description": "Denormalized passenger information for driver access.",
+            "properties": {
+                "name": { "type": "string", "description": "The passenger's display name." },
+                "photoURL": { "type": "string", "description": "URL of the passenger's profile picture." },
+                "phone": { "type": "string", "description": "The passenger's phone number." }
+            }
+        },
         "pickupLocation": {
           "type": "string",
           "description": "The pickup location for the ride."
