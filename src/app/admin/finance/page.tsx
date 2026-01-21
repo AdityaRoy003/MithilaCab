@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
 import { format, subDays, startOfDay, eachDayOfInterval, isSameDay, getDay } from 'date-fns';
 
 import {
@@ -35,7 +35,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -59,11 +58,19 @@ const incentiveSchema = z.object({
   bonusType: z.enum(['fixed', 'percentage']),
 });
 
+interface PlatformSettings {
+    commissionRate: number;
+    currency: string;
+}
+
 export default function FinancePage() {
   const firestore = useFirestore();
-  const COMMISSION_RATE = 0.20;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const settingsDocRef = useMemoFirebase(() => doc(firestore, 'settings', 'platform'), [firestore]);
+  const { data: settings, isLoading: settingsLoading } = useDoc<PlatformSettings>(settingsDocRef);
+  const COMMISSION_RATE = settings?.commissionRate ?? 0.20; // Fallback to default
 
   const ridesQuery = useMemoFirebase(
     () => query(collection(firestore, 'rides'), where('status', '==', 'completed')),
@@ -171,7 +178,7 @@ export default function FinancePage() {
     };
   }, [completedRides, driverMap, COMMISSION_RATE]);
 
-  const isLoading = ridesLoading || driversLoading || incentivesLoading;
+  const isLoading = ridesLoading || driversLoading || incentivesLoading || settingsLoading;
 
   return (
     <div className="space-y-8">

@@ -318,6 +318,23 @@
         "bonusType",
         "isActive"
       ]
+    },
+    "PlatformSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Platform Settings",
+      "type": "object",
+      "description": "Global settings for the MithilaCab platform.",
+      "properties": {
+        "commissionRate": {
+          "type": "number",
+          "description": "The percentage (0-1) of the fare taken as commission."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The default currency code for the platform (e.g., 'INR')."
+        }
+      },
+      "required": ["commissionRate", "currency"]
     }
   },
   "auth": {
@@ -387,6 +404,22 @@
             {
               "name": "incentiveId",
               "description": "The unique identifier for the incentive."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/settings/{settingId}",
+        "definition": {
+          "entityName": "PlatformSettings",
+          "schema": {
+            "$ref": "#/backend/entities/PlatformSettings"
+          },
+          "description": "Stores global platform settings. Typically contains a single document, e.g., 'platform'.",
+          "params": [
+            {
+              "name": "settingId",
+              "description": "The unique identifier for the settings document."
             }
           ]
         }

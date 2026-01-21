@@ -116,5 +116,10 @@ service cloud.firestore {
       // All signed-in users (including drivers) can read and list incentives.
       allow get, list: if isSignedIn();
     }
+
+    match /settings/{settingId} {
+      // Only admins can read and write platform settings.
+      allow read, write: if isAdmin();
+    }
   }
 }
