@@ -81,14 +81,13 @@ export default function LandingPage() {
         <section ref={heroRef} className="relative h-screen flex items-center justify-center text-center overflow-hidden">
           {heroImage && (
               <motion.div 
-                className="absolute inset-0 w-full h-full"
+                className="absolute inset-0 w-full h-full z-0"
                 style={{ y: backgroundY }}
               >
                 <Image
                   src={heroImage.imageUrl}
                   alt={heroImage.description}
                   fill
-                  objectFit="cover"
                   quality={100}
                   priority
                   className="absolute inset-0 w-full h-full object-cover dark:brightness-50"
@@ -96,7 +95,7 @@ export default function LandingPage() {
                 />
               </motion.div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-5" />
           <motion.div 
             className="relative z-10 p-4 w-full"
             style={{ y: textY }}
@@ -151,7 +150,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 2, duration: 0.5, ease: "easeInOut"}}
-            className="absolute bottom-10 left-1/2 -translate-x-1/2"
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10"
           >
              <Link href="#features" aria-label="Scroll to next section">
                 <ChevronDown className="h-8 w-8 animate-bounce text-foreground/50 cursor-pointer hover:text-primary transition-colors" />
