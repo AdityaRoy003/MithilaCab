@@ -94,13 +94,6 @@ export function UserList() {
     }
   };
 
-  const handleNotImplemented = (feature: string) => {
-      toast({
-        title: "Feature coming soon!",
-        description: `${feature} is not yet available.`
-      });
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -157,7 +150,6 @@ export function UserList() {
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem onClick={() => router.push(`/admin/users/${user.id}`)}>View profile</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleNotImplemented('View ride history')}>View ride history</DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                          <AlertDialog>
                                             <AlertDialogTrigger asChild>

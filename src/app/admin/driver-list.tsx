@@ -98,13 +98,6 @@ export function DriverList() {
     }
   };
 
-  const handleNotImplemented = (feature: string) => {
-      toast({
-        title: "Feature coming soon!",
-        description: `${feature} is not yet available.`
-      });
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -163,8 +156,6 @@ export function DriverList() {
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem onClick={() => router.push(`/admin/drivers/${driver.id}`)}>View profile</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleNotImplemented('Verify documents')}>Verify documents</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleNotImplemented('View performance')}>View performance</DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
