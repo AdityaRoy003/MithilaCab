@@ -91,10 +91,14 @@ service cloud.firestore {
       // The userId in the new document must match their own auth uid.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
-      // UPDATE: A ride can be updated by the passenger who owns it, or by a driver accepting it.
+      // UPDATE: A ride can be updated by several parties based on specific conditions.
       allow update: if isSignedIn() && (
-                      (isOwner(resource.data.userId) && isFieldImmutable('userId')) || // Passenger can update their own ride
-                      (resource.data.driverId == null && request.resource.data.driverId == request.auth.uid) // Driver can accept an unassigned ride
+                      // The passenger can update their own ride (e.g., to cancel it), but cannot change the owner.
+                      (isOwner(resource.data.userId) && isFieldImmutable('userId')) ||
+                      // A driver can accept an unassigned ride by setting themselves as the driver.
+                      (resource.data.driverId == null && request.resource.data.driverId == request.auth.uid) ||
+                      // The assigned driver can update the ride (e.g., to change status), but cannot reassign it or change the passenger.
+                      (isOwner(resource.data.driverId) && isFieldImmutable('userId') && isFieldImmutable('driverId'))
                     );
 
       // DELETE: Only the passenger can delete/cancel their own ride.
