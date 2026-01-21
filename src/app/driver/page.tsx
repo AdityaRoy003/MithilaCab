@@ -1,6 +1,7 @@
 'use client';
 
 import { doc, collection, query, where } from 'firebase/firestore';
+import Link from 'next/link';
 import AppLayout from '@/components/app-layout';
 import {
   useDriver,
@@ -9,20 +10,18 @@ import {
   useCollection,
   useMemoFirebase,
 } from '@/firebase';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AvailableRidesList } from './available-rides-list';
 import { AssignedRidesList } from './assigned-rides-list';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import type { Ride } from '@/lib/data';
 
 export default function DriverPage() {
   const { driver, isDriverLoading } = useDriver();
   const firestore = useFirestore();
-  const router = useRouter();
 
   const assignedRidesQuery = useMemoFirebase(() => {
     if (!driver) return null;
@@ -37,15 +36,9 @@ export default function DriverPage() {
 
   const hasAssignedRide = assignedRides && assignedRides.length > 0;
 
-  useEffect(() => {
-    if (!isDriverLoading && !driver) {
-      router.replace('/home');
-    }
-  }, [isDriverLoading, driver, router]);
+  const isLoading = isDriverLoading || (driver && areAssignedRidesLoading);
 
-  const isLoading = isDriverLoading || areAssignedRidesLoading;
-
-  if (isLoading || !driver) {
+  if (isLoading) {
     return (
       <AppLayout>
         <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-8">
@@ -71,6 +64,30 @@ export default function DriverPage() {
       </AppLayout>
     );
   }
+  
+  if (!driver) {
+      return (
+          <AppLayout>
+              <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-6 lg:p-8">
+                  <Card className="w-full max-w-md text-center">
+                    <CardHeader>
+                        <CardTitle className="text-destructive">Access Denied</CardTitle>
+                        <CardDescription>
+                            You do not have permission to view this page.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p>This dashboard is for registered drivers only.</p>
+                        <Button asChild className="mt-4">
+                            <Link href="/home">Return to Home</Link>
+                        </Button>
+                    </CardContent>
+                  </Card>
+              </main>
+          </AppLayout>
+      );
+  }
+
 
   const handleAvailabilityChange = (isAvailable: boolean) => {
     const driverRef = doc(firestore, 'drivers', driver.id);
