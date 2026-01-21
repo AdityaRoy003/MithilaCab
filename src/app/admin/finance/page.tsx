@@ -82,6 +82,7 @@ export default function FinancePage() {
     defaultValues: {
       title: "",
       description: "",
+      bonusAmount: NaN,
       bonusType: 'fixed',
     },
   });
