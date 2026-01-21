@@ -120,7 +120,7 @@ export default function ProfilePage() {
                               <div className="bg-card rounded-lg border shadow-sm divide-y divide-border">
                                  <SettingsListItem href="/profile/driver" icon={UserIcon} title="Personal & Vehicle Info" subtitle="Name, contact, vehicle details" />
                                  <SettingsListItem href="/driver/earnings" icon={IndianRupee} title="Earnings" subtitle="View your ride earnings" />
-                                 <SettingsListItem onClick={handleNotImplemented} icon={BarChart} title="Performance" subtitle="Your ratings and ride statistics" />
+                                 <SettingsListItem href="/driver/performance" icon={BarChart} title="Performance" subtitle="Your ratings and ride statistics" />
                                  <SettingsListItem href="/profile/password" icon={Shield} title="Security" subtitle="Change your password" />
                               </div>
                           </div>
