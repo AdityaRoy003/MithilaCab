@@ -1,8 +1,9 @@
 'use client';
 
+import { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -15,6 +16,16 @@ export default function LandingPage() {
 
   const headline = "Discover Mithila";
   const subHeadline = "One Ride at a Time";
+  
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  const textY = useTransform(scrollYProgress, [0, 1], ["0%", "200%"]);
+
 
   // Animation variants for the hero section content
   const containerVariants = {
@@ -67,22 +78,28 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <main className="flex-1">
-        <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
+        <section ref={heroRef} className="relative h-screen flex items-center justify-center text-center overflow-hidden">
           {heroImage && (
-              <Image
-                src={heroImage.imageUrl}
-                alt={heroImage.description}
-                fill
-                objectFit="cover"
-                quality={100}
-                priority
-                className="absolute inset-0 w-full h-full object-cover dark:brightness-50"
-                data-ai-hint={heroImage.imageHint}
-              />
+              <motion.div 
+                className="absolute inset-0 w-full h-[150%] -top-[25%]"
+                style={{ y: backgroundY }}
+              >
+                <Image
+                  src={heroImage.imageUrl}
+                  alt={heroImage.description}
+                  fill
+                  objectFit="cover"
+                  quality={100}
+                  priority
+                  className="absolute inset-0 w-full h-full object-cover dark:brightness-50"
+                  data-ai-hint={heroImage.imageHint}
+                />
+              </motion.div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
           <motion.div 
             className="relative z-10 p-4 w-full"
+            style={{ y: textY }}
             variants={containerVariants}
             initial="hidden"
             animate="show"
