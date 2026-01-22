@@ -47,6 +47,42 @@
       "description": "A screenshot or mock-up of the MithilaCab app's main booking screen.",
       "imageUrl": "https://images.unsplash.com/photo-1730818877052-c360a791e058?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhcHAlMjBzY3JlZW58ZW58MHx8fHwxNzY5MDI1NjA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "app screen"
+    },
+    {
+      "id": "madhubani-1",
+      "description": "A detailed Madhubani painting of fish and nature.",
+      "imageUrl": "https://images.unsplash.com/photo-1627843229743-f42194412c75?q=80&w=800&h=600&auto=format&fit=crop",
+      "imageHint": "madhubani painting"
+    },
+    {
+      "id": "madhubani-2",
+      "description": "A traditional Madhubani artwork with human figures.",
+      "imageUrl": "https://images.unsplash.com/photo-1632313079815-5a507315579d?q=80&w=800&h=600&auto=format&fit=crop",
+      "imageHint": "traditional art"
+    },
+    {
+      "id": "madhubani-3",
+      "description": "Colorful folk painting from the Mithila region.",
+      "imageUrl": "https://images.unsplash.com/photo-1634565334816-a32d66df5f80?q=80&w=800&h=600&auto=format&fit=crop",
+      "imageHint": "folk painting"
+    },
+    {
+      "id": "mithila-map",
+      "description": "A stylized map of India with regions highlighted.",
+      "imageUrl": "https://images.unsplash.com/photo-1594398932026-f78077750431?q=80&w=1200&h=800&auto=format&fit=crop",
+      "imageHint": "india map"
+    },
+    {
+      "id": "testimonial-1",
+      "description": "Portrait of a local man from the Mithila region.",
+      "imageUrl": "https://images.unsplash.com/photo-1557862921-37829c790f19?q=80&w=100&h=100&auto=format&fit=crop",
+      "imageHint": "local man"
+    },
+    {
+      "id": "testimonial-2",
+      "description": "Portrait of a local woman from the Mithila region.",
+      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&h=100&auto=format&fit=crop",
+      "imageHint": "local woman"
     }
   ]
 }

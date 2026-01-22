@@ -7,10 +7,19 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ChevronDown, MapPin, Menu } from 'lucide-react';
+import { ChevronDown, MapPin, Menu, Quote } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 // Reusable NavLink component for animated underline effect
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -24,6 +33,10 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
 export default function LandingPage() {
   const heroImage = PlaceHolderImages.find(img => img.id === 'mithila-hero');
   const appScreenImage = PlaceHolderImages.find(img => img.id === 'app-screen-1');
+  const madhubaniImages = PlaceHolderImages.filter(img => img.id.startsWith('madhubani-'));
+  const mithilaMapImage = PlaceHolderImages.find(img => img.id === 'mithila-map');
+  const testimonialImages = PlaceHolderImages.filter(img => img.id.startsWith('testimonial-'));
+
 
   const headline = "Discover Mithila";
   const subHeadline = "One Ride at a Time";
@@ -77,6 +90,23 @@ export default function LandingPage() {
     };
   }, []);
 
+  const autoplayPlugin = useRef(Autoplay({ delay: 3000, stopOnInteraction: true }));
+  
+  const testimonials = [
+      {
+          quote: "MithilaCab makes it so easy to visit my family in the village. The drivers are always respectful and know all the local routes.",
+          name: "Sanjay Kumar",
+          role: "Frequent Rider, Darbhanga",
+          image: testimonialImages.find(img => img.id === 'testimonial-1')
+      },
+      {
+          quote: "As a student, I rely on MithilaCab for my daily commute. It's affordable, safe, and always on time. It has made my life so much easier!",
+          name: "Priya Singh",
+          role: "Student, Madhubani",
+          image: testimonialImages.find(img => img.id === 'testimonial-2')
+      }
+  ];
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -91,7 +121,7 @@ export default function LandingPage() {
           <Logo />
           <nav className="hidden md:flex items-center gap-8">
             <NavLink href="#features">Features</NavLink>
-            <NavLink href="#safety">Safety</NavLink>
+            <NavLink href="#cultural-showcase">Culture</NavLink>
             <NavLink href="#drive">Drive with Us</NavLink>
           </nav>
           <div className="hidden md:flex items-center gap-2">
@@ -115,7 +145,7 @@ export default function LandingPage() {
                     <Logo />
                     <nav className="flex flex-col gap-6 mt-10">
                         <Link href="#features" className="text-lg font-medium hover:text-primary transition-colors">Features</Link>
-                        <Link href="#safety" className="text-lg font-medium hover:text-primary transition-colors">Safety</Link>
+                        <Link href="#cultural-showcase" className="text-lg font-medium hover:text-primary transition-colors">Culture</Link>
                         <Link href="#drive" className="text-lg font-medium hover:text-primary transition-colors">Drive with Us</Link>
                     </nav>
                      <div className="flex flex-col gap-4 mt-8">
@@ -253,6 +283,131 @@ export default function LandingPage() {
                     </ul>
                 </motion.div>
             </div>
+        </section>
+
+        {/* Cultural Showcase Section */}
+        <section id="cultural-showcase" className="py-20 md:py-32 bg-muted/30">
+          <div className="container mx-auto px-4 space-y-24">
+
+            {/* Madhubani Art Carousel */}
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <h2 className="font-headline text-4xl font-bold">The Art of Mithila</h2>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                Journey through the vibrant strokes of Madhubani paintings, an art form that tells the stories of our culture.
+              </p>
+              <Carousel
+                plugins={[autoplayPlugin.current]}
+                className="w-full max-w-4xl mx-auto mt-12"
+                onMouseEnter={autoplayPlugin.current.stop}
+                onMouseLeave={autoplayPlugin.current.reset}
+              >
+                <CarouselContent>
+                  {madhubaniImages.map((image, index) => (
+                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                      <div className="p-1">
+                        <Card className="overflow-hidden">
+                          <CardContent className="flex aspect-square items-center justify-center p-0">
+                            <Image 
+                              src={image.imageUrl}
+                              alt={image.description}
+                              width={600}
+                              height={600}
+                              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                              data-ai-hint={image.imageHint}
+                            />
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+            </motion.div>
+            
+            {/* Animated Map */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <h2 className="font-headline text-4xl font-bold">Covering All of Mithilanchal</h2>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                From the bustling streets of Darbhanga to the historic heart of Madhubani, we've got your journey covered.
+              </p>
+              <div className="relative w-full max-w-3xl mx-auto mt-12">
+                {mithilaMapImage && (
+                  <Image 
+                    src={mithilaMapImage.imageUrl}
+                    alt={mithilaMapImage.description}
+                    width={1200}
+                    height={800}
+                    className="w-full h-auto rounded-xl shadow-2xl dark:opacity-30"
+                    data-ai-hint={mithilaMapImage.imageHint}
+                  />
+                )}
+                {/* Pulsing Dots */}
+                <div className="absolute top-[35%] left-[40%]">
+                  <span className="absolute inline-flex h-3 w-3 rounded-full bg-primary opacity-75 animate-ping"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                </div>
+                <div className="absolute top-[50%] left-[60%]">
+                  <span className="absolute inline-flex h-3 w-3 rounded-full bg-primary opacity-75 animate-ping [animation-delay:0.5s]"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                </div>
+                 <div className="absolute top-[25%] left-[75%]">
+                  <span className="absolute inline-flex h-3 w-3 rounded-full bg-primary opacity-75 animate-ping [animation-delay:0.2s]"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonials */}
+            <div className="text-center">
+              <h2 className="font-headline text-4xl font-bold">What Our Riders Say</h2>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                Hear from the people of Mithila who trust us for their daily travel.
+              </p>
+              <div className="grid md:grid-cols-2 gap-8 mt-12 max-w-5xl mx-auto">
+                {testimonials.map((testimonial, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.6, delay: index * 0.2 }}
+                  >
+                    <Card className="h-full text-left">
+                      <CardContent className="p-8 space-y-6">
+                        <Quote className="h-8 w-8 text-primary" />
+                        <p className="text-lg text-foreground/90">{testimonial.quote}</p>
+                        <div className="flex items-center gap-4 pt-4">
+                          {testimonial.image && (
+                            <Avatar className="h-14 w-14">
+                              <AvatarImage src={testimonial.image.imageUrl} alt={testimonial.name} data-ai-hint={testimonial.image.imageHint} />
+                              <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                          )}
+                          <div>
+                            <p className="font-semibold">{testimonial.name}</p>
+                            <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+          </div>
         </section>
       </main>
       
