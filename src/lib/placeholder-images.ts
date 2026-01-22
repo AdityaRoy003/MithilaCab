@@ -1,3 +1,4 @@
+
 export type ImagePlaceholder = {
   id: string;
   description: string;
@@ -9,7 +10,7 @@ export const PlaceHolderImages: ImagePlaceholder[] = [
   {
     "id": "driver-1",
     "description": "Portrait of driver one",
-    "imageUrl": "https://images.unsplash.com/photo-1656338997878-279d71d48f6e",
+    "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
     "imageHint": "man smiling"
   },
   {
@@ -33,7 +34,7 @@ export const PlaceHolderImages: ImagePlaceholder[] = [
   {
     "id": "map-background",
     "description": "Stylized map of a city",
-    "imageUrl": "https://images.unsplash.com/photo-1730317195705-8a265a59ed1b",
+    "imageUrl": "https://images.unsplash.com/photo-1594132753792-7233fb1825c5",
     "imageHint": "city map"
   },
   {
@@ -45,13 +46,13 @@ export const PlaceHolderImages: ImagePlaceholder[] = [
   {
     "id": "mithila-hero",
     "description": "A vibrant and intricate Madhubani painting, showcasing the rich artistic heritage of the Mithila region.",
-    "imageUrl": "https://images.unsplash.com/photo-1618828232323-8d264a619082",
+    "imageUrl": "https://images.unsplash.com/photo-1618828232323-8d264a61d19082",
     "imageHint": "Madhubani painting"
   },
   {
     "id": "app-screen-1",
     "description": "A screenshot or mock-up of the MithilaCab app's main booking screen.",
-    "imageUrl": "https://images.unsplash.com/photo-1730818877052-c360a791e058",
+    "imageUrl": "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e",
     "imageHint": "app screen"
   },
   {
