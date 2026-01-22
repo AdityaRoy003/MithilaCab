@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { ChevronDown, MapPin, Menu, Quote } from 'lucide-react';
+import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -160,6 +160,7 @@ export default function LandingPage() {
           <Logo />
           <nav className="hidden md:flex items-center gap-8">
             <NavLink href="#features">Features</NavLink>
+            <NavLink href="#how-it-works">How It Works</NavLink>
             <NavLink href="#cultural-showcase">Culture</NavLink>
             <NavLink href="#drive">Drive with Us</NavLink>
           </nav>
@@ -184,6 +185,7 @@ export default function LandingPage() {
                     <Logo />
                     <nav className="flex flex-col gap-6 mt-10">
                         <Link href="#features" className="text-lg font-medium hover:text-primary transition-colors">Features</Link>
+                        <Link href="#how-it-works" className="text-lg font-medium hover:text-primary transition-colors">How It Works</Link>
                         <Link href="#cultural-showcase" className="text-lg font-medium hover:text-primary transition-colors">Culture</Link>
                         <Link href="#drive" className="text-lg font-medium hover:text-primary transition-colors">Drive with Us</Link>
                     </nav>
@@ -323,9 +325,80 @@ export default function LandingPage() {
                 </motion.div>
             </div>
         </section>
+        
+        {/* How It Works Section */}
+        <section id="how-it-works" className="container mx-auto px-4 py-20 md:py-32 bg-muted/30 rounded-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <h2 className="font-headline text-4xl font-bold">Booking a Ride is Easy</h2>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              Get to your destination in just a few simple steps.
+            </p>
+          </motion.div>
+
+          <div className="relative mt-20 max-w-5xl mx-auto">
+            {/* The path line */}
+            <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-border -translate-y-1/2"></div>
+            
+            <div className="grid md:grid-cols-4 gap-8 relative">
+              {/* Step 1 */}
+              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
+                <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">1</div>
+                  <div className="mt-8">
+                    <MapPin className="h-10 w-10 mx-auto text-primary"/>
+                    <h3 className="mt-4 font-semibold text-lg">Set Destination</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Enter where you want to go.</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Step 2 */}
+              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
+                <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">2</div>
+                  <div className="mt-8">
+                    <Car className="h-10 w-10 mx-auto text-primary"/>
+                    <h3 className="mt-4 font-semibold text-lg">Confirm Ride</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Choose your ride type and confirm.</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Step 3 */}
+              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.5 }}>
+                <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">3</div>
+                  <div className="mt-8">
+                    <Smartphone className="h-10 w-10 mx-auto text-primary"/>
+                    <h3 className="mt-4 font-semibold text-lg">Track Your Driver</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Watch your driver arrive in real-time.</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Step 4 */}
+              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.7 }}>
+                <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">4</div>
+                  <div className="mt-8">
+                    <Star className="h-10 w-10 mx-auto text-primary"/>
+                    <h3 className="mt-4 font-semibold text-lg">Enjoy & Rate</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Enjoy your ride and rate your driver.</p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
 
         {/* Cultural Showcase Section */}
-        <section id="cultural-showcase" className="py-20 md:py-32 bg-muted/30">
+        <section id="cultural-showcase" className="py-20 md:py-32">
           <div className="container mx-auto px-4 space-y-24">
 
             {/* Madhubani Art Carousel */}
@@ -446,6 +519,27 @@ export default function LandingPage() {
               </div>
             </div>
 
+          </div>
+        </section>
+
+        {/* Drive With Us Section */}
+        <section id="drive" className="py-20 md:py-32 bg-primary text-primary-foreground">
+          <div className="container mx-auto px-4 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.6 }}
+              className="max-w-3xl mx-auto"
+            >
+              <h2 className="font-headline text-4xl font-bold">Drive with MithilaCab</h2>
+              <p className="mt-4 text-lg text-primary-foreground/80">
+                Earn on your own schedule. Join our community of drivers and start making money with your car.
+              </p>
+              <Button asChild size="lg" variant="secondary" className="mt-8 font-bold text-secondary-foreground">
+                <Link href="/signup">Become a Driver</Link>
+              </Button>
+            </motion.div>
           </div>
         </section>
       </main>
