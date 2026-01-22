@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 // Reusable NavLink component for animated underline effect
@@ -36,51 +37,14 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
 
 
 export default function LandingPage() {
-  // Hardcode image URLs directly in the component
-  const heroImage = {
-    imageUrl: "https://images.unsplash.com/photo-1618828232323-8d264a619082",
-    description: "A vibrant and intricate Madhubani painting, showcasing the rich artistic heritage of the Mithila region.",
-    imageHint: "Madhubani painting"
-  };
-  const appScreenImage = {
-    imageUrl: "https://images.unsplash.com/photo-1730818877052-c360a791e058",
-    description: "A screenshot or mock-up of the MithilaCab app's main booking screen.",
-    imageHint: "app screen"
-  };
-  const madhubaniImages = [
-    {
-      imageUrl: "https://images.unsplash.com/photo-1627843229743-f42194412c75",
-      description: "A detailed Madhubani painting of fish and nature.",
-      imageHint: "madhubani painting"
-    },
-    {
-      imageUrl: "https://images.unsplash.com/photo-1632313079815-5a507315579d",
-      description: "A traditional Madhubani artwork with human figures.",
-      imageHint: "traditional art"
-    },
-    {
-      imageUrl: "https://images.unsplash.com/photo-1634565334816-a32d66df5f80",
-      description: "Colorful folk painting from the Mithila region.",
-      imageHint: "folk painting"
-    }
-  ];
-  const mithilaMapImage = {
-    imageUrl: "https://images.unsplash.com/photo-1594398932026-f78077750431",
-    description: "A stylized map of India with regions highlighted.",
-    imageHint: "india map"
-  };
+  const heroImage = PlaceHolderImages.find(img => img.id === 'mithila-hero');
+  const appScreenImage = PlaceHolderImages.find(img => img.id === 'app-screen-1');
+  const madhubaniImages = PlaceHolderImages.filter(img => img.id.startsWith('madhubani-'));
+  const mithilaMapImage = PlaceHolderImages.find(img => img.id === 'mithila-map');
   const testimonialImages = [
-      {
-          id: 'testimonial-1',
-          imageUrl: "https://images.unsplash.com/photo-1557862921-37829c790f19",
-          imageHint: "local man"
-      },
-      {
-          id: 'testimonial-2',
-          imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-          imageHint: "local woman"
-      }
-  ];
+      PlaceHolderImages.find(img => img.id === 'testimonial-1'),
+      PlaceHolderImages.find(img => img.id === 'testimonial-2')
+  ].filter(Boolean);
 
 
   const headline = "Discover Mithila";
@@ -597,14 +561,14 @@ export default function LandingPage() {
                       <div className="p-1">
                         <Card className="overflow-hidden">
                           <CardContent className="flex aspect-square items-center justify-center p-0">
-                            <Image
+                            {image && <Image
                               src={image.imageUrl}
                               alt={image.description}
                               width={600}
                               height={600}
                               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                               data-ai-hint={image.imageHint}
-                            />
+                            />}
                           </CardContent>
                         </Card>
                       </div>
