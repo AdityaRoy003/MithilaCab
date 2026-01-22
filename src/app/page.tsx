@@ -25,6 +25,7 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 
 // Reusable NavLink component for animated underline effect
@@ -198,6 +199,7 @@ export default function LandingPage() {
             <NavLink href="#drive">Drive with Us</NavLink>
           </nav>
           <div className="hidden md:flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" asChild>
                 <Link href="/login">Log In</Link>
             </Button>
@@ -205,7 +207,8 @@ export default function LandingPage() {
                 <Link href="/signup">Sign Up</Link>
             </Button>
           </div>
-          <div className="md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
