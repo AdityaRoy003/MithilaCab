@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -26,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 
 // Reusable NavLink component for animated underline effect
@@ -178,6 +180,33 @@ export default function LandingPage() {
         description: `App language has been set to ${languageName}. (UI Demo)`,
     });
   };
+  
+    const faqs = [
+    {
+        question: "How do I book a ride with MithilaCab?",
+        answer: "You can book a ride easily through our app. Just enter your destination in the 'Where to?' box on the home screen, choose your preferred ride type, and confirm your booking. We'll find a nearby driver for you instantly."
+    },
+    {
+        question: "What are your service areas in Mithilanchal?",
+        answer: "We currently operate in major cities and towns across the Mithilanchal region, including Darbhanga, Madhubani, Samastipur, and surrounding areas. We are continuously expanding our service network."
+    },
+    {
+        question: "How is the fare calculated?",
+        answer: "Our fares are calculated based on a base rate plus charges for the distance and duration of the ride. You will always see an estimated fare before you confirm your booking. Surge pricing may apply during peak hours."
+    },
+    {
+        question: "What safety measures do you have in place?",
+        answer: "Your safety is our top priority. All our drivers are verified, you can track your ride in real-time, share your journey with loved ones, and access our 24/7 support team through the app."
+    },
+    {
+        question: "Can I schedule a ride in advance?",
+        answer: "Yes! Our app allows you to schedule a ride for a later time or date. Simply select the 'Schedule' option when booking and choose your desired pickup time."
+    },
+    {
+        question: "What payment methods do you accept?",
+        answer: "We accept a variety of payment methods, including credit/debit cards, UPI, and popular digital wallets. You can also pay with cash. You can manage your payment options in the 'Payment' section of the app."
+    }
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -391,7 +420,7 @@ export default function LandingPage() {
                 <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">1</div>
                   <div className="mt-8">
-                    <MapPin className="h-10 w-10 mx-auto text-primary"/>
+                    <MapPin className="h-10 w-10 mx-auto text-chart-1"/>
                     <h3 className="mt-4 font-semibold text-lg">Set Destination</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Enter where you want to go.</p>
                   </div>
@@ -403,7 +432,7 @@ export default function LandingPage() {
                 <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">2</div>
                   <div className="mt-8">
-                    <Car className="h-10 w-10 mx-auto text-accent"/>
+                    <Car className="h-10 w-10 mx-auto text-chart-2"/>
                     <h3 className="mt-4 font-semibold text-lg">Confirm Ride</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Choose your ride type and confirm.</p>
                   </div>
@@ -415,7 +444,7 @@ export default function LandingPage() {
                 <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">3</div>
                   <div className="mt-8">
-                    <Smartphone className="h-10 w-10 mx-auto text-primary"/>
+                    <Smartphone className="h-10 w-10 mx-auto text-chart-4"/>
                     <h3 className="mt-4 font-semibold text-lg">Track Your Driver</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Watch your driver arrive in real-time.</p>
                   </div>
@@ -427,7 +456,7 @@ export default function LandingPage() {
                 <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">4</div>
                   <div className="mt-8">
-                    <Star className="h-10 w-10 mx-auto text-accent"/>
+                    <Star className="h-10 w-10 mx-auto text-chart-3"/>
                     <h3 className="mt-4 font-semibold text-lg">Enjoy & Rate</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Enjoy your ride and rate your driver.</p>
                   </div>
@@ -455,21 +484,21 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8 mt-16 max-w-5xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
               <Card className="text-center p-8 h-full">
-                <ShieldCheck className="h-12 w-12 mx-auto text-primary"/>
+                <ShieldCheck className="h-12 w-12 mx-auto text-chart-1"/>
                 <h3 className="mt-4 font-semibold text-xl">Verified Drivers</h3>
                 <p className="mt-2 text-muted-foreground">All our drivers undergo a strict verification process, including background checks.</p>
               </Card>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
               <Card className="text-center p-8 h-full">
-                <Navigation className="h-12 w-12 mx-auto text-accent"/>
+                <Navigation className="h-12 w-12 mx-auto text-chart-2"/>
                 <h3 className="mt-4 font-semibold text-xl">Live Ride Tracking</h3>
                 <p className="mt-2 text-muted-foreground">Share your ride status with family and friends. They can track your journey in real-time.</p>
               </Card>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.5 }}>
               <Card className="text-center p-8 h-full">
-                <MessageSquare className="h-12 w-12 mx-auto text-primary"/>
+                <MessageSquare className="h-12 w-12 mx-auto text-chart-4"/>
                 <h3 className="mt-4 font-semibold text-xl">24/7 Support</h3>
                 <p className="mt-2 text-muted-foreground">Our support team is available around the clock to assist you with any issues or emergencies.</p>
               </Card>
@@ -679,12 +708,12 @@ export default function LandingPage() {
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mt-16 max-w-5xl mx-auto text-center">
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.1}}>
-                    <Users className="h-10 w-10 mx-auto text-primary" />
+                    <Users className="h-10 w-10 mx-auto text-chart-1" />
                     <h3 className="text-4xl font-bold mt-2">120+</h3>
                     <p className="text-muted-foreground mt-1">Active Drivers</p>
                 </motion.div>
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.2}}>
-                    <Award className="h-10 w-10 mx-auto text-accent" />
+                    <Award className="h-10 w-10 mx-auto text-chart-2" />
                     <h3 className="text-4xl font-bold mt-2">95%</h3>
                     <p className="text-muted-foreground mt-1">5-Star Ratings</p>
                 </motion.div>
@@ -770,6 +799,41 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </section>
+        
+        {/* FAQ Section */}
+        <section id="faq" className="container mx-auto px-4 py-20 md:py-32">
+            <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.6 }}
+                className="text-center max-w-3xl mx-auto"
+            >
+                <h2 className="font-headline text-4xl font-bold">Frequently Asked Questions</h2>
+                <p className="mt-4 text-lg text-muted-foreground">
+                    Everything you need to know about MithilaCab services.
+                </p>
+            </motion.div>
+            <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="mt-12 max-w-3xl mx-auto"
+            >
+                <Accordion type="single" collapsible className="w-full">
+                    {faqs.map((faq, index) => (
+                        <AccordionItem key={index} value={`item-${index}`}>
+                            <AccordionTrigger className="text-lg text-left hover:no-underline">{faq.question}</AccordionTrigger>
+                            <AccordionContent className="text-base text-muted-foreground">
+                                {faq.answer}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            </motion.div>
+        </section>
+
       </main>
 
       <footer className="bg-muted/40 border-t">
@@ -876,3 +940,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
