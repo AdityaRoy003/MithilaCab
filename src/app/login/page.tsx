@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useUser } from '@/firebase';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 import { LoginForm } from '@/components/auth/login-form';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';

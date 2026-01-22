@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useUser } from '@/firebase';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 import { SignupForm } from '@/components/auth/signup-form';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';

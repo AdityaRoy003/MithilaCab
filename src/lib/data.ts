@@ -1,5 +1,5 @@
 import type { ImagePlaceholder } from './placeholder-images';
-import { PlaceHolderImages } from './placeholder-images';
+import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 
 export interface Driver {
   id: string;
