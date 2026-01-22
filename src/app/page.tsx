@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle } from 'lucide-react';
+import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose, SheetTrigger } from '@/components/ui/sheet';
@@ -101,7 +101,8 @@ export default function LandingPage() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
+        staggerChildren: 0.15, // Increased stagger for a more noticeable "typewriter" effect
+        delayChildren: 0.3,
       },
     },
   };
@@ -109,16 +110,16 @@ export default function LandingPage() {
   // Staggered animation for each word in the headline
   const wordVariants = {
       hidden: { opacity: 0, y: 20 },
-      show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 10 } }
+      show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 12 } }
   };
 
   // Animation for the paragraph and search bar
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 40, opacity: 0 },
     show: {
         y: 0,
         opacity: 1,
-        transition: { type: 'spring', stiffness: 100, damping: 12, delay: 0.8 }
+        transition: { type: 'spring', stiffness: 100, damping: 12, delay: 1 }
     },
   };
 
@@ -326,9 +327,10 @@ export default function LandingPage() {
                 <Button
                     type="submit"
                     size="lg"
-                    className="rounded-full font-bold transition-all duration-300 hover:shadow-lg hover:shadow-primary/40"
+                    className="group rounded-full font-bold transition-all duration-300 hover:shadow-lg hover:shadow-primary/40 flex items-center"
                 >
-                  Find a Ride
+                  <span>Find a Ride</span>
+                  <ArrowRight className="h-5 w-5 w-0 opacity-0 transform transition-all duration-300 group-hover:ml-2 group-hover:w-5 group-hover:opacity-100" />
                 </Button>
               </form>
             </motion.div>
