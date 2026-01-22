@@ -403,7 +403,7 @@ export default function LandingPage() {
                 <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">2</div>
                   <div className="mt-8">
-                    <Car className="h-10 w-10 mx-auto text-primary"/>
+                    <Car className="h-10 w-10 mx-auto text-accent"/>
                     <h3 className="mt-4 font-semibold text-lg">Confirm Ride</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Choose your ride type and confirm.</p>
                   </div>
@@ -427,7 +427,7 @@ export default function LandingPage() {
                 <div className="text-center p-6 bg-card border rounded-lg shadow-lg relative">
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-xl border-4 border-muted/30">4</div>
                   <div className="mt-8">
-                    <Star className="h-10 w-10 mx-auto text-primary"/>
+                    <Star className="h-10 w-10 mx-auto text-accent"/>
                     <h3 className="mt-4 font-semibold text-lg">Enjoy & Rate</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Enjoy your ride and rate your driver.</p>
                   </div>
@@ -462,7 +462,7 @@ export default function LandingPage() {
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
               <Card className="text-center p-8 h-full">
-                <Navigation className="h-12 w-12 mx-auto text-primary"/>
+                <Navigation className="h-12 w-12 mx-auto text-accent"/>
                 <h3 className="mt-4 font-semibold text-xl">Live Ride Tracking</h3>
                 <p className="mt-2 text-muted-foreground">Share your ride status with family and friends. They can track your journey in real-time.</p>
               </Card>
@@ -684,17 +684,17 @@ export default function LandingPage() {
                     <p className="text-muted-foreground mt-1">Active Drivers</p>
                 </motion.div>
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.2}}>
-                    <Award className="h-10 w-10 mx-auto text-primary" />
+                    <Award className="h-10 w-10 mx-auto text-accent" />
                     <h3 className="text-4xl font-bold mt-2">95%</h3>
                     <p className="text-muted-foreground mt-1">5-Star Ratings</p>
                 </motion.div>
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.3}}>
-                    <IndianRupee className="h-10 w-10 mx-auto text-primary" />
+                    <IndianRupee className="h-10 w-10 mx-auto text-chart-3" />
                     <h3 className="text-4xl font-bold mt-2">15%</h3>
                     <p className="text-muted-foreground mt-1">Higher Earnings</p>
                 </motion.div>
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.4}}>
-                    <Clock className="h-10 w-10 mx-auto text-primary" />
+                    <Clock className="h-10 w-10 mx-auto text-chart-5" />
                     <h3 className="text-4xl font-bold mt-2">24/7</h3>
                     <p className="text-muted-foreground mt-1">Flexible Schedule</p>
                 </motion.div>

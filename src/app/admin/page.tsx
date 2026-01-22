@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
               <CardTitle className="text-sm font-medium">
                 Total Revenue
               </CardTitle>
-              <IndianRupee className="h-4 w-4 text-muted-foreground" />
+              <IndianRupee className="h-4 w-4 text-chart-1" />
             </CardHeader>
             <CardContent>
               {isLoading ? <Skeleton className='h-8 w-24' /> : (
@@ -79,7 +79,7 @@ export default function AdminDashboardPage() {
               <CardTitle className="text-sm font-medium">
                 Total Rides
               </CardTitle>
-              <Car className="h-4 w-4 text-muted-foreground" />
+              <Car className="h-4 w-4 text-chart-2" />
             </CardHeader>
             <CardContent>
               {isLoading ? <Skeleton className='h-8 w-16' /> : (
@@ -97,7 +97,7 @@ export default function AdminDashboardPage() {
               <CardTitle className="text-sm font-medium">
                 Active Drivers
               </CardTitle>
-              <CarFront className="h-4 w-4 text-muted-foreground" />
+              <CarFront className="h-4 w-4 text-chart-3" />
             </CardHeader>
             <CardContent>
                 {isLoading ? <Skeleton className='h-8 w-12' /> : (
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
           <Card className="shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="h-4 w-4 text-chart-4" />
             </CardHeader>
             <CardContent>
                {isLoading ? <Skeleton className='h-8 w-16' /> : (
@@ -129,7 +129,7 @@ export default function AdminDashboardPage() {
             <Card className="shadow-md">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Verification Queue</CardTitle>
-                    <FileBadge className="h-4 w-4 text-muted-foreground" />
+                    <FileBadge className="h-4 w-4 text-chart-5" />
                 </CardHeader>
                 <CardContent>
                     {isLoading ? <Skeleton className='h-8 w-12' /> : (
