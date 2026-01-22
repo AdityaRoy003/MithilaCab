@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle, ArrowRight, LifeBuoy } from 'lucide-react';
@@ -132,6 +133,13 @@ export default function LandingPage() {
   const { toast } = useToast();
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [destination, setDestination] = useState("");
+  const router = useRouter();
+
+  const handleFindRide = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(`/login?destination=${encodeURIComponent(destination)}`);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -317,12 +325,14 @@ export default function LandingPage() {
               variants={itemVariants}
               className="mt-8 w-full max-w-lg mx-auto"
             >
-              <form action="/login" className="flex gap-2 bg-background p-2 rounded-full shadow-lg border">
+              <form onSubmit={handleFindRide} className="flex gap-2 bg-background p-2 rounded-full shadow-lg border">
                 <div className="relative flex-1">
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       name="destination"
                       placeholder="Enter your destination..."
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
                       className="h-12 w-full rounded-full border-none pl-12 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                 </div>
