@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -6,10 +7,10 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star } from 'lucide-react';
+import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose, SheetTrigger } from '@/components/ui/sheet';
 import {
   Carousel,
   CarouselContent,
@@ -18,6 +19,7 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Label } from '@/components/ui/label';
 
 
 // Reusable NavLink component for animated underline effect
@@ -118,6 +120,10 @@ export default function LandingPage() {
   };
 
   const [scrolled, setScrolled] = useState(false);
+  const [isFareCalculatorOpen, setIsFareCalculatorOpen] = useState(false);
+  const [pickupCalc, setPickupCalc] = useState('');
+  const [destinationCalc, setDestinationCalc] = useState('');
+  const [estimatedFare, setEstimatedFare] = useState<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -145,6 +151,18 @@ export default function LandingPage() {
           image: testimonialImages[1]
       }
   ];
+
+  const handleFareCalculate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pickupCalc && destinationCalc) {
+      // Simple fare simulation logic
+      const dist = Math.random() * 20 + 2;
+      const baseFare = 40;
+      const perKmRate = 12;
+      const finalFare = Math.round(baseFare + dist * perKmRate);
+      setEstimatedFare(finalFare);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -397,6 +415,65 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Fare Calculator Section */}
+        <section id="fare-calculator" className="container mx-auto px-4 py-20 md:py-32">
+            <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.6 }}
+                className="bg-card border rounded-2xl p-8 md:p-12 grid md:grid-cols-2 gap-8 items-center"
+            >
+                <div className="space-y-4">
+                    <h2 className="font-headline text-4xl font-bold">Plan Your Journey</h2>
+                    <p className="text-muted-foreground text-lg">
+                        Get a quick fare estimate for your trip with our simple calculator. No surprises, just transparent pricing.
+                    </p>
+                    <Sheet open={isFareCalculatorOpen} onOpenChange={setIsFareCalculatorOpen}>
+                        <SheetTrigger asChild>
+                            <Button size="lg" className="font-bold text-lg mt-4">
+                                <Wallet className="mr-2 h-5 w-5" /> Calculate Fare
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent>
+                            <SheetHeader>
+                                <SheetTitle>Fare Calculator</SheetTitle>
+                                <SheetDescription>
+                                    Enter your pickup and destination to get an estimated fare. This is an estimate and the final fare may vary.
+                                </SheetDescription>
+                            </SheetHeader>
+                            <form onSubmit={handleFareCalculate} className="py-8 space-y-6">
+                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                                    <Label htmlFor="pickup-calc" className="mb-2 block">Pickup Location</Label>
+                                    <Input id="pickup-calc" value={pickupCalc} onChange={(e) => setPickupCalc(e.target.value)} placeholder="Enter pickup location" />
+                                </motion.div>
+                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+                                    <Label htmlFor="dest-calc" className="mb-2 block">Destination</Label>
+                                    <Input id="dest-calc" value={destinationCalc} onChange={(e) => setDestinationCalc(e.target.value)} placeholder="Enter destination" />
+                                </motion.div>
+                                <Button type="submit" className="w-full font-bold">Estimate Fare</Button>
+                            </form>
+                            {estimatedFare !== null && (
+                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                                    <Card className="text-center bg-accent/50">
+                                        <CardHeader>
+                                            <CardTitle>Estimated Fare</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-4xl font-bold">₹{estimatedFare.toFixed(2)}</p>
+                                        </CardContent>
+                                    </Card>
+                                </motion.div>
+                            )}
+                        </SheetContent>
+                    </Sheet>
+                </div>
+                 <div className="hidden md:flex justify-center">
+                    <Wallet className="w-48 h-48 text-primary/10" strokeWidth={1} />
+                </div>
+            </motion.div>
+        </section>
+
         {/* Cultural Showcase Section */}
         <section id="cultural-showcase" className="py-20 md:py-32">
           <div className="container mx-auto px-4 space-y-24">
@@ -552,3 +629,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
