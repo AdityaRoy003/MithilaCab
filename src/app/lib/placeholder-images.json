@@ -2,85 +2,85 @@
   {
     "id": "driver-1",
     "description": "Portrait of driver one",
-    "imageUrl": "https://placehold.co/400x400/222/FFF?text=Driver+1",
+    "imageUrl": "https://picsum.photos/seed/driver1/400/400.jpg",
     "imageHint": "Indian man"
   },
   {
     "id": "driver-2",
     "description": "Portrait of driver two",
-    "imageUrl": "https://placehold.co/400x400/222/FFF?text=Driver+2",
+    "imageUrl": "https://picsum.photos/seed/driver2/400/400.jpg",
     "imageHint": "Indian woman"
   },
   {
     "id": "driver-3",
     "description": "Portrait of driver three",
-    "imageUrl": "https://placehold.co/400x400/222/FFF?text=Driver+3",
+    "imageUrl": "https://picsum.photos/seed/driver3/400/400.jpg",
     "imageHint": "Indian man"
   },
   {
     "id": "user-profile",
     "description": "User profile picture",
-    "imageUrl": "https://placehold.co/400x400/222/FFF?text=User",
+    "imageUrl": "https://picsum.photos/seed/userprofile/400/400.jpg",
     "imageHint": "woman portrait"
   },
   {
     "id": "map-background",
     "description": "Stylized map of a city",
-    "imageUrl": "https://placehold.co/1920x1080/1c2333/9099b0?text=Map",
+    "imageUrl": "https://picsum.photos/seed/mapbg/1920/1080.jpg",
     "imageHint": "India map"
   },
   {
     "id": "login-bg",
     "description": "A taxi driving through a city at night",
-    "imageUrl": "https://placehold.co/1800x1200/1c2333/9099b0?text=City+Night",
+    "imageUrl": "https://picsum.photos/seed/loginbg/1800/1200.jpg",
     "imageHint": "Indian road"
   },
   {
     "id": "mithila-hero",
     "description": "A vibrant and intricate Madhubani painting, showcasing the rich artistic heritage of the Mithila region.",
-    "imageUrl": "https://placehold.co/1920x1080/a9a9a9/333?text=Mithila+Art+Hero",
+    "imageUrl": "https://picsum.photos/seed/mithilahero/1920/1080.jpg",
     "imageHint": "Mithila painting"
   },
   {
     "id": "app-screen-1",
     "description": "A screenshot or mock-up of the MithilaCab app's main booking screen.",
-    "imageUrl": "https://placehold.co/800x1600/1c2333/9099b0?text=Your+App&font=lexend",
+    "imageUrl": "https://picsum.photos/seed/appscreen1/800/1600.jpg",
     "imageHint": "app screen"
   },
   {
     "id": "madhubani-1",
     "description": "A detailed Madhubani painting of fish and nature.",
-    "imageUrl": "https://placehold.co/600x600/a9a9a9/333?text=Madhubani+1",
+    "imageUrl": "https://picsum.photos/seed/madhubani1/600/600.jpg",
     "imageHint": "Madhubani art"
   },
   {
     "id": "madhubani-2",
     "description": "A traditional Madhubani artwork with human figures.",
-    "imageUrl": "https://placehold.co/600x600/a9a9a9/333?text=Madhubani+2",
+    "imageUrl": "https://picsum.photos/seed/madhubani2/600/600.jpg",
     "imageHint": "Mithila art"
   },
   {
     "id": "madhubani-3",
     "description": "Colorful folk painting from the Mithila region.",
-    "imageUrl": "https://placehold.co/600x600/a9a9a9/333?text=Madhubani+3",
+    "imageUrl": "https://picsum.photos/seed/madhubani3/600/600.jpg",
     "imageHint": "folk art"
   },
   {
     "id": "mithila-map",
     "description": "A stylized map of India with regions highlighted.",
-    "imageUrl": "https://placehold.co/1200x800/1c2333/9099b0?text=Mithila+Map",
+    "imageUrl": "https://picsum.photos/seed/mithilamap/1200/800.jpg",
     "imageHint": "Bihar map"
   },
   {
     "id": "testimonial-1",
     "description": "Portrait of a local man from the Mithila region.",
-    "imageUrl": "https://placehold.co/400x400/222/FFF?text=User+1",
+    "imageUrl": "https://picsum.photos/seed/testimonial1/400/400.jpg",
     "imageHint": "Indian man"
   },
   {
     "id": "testimonial-2",
     "description": "Portrait of a local woman from the Mithila region.",
-    "imageUrl": "https://placehold.co/400x400/222/FFF?text=User+2",
+    "imageUrl": "https://picsum.photos/seed/testimonial2/400/400.jpg",
     "imageHint": "Indian woman"
   }
 ]
