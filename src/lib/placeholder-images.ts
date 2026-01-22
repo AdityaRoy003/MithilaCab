@@ -76,7 +76,7 @@ export const PlaceHolderImages: ImagePlaceholder[] = [
   {
     "id": "mithila-map",
     "description": "A stylized map of India with regions highlighted.",
-    "imageUrl": "https://images.unsplash.com/photo-1582845913929-23653924a613?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMG1hcCUyMGxpZ2h0fGVufDB8fHx8MTc2ODYzODI1MXww&ixlib=rb-4.1.0&q=80&w=1200",
+    "imageUrl": "https://images.unsplash.com/photo-1597893723662-8a901f496a75?q=80&w=1200",
     "imageHint": "Bihar map"
   },
   {
