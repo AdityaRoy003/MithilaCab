@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -6,7 +7,7 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X } from 'lucide-react';
+import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose, SheetTrigger } from '@/components/ui/sheet';
@@ -19,6 +20,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 
 
 // Reusable NavLink component for animated underline effect
@@ -123,6 +125,7 @@ export default function LandingPage() {
   const [pickupCalc, setPickupCalc] = useState('');
   const [destinationCalc, setDestinationCalc] = useState('');
   const [estimatedFare, setEstimatedFare] = useState<number | null>(null);
+  const [flippedStep, setFlippedStep] = useState<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -162,6 +165,17 @@ export default function LandingPage() {
       setEstimatedFare(finalFare);
     }
   };
+
+  const onboardingSteps = [
+    { icon: UserPlus, title: "Quick Sign-Up", description: "Create your driver profile in just a few minutes with your basic information.", step: "01" },
+    { icon: UploadCloud, title: "Upload Documents", description: "Submit your driver's license, vehicle registration, and insurance for verification.", step: "02" },
+    { icon: ShieldCheck, title: "Get Verified", description: "Our team will review your documents. Once approved, you're ready to hit the road.", step: "03" },
+    { icon: Car, title: "Start Driving", description: "Go online, accept your first ride, and start earning on your own schedule.", step: "04" },
+  ];
+
+  const handleFlip = (index: number) => {
+    setFlippedStep(flippedStep === index ? null : index);
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -599,21 +613,110 @@ export default function LandingPage() {
         </section>
 
         {/* Drive With Us Section */}
-        <section id="drive" className="py-20 md:py-32 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
+        <section id="drive" className="py-20 md:py-32 bg-muted/20">
+          <div className="container mx-auto px-4">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.5 }}
-              transition={{ duration: 0.6 }}
-              className="max-w-3xl mx-auto"
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5 }}
+              className="text-center"
             >
               <h2 className="font-headline text-4xl font-bold">Drive with MithilaCab</h2>
-              <p className="mt-4 text-lg text-primary-foreground/80">
-                Earn on your own schedule. Join our community of drivers and start making money with your car.
+              <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
+                  Join our growing community of drivers and earn on your own terms. We provide the tools and support you need to succeed.
               </p>
-              <Button asChild size="lg" variant="secondary" className="mt-8 font-bold text-secondary-foreground">
-                <Link href="/signup">Become a Driver</Link>
+            </motion.div>
+            
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mt-16 max-w-5xl mx-auto text-center">
+                <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.1}}>
+                    <Users className="h-10 w-10 mx-auto text-primary" />
+                    <h3 className="text-4xl font-bold mt-2">120+</h3>
+                    <p className="text-muted-foreground mt-1">Active Drivers</p>
+                </motion.div>
+                <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.2}}>
+                    <Award className="h-10 w-10 mx-auto text-primary" />
+                    <h3 className="text-4xl font-bold mt-2">95%</h3>
+                    <p className="text-muted-foreground mt-1">5-Star Ratings</p>
+                </motion.div>
+                <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.3}}>
+                    <IndianRupee className="h-10 w-10 mx-auto text-primary" />
+                    <h3 className="text-4xl font-bold mt-2">15%</h3>
+                    <p className="text-muted-foreground mt-1">Higher Earnings</p>
+                </motion.div>
+                <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.4}}>
+                    <Clock className="h-10 w-10 mx-auto text-primary" />
+                    <h3 className="text-4xl font-bold mt-2">24/7</h3>
+                    <p className="text-muted-foreground mt-1">Flexible Schedule</p>
+                </motion.div>
+            </div>
+
+            <div className="mt-24 text-center">
+              <motion.h3 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.5 }}
+                  className="font-headline text-3xl font-bold">Simple Steps to Start Earning
+              </motion.h3>
+              <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 [perspective:1000px]">
+                  {onboardingSteps.map((step, index) => (
+                      <motion.div 
+                        key={index}
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: index * 0.15 }}
+                      >
+                          <div 
+                              className="relative w-full h-72 [transform-style:preserve-3d] cursor-pointer"
+                              onClick={() => handleFlip(index)}
+                          >
+                              <motion.div 
+                                  className="absolute w-full h-full [backface-visibility:hidden] p-6 bg-card border rounded-lg flex flex-col items-center justify-center text-center"
+                                  animate={{ rotateY: flippedStep === index ? -180 : 0 }}
+                                  transition={{ duration: 0.6 }}
+                              >
+                                  <div className="mb-4 text-5xl font-bold text-primary/10 absolute top-4 left-4">{step.step}</div>
+                                  <step.icon className="h-12 w-12 text-primary mb-4" />
+                                  <h4 className="font-semibold text-lg">{step.title}</h4>
+                              </motion.div>
+                              
+                              <motion.div 
+                                  className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] p-6 bg-card border rounded-lg flex flex-col items-center justify-center text-center"
+                                  animate={{ rotateY: flippedStep === index ? 0 : 180 }}
+                                  transition={{ duration: 0.6 }}
+                              >
+                                  {step.title === "Upload Documents" ? (
+                                    <div className="w-full space-y-4">
+                                      <p className="text-sm text-muted-foreground">{step.description}</p>
+                                      <div className="p-4 border-2 border-dashed rounded-lg text-center">
+                                        <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
+                                        <p className="text-xs mt-1">Drag & Drop or Click</p>
+                                      </div>
+                                      <div className="space-y-2 text-left">
+                                        <Label className="text-xs">Uploading License.pdf</Label>
+                                        <Progress value={60} className="h-2" />
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                                  )}
+                              </motion.div>
+                          </div>
+                      </motion.div>
+                  ))}
+              </div>
+            </div>
+
+            <motion.div 
+              className="mt-20 text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Button asChild size="lg" className="font-bold text-lg">
+                <Link href="/signup">Become a Driver Today</Link>
               </Button>
             </motion.div>
           </div>
