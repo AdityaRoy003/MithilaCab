@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ChevronDown, MapPin, Menu, Quote } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -31,16 +30,56 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
 
 
 export default function LandingPage() {
-  const heroImage = PlaceHolderImages.find(img => img.id === 'mithila-hero');
-  const appScreenImage = PlaceHolderImages.find(img => img.id === 'app-screen-1');
-  const madhubaniImages = PlaceHolderImages.filter(img => img.id.startsWith('madhubani-'));
-  const mithilaMapImage = PlaceHolderImages.find(img => img.id === 'mithila-map');
-  const testimonialImages = PlaceHolderImages.filter(img => img.id.startsWith('testimonial-'));
+  // Hardcode image URLs directly in the component
+  const heroImage = {
+    imageUrl: "https://images.unsplash.com/photo-1618828232323-8d264a619082",
+    description: "A vibrant and intricate Madhubani painting, showcasing the rich artistic heritage of the Mithila region.",
+    imageHint: "Madhubani painting"
+  };
+  const appScreenImage = {
+    imageUrl: "https://images.unsplash.com/photo-1730818877052-c360a791e058",
+    description: "A screenshot or mock-up of the MithilaCab app's main booking screen.",
+    imageHint: "app screen"
+  };
+  const madhubaniImages = [
+    {
+      imageUrl: "https://images.unsplash.com/photo-1627843229743-f42194412c75",
+      description: "A detailed Madhubani painting of fish and nature.",
+      imageHint: "madhubani painting"
+    },
+    {
+      imageUrl: "https://images.unsplash.com/photo-1632313079815-5a507315579d",
+      description: "A traditional Madhubani artwork with human figures.",
+      imageHint: "traditional art"
+    },
+    {
+      imageUrl: "https://images.unsplash.com/photo-1634565334816-a32d66df5f80",
+      description: "Colorful folk painting from the Mithila region.",
+      imageHint: "folk painting"
+    }
+  ];
+  const mithilaMapImage = {
+    imageUrl: "https://images.unsplash.com/photo-1594398932026-f78077750431",
+    description: "A stylized map of India with regions highlighted.",
+    imageHint: "india map"
+  };
+  const testimonialImages = [
+      {
+          id: 'testimonial-1',
+          imageUrl: "https://images.unsplash.com/photo-1557862921-37829c790f19",
+          imageHint: "local man"
+      },
+      {
+          id: 'testimonial-2',
+          imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+          imageHint: "local woman"
+      }
+  ];
 
 
   const headline = "Discover Mithila";
   const subHeadline = "One Ride at a Time";
-  
+
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -61,20 +100,20 @@ export default function LandingPage() {
       },
     },
   };
-  
+
   // Staggered animation for each word in the headline
   const wordVariants = {
       hidden: { opacity: 0, y: 20 },
       show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 10 } }
   };
-  
+
   // Animation for the paragraph and search bar
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    show: { 
-        y: 0, 
-        opacity: 1, 
-        transition: { type: 'spring', stiffness: 100, damping: 12, delay: 0.8 } 
+    show: {
+        y: 0,
+        opacity: 1,
+        transition: { type: 'spring', stiffness: 100, damping: 12, delay: 0.8 }
     },
   };
 
@@ -91,19 +130,19 @@ export default function LandingPage() {
   }, []);
 
   const autoplayPlugin = useRef(Autoplay({ delay: 3000, stopOnInteraction: true }));
-  
+
   const testimonials = [
       {
           quote: "MithilaCab makes it so easy to visit my family in the village. The drivers are always respectful and know all the local routes.",
           name: "Sanjay Kumar",
           role: "Frequent Rider, Darbhanga",
-          image: testimonialImages.find(img => img.id === 'testimonial-1')
+          image: testimonialImages[0]
       },
       {
           quote: "As a student, I rely on MithilaCab for my daily commute. It's affordable, safe, and always on time. It has made my life so much easier!",
           name: "Priya Singh",
           role: "Student, Madhubani",
-          image: testimonialImages.find(img => img.id === 'testimonial-2')
+          image: testimonialImages[1]
       }
   ];
 
@@ -167,7 +206,7 @@ export default function LandingPage() {
       <main className="flex-1">
         <section ref={heroRef} className="relative h-screen flex items-center justify-center text-center overflow-hidden">
           {heroImage && (
-              <motion.div 
+              <motion.div
                 className="absolute inset-0 w-full h-full z-0"
                 style={{ y: backgroundY }}
               >
@@ -183,14 +222,14 @@ export default function LandingPage() {
               </motion.div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent z-5" />
-          <motion.div 
+          <motion.div
             className="relative z-10 p-4 w-full"
             style={{ y: textY }}
             variants={containerVariants}
             initial="hidden"
             animate="show"
           >
-            <motion.h1 
+            <motion.h1
               className="font-headline text-5xl md:text-7xl font-extrabold tracking-tighter"
               aria-label={`${headline} ${subHeadline}`}
             >
@@ -204,7 +243,7 @@ export default function LandingPage() {
                 ))}
               </span>
             </motion.h1>
-            <motion.p 
+            <motion.p
               className="mt-4 max-w-xl mx-auto text-lg text-foreground/80"
               variants={itemVariants}
             >
@@ -223,9 +262,9 @@ export default function LandingPage() {
                       className="h-12 w-full rounded-full border-none pl-12 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                 </div>
-                <Button 
-                    type="submit" 
-                    size="lg" 
+                <Button
+                    type="submit"
+                    size="lg"
                     className="rounded-full font-bold transition-all duration-300 hover:shadow-lg hover:shadow-primary/40"
                 >
                   Find a Ride
@@ -290,7 +329,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 space-y-24">
 
             {/* Madhubani Art Carousel */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -313,7 +352,7 @@ export default function LandingPage() {
                       <div className="p-1">
                         <Card className="overflow-hidden">
                           <CardContent className="flex aspect-square items-center justify-center p-0">
-                            <Image 
+                            <Image
                               src={image.imageUrl}
                               alt={image.description}
                               width={600}
@@ -329,7 +368,7 @@ export default function LandingPage() {
                 </CarouselContent>
               </Carousel>
             </motion.div>
-            
+
             {/* Animated Map */}
             <motion.div
               initial={{ opacity: 0, y: 50 }}
@@ -344,7 +383,7 @@ export default function LandingPage() {
               </p>
               <div className="relative w-full max-w-3xl mx-auto mt-12">
                 {mithilaMapImage && (
-                  <Image 
+                  <Image
                     src={mithilaMapImage.imageUrl}
                     alt={mithilaMapImage.description}
                     width={1200}
@@ -410,7 +449,7 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-      
+
       <footer className="bg-muted">
         <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
              <p>&copy; {new Date().getFullYear()} MithilaCab. All rights reserved.</p>
