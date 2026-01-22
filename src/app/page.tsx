@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle, ArrowRight } from 'lucide-react';
+import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle, ArrowRight, LifeBuoy } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose, SheetTrigger } from '@/components/ui/sheet';
@@ -220,6 +220,7 @@ export default function LandingPage() {
           <Logo />
           <nav className="hidden md:flex items-center gap-8">
             <NavLink href="#features">Features</NavLink>
+            <NavLink href="#safety">Safety</NavLink>
             <NavLink href="#how-it-works">How It Works</NavLink>
             <NavLink href="#cultural-showcase">Culture</NavLink>
             <NavLink href="#drive">Drive with Us</NavLink>
@@ -245,6 +246,7 @@ export default function LandingPage() {
                     <Logo />
                     <nav className="flex flex-col gap-6 mt-10">
                         <Link href="#features" className="text-lg font-medium hover:text-primary transition-colors">Features</Link>
+                        <Link href="#safety" className="text-lg font-medium hover:text-primary transition-colors">Safety</Link>
                         <Link href="#how-it-works" className="text-lg font-medium hover:text-primary transition-colors">How It Works</Link>
                         <Link href="#cultural-showcase" className="text-lg font-medium hover:text-primary transition-colors">Culture</Link>
                         <Link href="#drive" className="text-lg font-medium hover:text-primary transition-colors">Drive with Us</Link>
@@ -455,6 +457,46 @@ export default function LandingPage() {
                 </div>
               </motion.div>
             </div>
+          </div>
+        </section>
+
+        {/* Safety Section */}
+        <section id="safety" className="container mx-auto px-4 py-20 md:py-32">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <h2 className="font-headline text-4xl font-bold">Your Safety is Our Priority</h2>
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+              We are committed to making every ride safe, reliable, and comfortable.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 mt-16 max-w-5xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
+              <Card className="text-center p-8 h-full">
+                <ShieldCheck className="h-12 w-12 mx-auto text-primary"/>
+                <h3 className="mt-4 font-semibold text-xl">Verified Drivers</h3>
+                <p className="mt-2 text-muted-foreground">All our drivers undergo a strict verification process, including background checks.</p>
+              </Card>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
+              <Card className="text-center p-8 h-full">
+                <Navigation className="h-12 w-12 mx-auto text-primary"/>
+                <h3 className="mt-4 font-semibold text-xl">Live Ride Tracking</h3>
+                <p className="mt-2 text-muted-foreground">Share your ride status with family and friends. They can track your journey in real-time.</p>
+              </Card>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.5 }}>
+              <Card className="text-center p-8 h-full">
+                <MessageSquare className="h-12 w-12 mx-auto text-primary"/>
+                <h3 className="mt-4 font-semibold text-xl">24/7 Support</h3>
+                <p className="mt-2 text-muted-foreground">Our support team is available around the clock to assist you with any issues or emergencies.</p>
+              </Card>
+            </motion.div>
           </div>
         </section>
 
