@@ -4,10 +4,10 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation } from 'lucide-react';
+import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose, SheetTrigger } from '@/components/ui/sheet';
@@ -21,6 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 
 // Reusable NavLink component for animated underline effect
@@ -126,6 +128,9 @@ export default function LandingPage() {
   const [destinationCalc, setDestinationCalc] = useState('');
   const [estimatedFare, setEstimatedFare] = useState<number | null>(null);
   const [flippedStep, setFlippedStep] = useState<number | null>(null);
+  const { toast } = useToast();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -176,6 +181,29 @@ export default function LandingPage() {
   const handleFlip = (index: number) => {
     setFlippedStep(flippedStep === index ? null : index);
   }
+
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail) return;
+
+    setNewsletterStatus('submitting');
+    // Simulate API call
+    setTimeout(() => {
+        setNewsletterStatus('success');
+        setNewsletterEmail('');
+        setTimeout(() => setNewsletterStatus('idle'), 3000); // Reset after 3s
+    }, 1000);
+  };
+
+  const handleLanguageChange = (lang: string) => {
+    let languageName = 'English';
+    if (lang === 'hi') languageName = 'Hindi';
+    if (lang === 'mai') languageName = 'Maithili';
+    toast({
+        title: "Language Switched",
+        description: `App language has been set to ${languageName}. (UI Demo)`,
+    });
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -723,9 +751,105 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="bg-muted">
-        <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
-             <p>&copy; {new Date().getFullYear()} MithilaCab. All rights reserved.</p>
+      <footer className="bg-muted/40 border-t">
+        <div className="container mx-auto px-4 py-16">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+                {/* Column 1: Logo & Socials */}
+                <motion.div 
+                    className="space-y-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <Logo />
+                    <p className="text-sm text-muted-foreground">Connecting Mithila, one ride at a time. Safe, reliable, and culturally aware transportation.</p>
+                    <div className="flex gap-4">
+                        <motion.a href="#" initial={{ opacity: 0}} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }}><Facebook className="text-muted-foreground hover:text-primary"/></motion.a>
+                        <motion.a href="#" initial={{ opacity: 0}} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.3 }}><Instagram className="text-muted-foreground hover:text-primary"/></motion.a>
+                        <motion.a href="#" initial={{ opacity: 0}} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }}><MessageSquare className="text-muted-foreground hover:text-primary"/></motion.a>
+                    </div>
+                </motion.div>
+
+                {/* Column 2: Quick Links */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                    <h4 className="font-semibold mb-4">Quick Links</h4>
+                    <ul className="space-y-3 text-sm">
+                        <li><Link href="#features" className="text-muted-foreground hover:text-primary">Features</Link></li>
+                        <li><Link href="#how-it-works" className="text-muted-foreground hover:text-primary">How It Works</Link></li>
+                        <li><Link href="#drive" className="text-muted-foreground hover:text-primary">Drive with Us</Link></li>
+                        <li><Link href="/login" className="text-muted-foreground hover:text-primary">Login</Link></li>
+                    </ul>
+                </motion.div>
+
+                {/* Column 3: Newsletter & Language */}
+                <motion.div 
+                    className="md:col-span-2 space-y-4"
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                >
+                    <h4 className="font-semibold">Stay Updated</h4>
+                    <p className="text-sm text-muted-foreground">Subscribe to our newsletter for the latest news and offers.</p>
+                    <div className="overflow-hidden">
+                        <AnimatePresence mode="wait">
+                            {newsletterStatus !== 'success' ? (
+                                <motion.form 
+                                    key="form"
+                                    onSubmit={handleNewsletterSubmit} 
+                                    className="flex gap-2"
+                                    exit={{ opacity: 0, y: -20 }}
+                                >
+                                    <Input 
+                                        type="email" 
+                                        placeholder="Enter your email" 
+                                        value={newsletterEmail}
+                                        onChange={(e) => setNewsletterEmail(e.target.value)}
+                                        required 
+                                    />
+                                    <Button type="submit" disabled={newsletterStatus === 'submitting'}>
+                                        {newsletterStatus === 'submitting' ? 'Submitting...' : <Send />}
+                                    </Button>
+                                </motion.form>
+                            ) : (
+                                <motion.div 
+                                    key="success"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="flex items-center gap-2 text-green-600 font-medium p-2 rounded-md bg-green-500/10 border border-green-500/20"
+                                >
+                                    <CheckCircle /> Thank you for subscribing!
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                    <div className="pt-4">
+                        <Label className="font-semibold">Language</Label>
+                        <Select defaultValue="en" onValueChange={handleLanguageChange}>
+                            <SelectTrigger className="w-[180px] mt-2">
+                            <div className="flex items-center gap-2">
+                                <Globe className="h-4 w-4 text-muted-foreground" />
+                                <SelectValue placeholder="Language" />
+                            </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="en">English</SelectItem>
+                                <SelectItem value="hi">हिन्दी (Hindi)</SelectItem>
+                                <SelectItem value="mai">मैथिली (Maithili)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </motion.div>
+            </div>
+            <div className="mt-16 border-t pt-8 text-center text-sm text-muted-foreground">
+                <p>&copy; {new Date().getFullYear()} MithilaCab. All rights reserved.</p>
+            </div>
         </div>
       </footer>
     </div>
