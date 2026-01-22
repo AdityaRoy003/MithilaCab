@@ -1,14 +1,25 @@
 'use client';
 
-import { useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowRight, ChevronDown, MapPin } from 'lucide-react';
+import { ChevronDown, MapPin, Menu } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+
+// Reusable NavLink component for animated underline effect
+const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
+  <Link href={href} className="group relative text-sm font-medium transition-colors hover:text-primary">
+    {children}
+    <span className="absolute bottom-[-4px] left-0 block h-0.5 w-full max-w-0 bg-primary transition-all duration-300 group-hover:max-w-full"></span>
+  </Link>
+);
+
 
 export default function LandingPage() {
   const heroImage = PlaceHolderImages.find(img => img.id === 'mithila-hero');
@@ -54,24 +65,70 @@ export default function LandingPage() {
     },
   };
 
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+      <header className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled ? 'bg-background/90 backdrop-blur-sm shadow-md' : 'bg-transparent'
+      )}>
+        <div className={cn(
+          "container mx-auto px-4 flex items-center justify-between transition-all duration-300",
+          scrolled ? 'h-16' : 'h-20'
+        )}>
           <Logo />
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="#features" className="text-sm font-medium hover:text-primary transition-colors">Features</Link>
-            <Link href="#safety" className="text-sm font-medium hover:text-primary transition-colors">Safety</Link>
-            <Link href="#drive" className="text-sm font-medium hover:text-primary transition-colors">Drive with Us</Link>
+          <nav className="hidden md:flex items-center gap-8">
+            <NavLink href="#features">Features</NavLink>
+            <NavLink href="#safety">Safety</NavLink>
+            <NavLink href="#drive">Drive with Us</NavLink>
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             <Button variant="ghost" asChild>
                 <Link href="/login">Log In</Link>
             </Button>
             <Button asChild className="font-bold">
                 <Link href="/signup">Sign Up</Link>
             </Button>
+          </div>
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px]">
+                 <div className="p-6">
+                    <Logo />
+                    <nav className="flex flex-col gap-6 mt-10">
+                        <Link href="#features" className="text-lg font-medium hover:text-primary transition-colors">Features</Link>
+                        <Link href="#safety" className="text-lg font-medium hover:text-primary transition-colors">Safety</Link>
+                        <Link href="#drive" className="text-lg font-medium hover:text-primary transition-colors">Drive with Us</Link>
+                    </nav>
+                     <div className="flex flex-col gap-4 mt-8">
+                        <Button variant="outline" asChild size="lg">
+                            <Link href="/login">Log In</Link>
+                        </Button>
+                        <Button asChild className="font-bold" size="lg">
+                            <Link href="/signup">Sign Up</Link>
+                        </Button>
+                    </div>
+                 </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
