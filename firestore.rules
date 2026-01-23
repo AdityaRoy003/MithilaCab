@@ -65,6 +65,17 @@ service cloud.firestore {
       
       // Admins can list and delete users.
       allow list, delete: if isAdmin();
+
+      match /transactions/{transactionId} {
+        // A user can read their own transactions. Admins can read any.
+        allow read, list: if isOwner(userId) || isAdmin();
+        
+        // A user can create a transaction for themselves (e.g., top-up).
+        allow create: if isOwner(userId);
+        
+        // Transactions are immutable once created to maintain financial integrity.
+        allow update, delete: if false;
+      }
     }
 
     match /drivers/{driverId} {
@@ -123,3 +134,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

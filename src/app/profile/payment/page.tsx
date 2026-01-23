@@ -13,15 +13,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { doc, collection, query, orderBy, serverTimestamp, increment, Timestamp } from 'firebase/firestore';
+import { format as formatDate } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
+interface UserProfile {
+    walletBalance?: number;
+}
 
-// Mock data
-const mockTransactions = [
-    { id: 't1', type: 'Top-up', date: '2024-07-30', amount: 500.00, status: 'Success' },
-    { id: 't2', type: 'Ride Fare', date: '2024-07-29', amount: -120.50, status: 'Success' },
-    { id: 't3', type: 'Refund', date: '2024-07-28', amount: 50.00, status: 'Success' },
-    { id: 't4', type: 'Ride Fare', date: '2024-07-27', amount: -85.00, status: 'Success' },
-];
+interface Transaction {
+    id?: string;
+    type: 'Top-up' | 'Ride Fare' | 'Refund' | 'Payout';
+    date: Timestamp;
+    amount: number;
+    status: 'Success' | 'Pending' | 'Failed';
+}
 
 export default function PaymentPage() {
     const router = useRouter();
@@ -31,12 +38,47 @@ export default function PaymentPage() {
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [topUpAmount, setTopUpAmount] = useState('');
 
+    const { user, isUserLoading } = useUser();
+    const firestore = useFirestore();
+
+    const userDocRef = useMemoFirebase(() => {
+        if (!user) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [firestore, user]);
+
+    const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
+    
+    const transactionsQuery = useMemoFirebase(() => {
+        if (!user) return null;
+        return query(collection(firestore, 'users', user.uid, 'transactions'), orderBy('date', 'desc'));
+    }, [firestore, user]);
+    
+    const { data: transactions, isLoading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
+
+    const isLoading = isUserLoading || profileLoading || transactionsLoading;
+
     const handleTopUp = () => {
-        if (!topUpAmount || +topUpAmount <= 0) {
+        if (!user || !userDocRef) return;
+        const amount = parseFloat(topUpAmount);
+        if (isNaN(amount) || amount <= 0) {
             toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Please enter a valid amount to top up.' });
             return;
         }
-        toast({ title: 'Top-up Successful', description: `₹${topUpAmount} has been added to your wallet.` });
+
+        const transactionData = {
+            type: 'Top-up' as const,
+            date: serverTimestamp(),
+            amount: amount,
+            status: 'Success' as const
+        };
+        const transactionsColRef = collection(firestore, 'users', user.uid, 'transactions');
+        addDocumentNonBlocking(transactionsColRef, transactionData);
+
+        updateDocumentNonBlocking(userDocRef, {
+            walletBalance: increment(amount)
+        });
+
+        toast({ title: 'Top-up Successful', description: `₹${amount} has been added to your wallet.` });
         setIsTopUpOpen(false);
         setTopUpAmount('');
     };
@@ -72,10 +114,14 @@ export default function PaymentPage() {
                             <CardContent className="space-y-4">
                                 <div className="p-4 rounded-lg border bg-background text-center">
                                     <p className="text-sm text-muted-foreground">Current Balance</p>
-                                    <p className="font-headline font-bold text-4xl flex items-center justify-center">
-                                        <IndianRupee size={30} />
-                                        150.00
-                                    </p>
+                                    {isLoading ? (
+                                        <Skeleton className="h-10 w-32 mx-auto mt-1" />
+                                    ) : (
+                                        <p className="font-headline font-bold text-4xl flex items-center justify-center">
+                                            <IndianRupee size={30} />
+                                            {(userProfile?.walletBalance ?? 0).toFixed(2)}
+                                        </p>
+                                    )}
                                 </div>
                             </CardContent>
                              <CardFooter className="flex gap-4">
@@ -112,32 +158,46 @@ export default function PaymentPage() {
                                         <DialogHeader>
                                             <DialogTitle>Transaction History</DialogTitle>
                                         </DialogHeader>
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Date</TableHead>
-                                                    <TableHead>Description</TableHead>
-                                                    <TableHead className="text-right">Amount</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {mockTransactions.map(tx => (
-                                                    <TableRow key={tx.id}>
-                                                        <TableCell className="text-xs">{tx.date}</TableCell>
-                                                        <TableCell>{tx.type}</TableCell>
-                                                        <TableCell className={`text-right font-mono ${tx.amount > 0 ? 'text-green-600' : 'text-destructive'}`}>
-                                                            {tx.amount > 0 ? `+₹${tx.amount.toFixed(2)}` : `-₹${Math.abs(tx.amount).toFixed(2)}`}
-                                                        </TableCell>
+                                        {isLoading ? (
+                                            <div className="space-y-2 py-4">
+                                                <Skeleton className="h-10 w-full" />
+                                                <Skeleton className="h-10 w-full" />
+                                                <Skeleton className="h-10 w-full" />
+                                            </div>
+                                        ) : (
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Date</TableHead>
+                                                        <TableHead>Description</TableHead>
+                                                        <TableHead className="text-right">Amount</TableHead>
                                                     </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {transactions && transactions.length > 0 ? (
+                                                        transactions.map(tx => (
+                                                        <TableRow key={tx.id}>
+                                                            <TableCell className="text-xs">{tx.date ? formatDate(tx.date.toDate(), 'PP') : 'N/A'}</TableCell>
+                                                            <TableCell>{tx.type}</TableCell>
+                                                            <TableCell className={`text-right font-mono ${tx.amount > 0 ? 'text-green-600' : 'text-destructive'}`}>
+                                                                {tx.amount > 0 ? `+₹${tx.amount.toFixed(2)}` : `-₹${Math.abs(tx.amount).toFixed(2)}`}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell colSpan={3} className="text-center h-24">No transactions yet.</TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        )}
                                     </DialogContent>
                                 </Dialog>
                             </CardFooter>
                         </Card>
 
-                        {/* Saved Payment Methods */}
+                        {/* Saved Payment Methods - Functionality is mocked as it requires a payment provider */}
                         <Card>
                              <CardHeader>
                                 <CardTitle>Saved Payment Methods</CardTitle>
@@ -265,3 +325,5 @@ export default function PaymentPage() {
         </AppLayout>
     );
 }
+
+    
