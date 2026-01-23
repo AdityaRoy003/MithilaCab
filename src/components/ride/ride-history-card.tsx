@@ -198,7 +198,7 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
         )}
       </Card>
       <Dialog open={isReceiptOpen} onOpenChange={setIsReceiptOpen}>
-        <DialogContent className="max-w-2xl p-0 printable-content">
+        <DialogContent className="max-w-2xl p-0 mithila-printable-receipt">
             <DialogHeader className="sr-only">
               <DialogTitle>Ride Receipt</DialogTitle>
               <DialogDescription>
@@ -206,7 +206,7 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
               </DialogDescription>
             </DialogHeader>
             <RideReceipt ride={ride} />
-            <DialogFooter className="p-4 border-t bg-muted/50 sm:justify-between non-printable">
+            <DialogFooter className="p-4 border-t bg-muted/50 sm:justify-between mithila-non-printable">
                 <Button variant="ghost" onClick={() => setIsReceiptOpen(false)}>Close</Button>
                 <Button onClick={handlePrint}><Printer className="mr-2 h-4 w-4" /> Print Receipt</Button>
             </DialogFooter>
