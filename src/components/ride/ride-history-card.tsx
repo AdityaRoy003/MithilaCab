@@ -199,6 +199,12 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
       </Card>
       <Dialog open={isReceiptOpen} onOpenChange={setIsReceiptOpen}>
         <DialogContent className="max-w-2xl p-0 printable-content">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Ride Receipt</DialogTitle>
+              <DialogDescription>
+                A receipt for your ride to {ride.destinationLocation} on {getFormattedDate(ride.startTime)}.
+              </DialogDescription>
+            </DialogHeader>
             <RideReceipt ride={ride} />
             <DialogFooter className="p-4 border-t bg-muted/50 sm:justify-between non-printable">
                 <Button variant="ghost" onClick={() => setIsReceiptOpen(false)}>Close</Button>
