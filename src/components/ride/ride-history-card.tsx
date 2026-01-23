@@ -250,14 +250,16 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
         )}
       </Card>
       <Dialog open={isReceiptOpen} onOpenChange={setIsReceiptOpen}>
-        <DialogContent className="max-w-2xl p-0">
-            <DialogHeader className="sr-only">
+        <DialogContent className="max-w-2xl p-0 flex flex-col h-full max-h-[90vh]">
+            <DialogHeader className="p-6 pb-4 border-b">
               <DialogTitle>Ride Receipt</DialogTitle>
               <DialogDescription>
                 A receipt for your ride to {ride.destinationLocation} on {getFormattedDate(ride.startTime)}.
               </DialogDescription>
             </DialogHeader>
-            <RideReceipt ride={ride} />
+            <div className="flex-1 overflow-y-auto">
+                <RideReceipt ride={ride} />
+            </div>
             <DialogFooter className="p-4 border-t bg-muted/50 sm:justify-between">
                 <Button variant="ghost" onClick={() => setIsReceiptOpen(false)}>Close</Button>
                 <Button onClick={handleDownloadPdf} disabled={isDownloading}>
