@@ -25,7 +25,7 @@ export function RideReceipt({ ride }: RideReceiptProps) {
   const taxesAndFees = ride.fareAmount ? ride.fareAmount - baseFare - distanceCharge : 0;
 
   return (
-    <div className="p-8 bg-background text-foreground font-sans">
+    <div id="ride-receipt-content" className="p-8 bg-background text-foreground font-sans">
         <div className="flex justify-between items-start">
             <div>
                 <Logo />
