@@ -1,11 +1,74 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, AlertCircle, Share2, HelpCircle, MessageSquare, Mail, ShieldCheck, BookOpenCheck } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Share2, HelpCircle, MessageSquare, Mail, ShieldCheck, BookOpenCheck, Send } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+const LiveChatDialog = () => {
+    const [messages, setMessages] = useState([
+        { from: 'agent', text: 'Hello! How can I assist you today?' }
+    ]);
+    const [input, setInput] = useState('');
+
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!input.trim()) return;
+
+        const newMessages = [...messages, { from: 'user', text: input }];
+        setMessages(newMessages);
+        setInput('');
+
+        // Simulate agent response
+        setTimeout(() => {
+            setMessages(prev => [...prev, { from: 'agent', text: "Thank you for your message. An agent will be with you shortly to address your concern." }]);
+        }, 1500);
+    };
+
+    return (
+        <DialogContent className="sm:max-w-[425px] grid-rows-[auto_1fr_auto] p-0 max-h-[90vh]">
+            <DialogHeader className="p-6 pb-2">
+                <DialogTitle className="flex items-center gap-2"><MessageSquare /> Live Chat</DialogTitle>
+                <DialogDescription>
+                    Connected with a support agent.
+                </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="h-96 px-6">
+                 <div className="space-y-4">
+                    {messages.map((msg, index) => (
+                        <div key={index} className={`flex items-end gap-2 ${msg.from === 'user' ? 'justify-end' : ''}`}>
+                             {msg.from === 'agent' && (
+                                <Avatar className="h-8 w-8">
+                                    <AvatarFallback>A</AvatarFallback>
+                                </Avatar>
+                             )}
+                            <div className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${msg.from === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                {msg.text}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </ScrollArea>
+            <DialogFooter className="p-4 border-t">
+                <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
+                    <Input 
+                        placeholder="Type your message..." 
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                    />
+                    <Button type="submit" size="icon"><Send className="h-4 w-4" /></Button>
+                </form>
+            </DialogFooter>
+        </DialogContent>
+    );
+};
 
 export default function SafetyPage() {
     const router = useRouter();
@@ -26,13 +89,7 @@ export default function SafetyPage() {
                 };
                 try {
                     await navigator.share(shareData);
-                    toast({
-                        title: "Trip Shared",
-                        description: "Your location has been shared."
-                    });
                 } catch (err: any) {
-                    // This error can happen if the user cancels the share sheet.
-                    // We check for the specific error name to avoid showing an error toast.
                     if (err.name === 'AbortError' || err.name === 'NotAllowedError') {
                         console.log("Share action cancelled by user.");
                     } else {
@@ -45,7 +102,6 @@ export default function SafetyPage() {
                     }
                 }
             }, (error) => {
-                // Geolocation failed
                 console.error("Geolocation error:", error);
                 toast({
                     variant: 'destructive',
@@ -115,9 +171,16 @@ export default function SafetyPage() {
                                 <CardDescription>Find answers or get in touch with our support team.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                <Button variant="outline" className="w-full justify-start" onClick={() => handleNotImplemented('FAQs')}><HelpCircle className="mr-2"/> Read FAQs</Button>
-                                <Button variant="outline" className="w-full justify-start" onClick={() => handleNotImplemented('Contact Support')}><Mail className="mr-2"/> Contact Support</Button>
-                                <Button variant="outline" className="w-full justify-start" onClick={() => handleNotImplemented('Live Chat')}><MessageSquare className="mr-2"/> Live Chat with Agent</Button>
+                                <Button variant="outline" className="w-full justify-start" onClick={() => router.push('/profile/faq')}><HelpCircle className="mr-2"/> Read FAQs</Button>
+                                <Button asChild variant="outline" className="w-full justify-start">
+                                    <a href="mailto:royadityaa003@gmail.com"><Mail className="mr-2"/> Contact Support</a>
+                                </Button>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="w-full justify-start"><MessageSquare className="mr-2"/> Live Chat with Agent</Button>
+                                    </DialogTrigger>
+                                    <LiveChatDialog />
+                                </Dialog>
                             </CardContent>
                         </Card>
                         
