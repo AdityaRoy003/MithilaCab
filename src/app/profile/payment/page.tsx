@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Banknote, IndianRupee, CreditCard, Wallet, Plus, History, Tag, Trash2, Loader2, ScanQrCode } from 'lucide-react';
+import { ArrowLeft, Banknote, IndianRupee, CreditCard, Wallet, Plus, History, Tag, Trash2, Loader2, ScanQrCode, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -19,6 +19,7 @@ import { doc, collection, query, orderBy, serverTimestamp, increment, Timestamp 
 import { format as formatDate } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 interface UserProfile {
@@ -40,7 +41,8 @@ export default function PaymentPage() {
     const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [topUpAmount, setTopUpAmount] = useState('');
-    const [paymentStep, setPaymentStep] = useState<'amount' | 'pay' | 'processing'>('amount');
+    const [paymentStep, setPaymentStep] = useState<'amount' | 'method' | 'pay_qr' | 'pay_upi' | 'processing'>('amount');
+    const [upiId, setUpiId] = useState('');
     
     const qrCodeImage = PlaceHolderImages.find(img => img.id === 'upi-qr-code');
 
@@ -69,7 +71,7 @@ export default function PaymentPage() {
             toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Please enter a valid positive amount.' });
             return;
         }
-        setPaymentStep('pay');
+        setPaymentStep('method');
     };
 
     const handleCompletePayment = () => {
@@ -108,10 +110,16 @@ export default function PaymentPage() {
         }
     };
     
-    const handleAddPayment = () => {
-        toast({ title: 'Payment Method Added', description: 'Your new payment method has been saved.' });
+    const handleAddPayment = (method: 'card' | 'upi') => {
+        if (method === 'card') {
+            toast({ title: 'Card Added', description: 'Your new card has been saved.' });
+        } else {
+            toast({ title: 'UPI ID Added', description: `UPI ID ${upiId} has been saved.` });
+            setUpiId('');
+        }
         setIsAddPaymentOpen(false);
     };
+
 
     const handleRemovePayment = () => {
         toast({ title: 'Payment Method Removed', description: 'The selected payment method has been removed.' });
@@ -174,7 +182,34 @@ export default function PaymentPage() {
                                                 </DialogFooter>
                                             </>
                                         )}
-                                        {paymentStep === 'pay' && qrCodeImage && (
+                                        {paymentStep === 'method' && (
+                                            <>
+                                                <DialogHeader>
+                                                    <DialogTitle>Choose Payment Method</DialogTitle>
+                                                    <DialogDescription>How would you like to pay ₹{parseFloat(topUpAmount).toFixed(2)}?</DialogDescription>
+                                                </DialogHeader>
+                                                <div className="py-4 space-y-4">
+                                                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => setPaymentStep('pay_qr')}>
+                                                        <ScanQrCode className="mr-4 h-6 w-6" />
+                                                        <div>
+                                                            <p className="font-semibold">Scan UPI QR Code</p>
+                                                            <p className="text-xs text-muted-foreground text-left">Pay using any UPI app</p>
+                                                        </div>
+                                                    </Button>
+                                                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => setPaymentStep('pay_upi')}>
+                                                        <Banknote className="mr-4 h-6 w-6" />
+                                                        <div>
+                                                            <p className="font-semibold">Use Saved UPI ID</p>
+                                                            <p className="text-xs text-muted-foreground text-left">user@upi</p>
+                                                        </div>
+                                                    </Button>
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button variant="ghost" onClick={() => setPaymentStep('amount')}>Back</Button>
+                                                </DialogFooter>
+                                            </>
+                                        )}
+                                        {paymentStep === 'pay_qr' && qrCodeImage && (
                                             <>
                                                 <DialogHeader>
                                                     <DialogTitle>Complete Payment</DialogTitle>
@@ -198,7 +233,25 @@ export default function PaymentPage() {
                                                     <Button onClick={handleCompletePayment} className="w-full">
                                                         <ScanQrCode className="mr-2 h-4 w-4" /> Simulate Successful Payment
                                                     </Button>
-                                                    <Button variant="outline" onClick={() => setPaymentStep('amount')}>Back</Button>
+                                                    <Button variant="outline" onClick={() => setPaymentStep('method')}>Back</Button>
+                                                </DialogFooter>
+                                            </>
+                                        )}
+                                        {paymentStep === 'pay_upi' && (
+                                            <>
+                                                <DialogHeader>
+                                                    <DialogTitle>Complete Payment</DialogTitle>
+                                                    <DialogDescription>A payment request will be sent to your UPI app.</DialogDescription>
+                                                </DialogHeader>
+                                                <div className="py-8 flex flex-col items-center gap-4 text-center">
+                                                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                                                    <p className="text-muted-foreground">Waiting for you to complete the payment of <br/><span className="font-bold text-foreground">₹{parseFloat(topUpAmount).toFixed(2)}</span> via your UPI app.</p>
+                                                </div>
+                                                <DialogFooter className="flex-col sm:flex-col sm:space-x-0 gap-2">
+                                                    <Button onClick={handleCompletePayment} className="w-full">
+                                                        <CheckCircle className="mr-2 h-4 w-4" /> I have paid
+                                                    </Button>
+                                                    <Button variant="outline" onClick={() => setPaymentStep('method')}>Back</Button>
                                                 </DialogFooter>
                                             </>
                                         )}
@@ -328,28 +381,48 @@ export default function PaymentPage() {
                                     <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>Add Payment Method</DialogTitle>
-                                            <DialogDescription>Add a new credit/debit card. (This is a mock form)</DialogDescription>
+                                            <DialogDescription>Add a new credit/debit card or UPI ID.</DialogDescription>
                                         </DialogHeader>
-                                        <div className="py-4 space-y-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="card-number">Card Number</Label>
-                                                <Input id="card-number" placeholder="•••• •••• •••• ••••" />
-                                            </div>
-                                             <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="expiry">Expiry</Label>
-                                                    <Input id="expiry" placeholder="MM/YY" />
+                                        <Tabs defaultValue="card" className="w-full pt-4">
+                                            <TabsList className="grid w-full grid-cols-2">
+                                                <TabsTrigger value="card">Credit/Debit Card</TabsTrigger>
+                                                <TabsTrigger value="upi">UPI</TabsTrigger>
+                                            </TabsList>
+                                            <TabsContent value="card">
+                                                 <div className="py-4 space-y-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="card-number">Card Number</Label>
+                                                        <Input id="card-number" placeholder="•••• •••• •••• ••••" />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="expiry">Expiry</Label>
+                                                            <Input id="expiry" placeholder="MM/YY" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="cvc">CVC</Label>
+                                                            <Input id="cvc" placeholder="•••" />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="cvc">CVC</Label>
-                                                    <Input id="cvc" placeholder="•••" />
+                                                <DialogFooter>
+                                                    <Button variant="outline" onClick={() => setIsAddPaymentOpen(false)}>Cancel</Button>
+                                                    <Button onClick={() => handleAddPayment('card')}>Add Card</Button>
+                                                </DialogFooter>
+                                            </TabsContent>
+                                            <TabsContent value="upi">
+                                                <div className="py-4 space-y-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="upi-id">UPI ID</Label>
+                                                        <Input id="upi-id" placeholder="yourname@bank" value={upiId} onChange={(e) => setUpiId(e.target.value)} />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <DialogFooter>
-                                            <Button variant="outline" onClick={() => setIsAddPaymentOpen(false)}>Cancel</Button>
-                                            <Button onClick={handleAddPayment}>Add Card</Button>
-                                        </DialogFooter>
+                                                <DialogFooter>
+                                                    <Button variant="outline" onClick={() => setIsAddPaymentOpen(false)}>Cancel</Button>
+                                                    <Button onClick={() => handleAddPayment('upi')} disabled={!upiId}>Add UPI ID</Button>
+                                                </DialogFooter>
+                                            </TabsContent>
+                                        </Tabs>
                                     </DialogContent>
                                 </Dialog>
                             </CardFooter>
