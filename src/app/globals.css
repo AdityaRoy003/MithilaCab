@@ -10,7 +10,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
-    --primary: 260 90% 70%;
+    --primary: 180 90% 50%;
     --primary-foreground: 222 84% 5%;
     --secondary: 224 71% 12%;
     --secondary-foreground: 210 40% 98%;
@@ -22,8 +22,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 224 71% 12%;
     --input: 224 71% 12%;
-    --ring: 260 90% 70%;
-    --radius: 0.5rem;
+    --ring: 180 90% 50%;
     --chart-1: 180 90% 50%;
     --chart-2: 330 85% 60%;
     --chart-3: 50 100% 55%;
@@ -82,22 +81,24 @@
 }
 
 @media print {
-  body > *:not(.printable-content) {
-    display: none;
+  body * {
+    visibility: hidden;
+  }
+  .printable-content, .printable-content * {
+    visibility: visible;
   }
   .printable-content {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
-    padding: 0;
-    margin: 0;
   }
   .printable-receipt {
     box-shadow: none;
     border: none;
   }
-  .non-printable {
+  .non-printable, .non-printable * {
+    visibility: hidden;
     display: none;
   }
 }
