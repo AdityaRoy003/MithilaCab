@@ -81,27 +81,36 @@
 }
 
 @media print {
+  /* Hide everything by default */
   body * {
     visibility: hidden;
   }
-  
+
+  /* Make the receipt and its children visible */
   .mithila-printable-receipt, .mithila-printable-receipt * {
     visibility: visible;
   }
-  
+
+  /*
+    Forcefully reset the dialog's styles to act like a normal document.
+    This overrides the 'fixed' positioning, 'transformations' for centering,
+    and other dialog-specific styles that interfere with printing.
+  */
   .mithila-printable-receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    border: none;
-    box-shadow: none;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
   }
-  
-  .mithila-non-printable, .mithila-non-printable * {
-      display: none !important;
-      visibility: hidden !important;
+
+  /* Ensure the non-printable footer inside the dialog is hidden */
+  .mithila-non-printable {
+    display: none !important;
   }
 }
