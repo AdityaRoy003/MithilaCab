@@ -8,20 +8,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Zap, Check, Star, Loader2, Award, Calendar, IndianRupee, ScanQrCode, Banknote, CheckCircle } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface UserProfile {
+    powerPass?: {
+        isActive: boolean;
+        expiryDate: string;
+    };
+    displayName?: string;
+    email?: string;
+}
 
 export default function PowerPassPage() {
     const router = useRouter();
-    const { user } = useUser();
+    const { user, isUserLoading } = useUser();
+    const firestore = useFirestore();
     const { toast } = useToast();
+
+    const userDocRef = useMemoFirebase(() => {
+        if (!user) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [firestore, user]);
+
+    const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
+
     const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success'>('idle');
     const [paymentStep, setPaymentStep] = useState<'confirm' | 'method' | 'pay_qr' | 'pay_upi' | 'processing'>('confirm');
-    const [isActive, setIsActive] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const qrCodeImage = PlaceHolderImages.find(img => img.id === 'upi-qr-code');
@@ -30,9 +49,22 @@ export default function PowerPassPage() {
         setPaymentStep('processing');
         setPaymentStatus('processing');
         setTimeout(() => {
+            const expiryDate = new Date();
+            expiryDate.setMonth(expiryDate.getMonth() + 1);
+
+            const powerPassData = {
+                powerPass: {
+                    isActive: true,
+                    expiryDate: expiryDate.toISOString(),
+                }
+            };
+
+            if (userDocRef) {
+                updateDocumentNonBlocking(userDocRef, powerPassData);
+            }
+            
             setPaymentStatus('success');
-            setIsActive(true);
-            setIsDialogOpen(false); // Close dialog on success
+            setIsDialogOpen(false);
             toast({ title: 'Power Pass Activated!', description: 'Your monthly pass is now active.' });
              setTimeout(() => {
                 setPaymentStep('confirm');
@@ -44,7 +76,6 @@ export default function PowerPassPage() {
      const handleOpenChange = (open: boolean) => {
         setIsDialogOpen(open);
         if (!open) {
-            // Add a small delay to allow the closing animation to finish before resetting state
             setTimeout(() => {
                 setPaymentStep('confirm');
                 setPaymentStatus('idle');
@@ -52,11 +83,28 @@ export default function PowerPassPage() {
         }
     }
 
-    const getNextMonthDate = () => {
-        const today = new Date();
-        const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
-        return format(nextMonth, 'PPP');
+    const getExpiryDate = () => {
+        if (userProfile?.powerPass?.expiryDate) {
+            return format(new Date(userProfile.powerPass.expiryDate), 'PPP');
+        }
+        return 'N/A';
     };
+    
+    const isLoading = isUserLoading || profileLoading;
+    const isActive = userProfile?.powerPass?.isActive ?? false;
+
+    if (isLoading) {
+        return (
+            <AppLayout>
+                <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
+                    <div className="max-w-2xl mx-auto w-full">
+                        <Skeleton className="h-8 w-40 mb-6" />
+                        <Skeleton className="h-96 w-full" />
+                    </div>
+                </main>
+            </AppLayout>
+        );
+    }
 
     return (
         <AppLayout>
@@ -226,14 +274,14 @@ export default function PowerPassPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="p-4 rounded-lg bg-primary-foreground/10 text-center">
-                                    <p className="font-semibold text-lg">{user?.displayName}</p>
+                                    <p className="font-semibold text-lg">{userProfile?.displayName}</p>
                                     <p className="text-sm opacity-80">Power Pass Member</p>
                                 </div>
                                 <Separator className="bg-primary-foreground/20" />
                                 <div className="space-y-3 text-sm">
                                     <div className="flex items-center justify-between">
                                         <span className="opacity-80 flex items-center gap-2"><Calendar className="h-4 w-4" /> Valid Until</span>
-                                        <span className="font-semibold">{getNextMonthDate()}</span>
+                                        <span className="font-semibold">{getExpiryDate()}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="opacity-80 flex items-center gap-2"><Star className="h-4 w-4" /> Benefits</span>
