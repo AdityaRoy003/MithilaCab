@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Banknote, IndianRupee, CreditCard, Wallet, Plus, History, Tag, Trash2 } from 'lucide-react';
+import { ArrowLeft, Banknote, IndianRupee, CreditCard, Wallet, Plus, History, Tag, Trash2, Loader2, ScanQrCode } from 'lucide-react';
 import { useState } from 'react';
+import Image from 'next/image';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +18,8 @@ import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, addDocum
 import { doc, collection, query, orderBy, serverTimestamp, increment, Timestamp } from 'firebase/firestore';
 import { format as formatDate } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import PlaceHolderImages from '@/app/lib/placeholder-images.json';
+
 
 interface UserProfile {
     walletBalance?: number;
@@ -37,6 +40,9 @@ export default function PaymentPage() {
     const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [topUpAmount, setTopUpAmount] = useState('');
+    const [paymentStep, setPaymentStep] = useState<'amount' | 'pay' | 'processing'>('amount');
+    
+    const qrCodeImage = PlaceHolderImages.find(img => img.id === 'upi-qr-code');
 
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
@@ -57,30 +63,49 @@ export default function PaymentPage() {
 
     const isLoading = isUserLoading || profileLoading || transactionsLoading;
 
-    const handleTopUp = () => {
-        if (!user || !userDocRef) return;
+    const handleProceedToPayment = () => {
         const amount = parseFloat(topUpAmount);
         if (isNaN(amount) || amount <= 0) {
-            toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Please enter a valid amount to top up.' });
+            toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Please enter a valid positive amount.' });
             return;
         }
+        setPaymentStep('pay');
+    };
 
-        const transactionData = {
-            type: 'Top-up' as const,
-            date: serverTimestamp(),
-            amount: amount,
-            status: 'Success' as const
-        };
-        const transactionsColRef = collection(firestore, 'users', user.uid, 'transactions');
-        addDocumentNonBlocking(transactionsColRef, transactionData);
+    const handleCompletePayment = () => {
+        if (!user || !userDocRef) return;
+        const amount = parseFloat(topUpAmount);
 
-        updateDocumentNonBlocking(userDocRef, {
-            walletBalance: increment(amount)
-        });
+        setPaymentStep('processing');
 
-        toast({ title: 'Top-up Successful', description: `₹${amount} has been added to your wallet.` });
-        setIsTopUpOpen(false);
-        setTopUpAmount('');
+        setTimeout(() => {
+            const transactionData = {
+                type: 'Top-up' as const,
+                date: serverTimestamp(),
+                amount: amount,
+                status: 'Success' as const
+            };
+            const transactionsColRef = collection(firestore, 'users', user.uid, 'transactions');
+            addDocumentNonBlocking(transactionsColRef, transactionData);
+
+            updateDocumentNonBlocking(userDocRef, {
+                walletBalance: increment(amount)
+            });
+
+            toast({ title: 'Top-up Successful', description: `₹${amount} has been added to your wallet.` });
+            setIsTopUpOpen(false); // This will trigger the onOpenChange handler
+        }, 2000);
+    };
+    
+    const handleTopUpOpenChange = (open: boolean) => {
+        setIsTopUpOpen(open);
+        if (!open) {
+            // Add a small delay to allow the closing animation to finish before resetting state
+            setTimeout(() => {
+                setPaymentStep('amount');
+                setTopUpAmount('');
+            }, 300);
+        }
     };
     
     const handleAddPayment = () => {
@@ -125,7 +150,7 @@ export default function PaymentPage() {
                                 </div>
                             </CardContent>
                              <CardFooter className="flex gap-4">
-                                <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
+                                <Dialog open={isTopUpOpen} onOpenChange={handleTopUpOpenChange}>
                                     <DialogTrigger asChild>
                                         <Button className="w-full font-bold">
                                             <Plus className="mr-2 h-4 w-4" />
@@ -133,18 +158,62 @@ export default function PaymentPage() {
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Top-up Wallet</DialogTitle>
-                                            <DialogDescription>Enter the amount you want to add to your wallet.</DialogDescription>
-                                        </DialogHeader>
-                                        <div className="py-4">
-                                            <Label htmlFor="top-up-amount">Amount (₹)</Label>
-                                            <Input id="top-up-amount" type="number" placeholder="e.g., 500" value={topUpAmount} onChange={(e) => setTopUpAmount(e.target.value)} />
-                                        </div>
-                                        <DialogFooter>
-                                            <Button variant="outline" onClick={() => setIsTopUpOpen(false)}>Cancel</Button>
-                                            <Button onClick={handleTopUp}>Add to Wallet</Button>
-                                        </DialogFooter>
+                                        {paymentStep === 'amount' && (
+                                            <>
+                                                <DialogHeader>
+                                                    <DialogTitle>Top-up Wallet</DialogTitle>
+                                                    <DialogDescription>Enter the amount you want to add to your wallet.</DialogDescription>
+                                                </DialogHeader>
+                                                <div className="py-4">
+                                                    <Label htmlFor="top-up-amount">Amount (₹)</Label>
+                                                    <Input id="top-up-amount" type="number" placeholder="e.g., 500" value={topUpAmount} onChange={(e) => setTopUpAmount(e.target.value)} />
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button variant="outline" onClick={() => setIsTopUpOpen(false)}>Cancel</Button>
+                                                    <Button onClick={handleProceedToPayment}>Proceed to Pay</Button>
+                                                </DialogFooter>
+                                            </>
+                                        )}
+                                        {paymentStep === 'pay' && qrCodeImage && (
+                                            <>
+                                                <DialogHeader>
+                                                    <DialogTitle>Complete Payment</DialogTitle>
+                                                    <DialogDescription>Scan the QR code with your UPI app or click the button below.</DialogDescription>
+                                                </DialogHeader>
+                                                <div className="py-4 flex flex-col items-center gap-4">
+                                                    <Image
+                                                        src={qrCodeImage.imageUrl}
+                                                        alt={qrCodeImage.description}
+                                                        width={200}
+                                                        height={200}
+                                                        className="rounded-lg border"
+                                                        data-ai-hint={qrCodeImage.imageHint}
+                                                    />
+                                                    <div className="text-center">
+                                                        <p className="text-sm text-muted-foreground">Amount to Pay</p>
+                                                        <p className="text-2xl font-bold">₹{parseFloat(topUpAmount).toFixed(2)}</p>
+                                                    </div>
+                                                </div>
+                                                <DialogFooter className="flex-col sm:flex-col sm:space-x-0 gap-2">
+                                                    <Button onClick={handleCompletePayment} className="w-full">
+                                                        <ScanQrCode className="mr-2 h-4 w-4" /> Simulate Successful Payment
+                                                    </Button>
+                                                    <Button variant="outline" onClick={() => setPaymentStep('amount')}>Back</Button>
+                                                </DialogFooter>
+                                            </>
+                                        )}
+                                         {paymentStep === 'processing' && (
+                                            <>
+                                                <DialogHeader>
+                                                    <DialogTitle>Processing Payment</DialogTitle>
+                                                    <DialogDescription>Please wait while we confirm your transaction.</DialogDescription>
+                                                </DialogHeader>
+                                                <div className="py-12 flex flex-col items-center justify-center gap-4">
+                                                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                                                    <p className="text-muted-foreground">This may take a moment...</p>
+                                                </div>
+                                            </>
+                                        )}
                                     </DialogContent>
                                 </Dialog>
                                 <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
@@ -197,7 +266,7 @@ export default function PaymentPage() {
                             </CardFooter>
                         </Card>
 
-                        {/* Saved Payment Methods - Functionality is mocked as it requires a payment provider */}
+                        {/* Saved Payment Methods */}
                         <Card>
                              <CardHeader>
                                 <CardTitle>Saved Payment Methods</CardTitle>
@@ -325,5 +394,3 @@ export default function PaymentPage() {
         </AppLayout>
     );
 }
-
-    

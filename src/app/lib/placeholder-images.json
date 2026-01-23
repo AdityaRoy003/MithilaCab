@@ -82,5 +82,11 @@
     "description": "Portrait of a local woman from the Mithila region.",
     "imageUrl": "https://picsum.photos/seed/testimonial2/400/400.jpg",
     "imageHint": "Indian woman"
+  },
+  {
+    "id": "upi-qr-code",
+    "description": "A sample UPI QR code for payment simulation.",
+    "imageUrl": "https://picsum.photos/seed/qrcode/300/300.jpg",
+    "imageHint": "qr code"
   }
 ]
