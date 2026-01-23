@@ -26,45 +26,45 @@ const itemVariants = {
 const trainingModules = [
     {
         icon: BookOpen,
-        title: "Getting Started with MithilaCab",
-        description: "Everything you need to know to take your first trip.",
+        title: "Welcome to MithilaCab: Your First Ride",
+        description: "Everything you need to know to get started and complete your first trip successfully.",
         content: [
-            { type: Video, text: "App Walkthrough for Drivers" },
-            { type: FileText, text: "Setting Up Your Profile & Vehicle" },
-            { type: FileText, text: "Understanding the Driver Dashboard" },
+            { type: Video, text: "Video: A Driver's First Day" },
+            { type: FileText, text: "Guide: Setting Up Your Profile and Vehicle" },
+            { type: FileText, text: "Checklist: Pre-Ride Vehicle Inspection" },
         ]
     },
     {
         icon: Shield,
-        title: "Safety & Professionalism",
-        description: "Best practices for a safe and professional ride experience.",
+        title: "Safety and Professionalism on the Road",
+        description: "Our commitment to safety and providing a 5-star experience for every passenger.",
         content: [
-            { type: Video, text: "Handling Difficult Passengers" },
-            { type: FileText, text: "Daily Vehicle Safety Checks" },
-            { type: FileText, text: "Community Guidelines" },
+            { type: Video, text: "Video: Handling Common On-Road Scenarios" },
+            { type: FileText, text: "Guide: Our Community Guidelines & Policies" },
+            { type: FileText, text: "Guide: Using In-App Safety Features" },
         ]
     },
     {
         icon: IndianRupee,
         title: "Maximizing Your Earnings",
-        description: "Tips and tricks to increase your income on the platform.",
+        description: "Learn strategies to boost your income, understand earnings, and take advantage of incentives.",
         content: [
-            { type: Video, text: "Understanding Peak Hours & Surge Pricing" },
-            { type: FileText, text: "How Incentives Work" },
-            { type: FileText, text: "Tips for Earning Higher Ratings & Tips" },
+            { type: Video, text: "Video: Understanding Surge and Peak Hours" },
+            { type: FileText, text: "Guide: Decoding Your Earnings Statement" },
+            { type: FileText, text: "Guide: How to Qualify for Weekly Incentives" },
         ]
     },
     {
         icon: Star,
-        title: "Advanced App Features",
-        description: "Become a power user and make the most of the app.",
+        title: "Embracing Mithila's Culture",
+        description: "Providing a unique, culturally-aware experience for tourists and locals alike.",
         content: [
-            { type: Video, text: "Using In-App Navigation Effectively" },
-            { type: FileText, text: "Understanding Your Earnings Report" },
-            { type: FileText, text: "Managing Your Payouts" },
+            { type: Video, text: "Video: Key Landmarks in Darbhanga & Madhubani" },
+            { type: FileText, text: "Guide: Common Phrases in Maithili" },
+            { type: FileText, text: "Guide: Local Etiquette and Customer Service" },
         ]
     }
-]
+];
 
 export default function DriverTrainingPage() {
   const router = useRouter();
