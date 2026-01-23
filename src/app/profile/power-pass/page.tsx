@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import AppLayout from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Zap, Check, Star, Loader2, Award, Calendar } from 'lucide-react';
+import { ArrowLeft, Zap, Check, Star, Loader2, Award, Calendar, IndianRupee } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
@@ -18,12 +19,14 @@ export default function PowerPassPage() {
     const { toast } = useToast();
     const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success'>('idle');
     const [isActive, setIsActive] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const handlePurchase = () => {
         setPaymentStatus('processing');
         setTimeout(() => {
             setPaymentStatus('success');
             setIsActive(true);
+            setIsDialogOpen(false); // Close dialog on success
             toast({ title: 'Power Pass Activated!', description: 'Your monthly pass is now active.' });
         }, 2000);
     };
@@ -65,16 +68,43 @@ export default function PowerPassPage() {
                                 </ul>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full font-bold text-lg h-12" onClick={handlePurchase} disabled={paymentStatus === 'processing'}>
-                                    {paymentStatus === 'processing' ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                            Processing Payment...
-                                        </>
-                                    ) : (
-                                        'Get Power Pass'
-                                    )}
-                                </Button>
+                                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button className="w-full font-bold text-lg h-12">
+                                            Get Power Pass
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Confirm Your Purchase</DialogTitle>
+                                            <DialogDescription>
+                                                You are about to purchase the MithilaCab Power Pass for ₹99.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="py-4 space-y-4">
+                                            <div className="p-4 rounded-lg bg-muted text-center">
+                                                <p className="text-sm text-muted-foreground">Total Amount Due</p>
+                                                <p className="font-bold text-3xl flex items-center justify-center gap-1">
+                                                    <IndianRupee className="h-6 w-6"/>99.00
+                                                </p>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground text-center">
+                                                Your pass will be active for one month from today and will auto-renew. You can cancel anytime.
+                                            </p>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={paymentStatus === 'processing'}>Cancel</Button>
+                                            <Button onClick={handlePurchase} disabled={paymentStatus === 'processing'}>
+                                                {paymentStatus === 'processing' ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        Processing...
+                                                    </>
+                                                ) : 'Confirm & Pay ₹99'}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
                             </CardFooter>
                         </Card>
                     ) : (
