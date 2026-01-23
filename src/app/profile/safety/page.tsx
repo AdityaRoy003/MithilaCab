@@ -11,6 +11,52 @@ export default function SafetyPage() {
     const router = useRouter();
     const { toast } = useToast();
 
+    const handleShareTrip = async () => {
+        if (navigator.share) {
+            toast({
+                title: 'Getting your location...',
+                description: 'Please wait a moment.'
+            });
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const { latitude, longitude } = position.coords;
+                const shareData = {
+                    title: 'My MithilaCab Ride',
+                    text: `I'm currently on a MithilaCab ride. You can follow my journey here:`,
+                    url: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+                };
+                try {
+                    await navigator.share(shareData);
+                    toast({
+                        title: "Trip Shared",
+                        description: "Your location has been shared."
+                    });
+                } catch (err) {
+                    // This error can happen if the user cancels the share sheet
+                    console.error("Share error:", err);
+                     toast({
+                        variant: 'destructive',
+                        title: "Sharing Cancelled",
+                        description: "Your trip was not shared."
+                    });
+                }
+            }, (error) => {
+                // Geolocation failed
+                console.error("Geolocation error:", error);
+                toast({
+                    variant: 'destructive',
+                    title: "Location Error",
+                    description: "Could not get your location. Please enable location services."
+                });
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: "Not Supported",
+                description: "Your browser does not support the Web Share API."
+            });
+        }
+    };
+
     const handleNotImplemented = (feature: string) => {
         toast({
           title: "Feature coming soon!",
@@ -38,14 +84,16 @@ export default function SafetyPage() {
                                 <CardDescription>For use in urgent situations during a ride.</CardDescription>
                             </CardHeader>
                             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <Button variant="destructive" size="lg" className="h-auto py-3" onClick={() => handleNotImplemented('Emergency SOS')}>
-                                    <div className="flex flex-col items-center gap-1">
-                                        <AlertCircle className="h-6 w-6" />
-                                        <span className="font-bold">SOS Helpline</span>
-                                        <span className="text-xs font-normal">Contact emergency services</span>
-                                    </div>
+                                <Button asChild variant="destructive" size="lg" className="h-auto py-3">
+                                    <a href="tel:112">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <AlertCircle className="h-6 w-6" />
+                                            <span className="font-bold">SOS Helpline</span>
+                                            <span className="text-xs font-normal">Contact emergency services</span>
+                                        </div>
+                                    </a>
                                 </Button>
-                                <Button variant="outline" size="lg" className="h-auto py-3" onClick={() => handleNotImplemented('Share Trip')}>
+                                <Button variant="outline" size="lg" className="h-auto py-3" onClick={handleShareTrip}>
                                     <div className="flex flex-col items-center gap-1">
                                         <Share2 className="h-6 w-6" />
                                         <span className="font-bold">Share Trip</span>
