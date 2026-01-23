@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from "@/components/app-layout";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Zap, Check, Star, Loader2, Award, Calendar, IndianRupee, ScanQrCode, Banknote, CheckCircle } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
@@ -20,7 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface UserProfile {
     powerPass?: {
         isActive: boolean;
-        expiryDate: string;
+        expiryDate: string | null;
     };
     displayName?: string;
     email?: string;
@@ -71,6 +72,25 @@ export default function PowerPassPage() {
                 setPaymentStatus('idle');
             }, 500);
         }, 2000);
+    };
+
+    const handleCancelSubscription = () => {
+        if (!userDocRef) return;
+
+        const powerPassData = {
+            powerPass: {
+                isActive: false,
+                expiryDate: null,
+            }
+        };
+
+        updateDocumentNonBlocking(userDocRef, powerPassData);
+        
+        toast({
+            variant: 'destructive',
+            title: 'Subscription Cancelled',
+            description: 'Your Power Pass has been cancelled and will not renew.',
+        });
     };
 
      const handleOpenChange = (open: boolean) => {
@@ -290,9 +310,27 @@ export default function PowerPassPage() {
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button variant="secondary" className="w-full bg-primary-foreground/90 text-primary hover:bg-primary-foreground">
-                                    Manage Subscription
-                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="secondary" className="w-full bg-primary-foreground/90 text-primary hover:bg-primary-foreground">
+                                            Manage Subscription
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Cancel Power Pass?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Are you sure you want to cancel your subscription? Your benefits will remain active until {getExpiryDate()}, but the pass will not auto-renew.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleCancelSubscription} className={buttonVariants({ variant: "destructive" })}>
+                                                Confirm Cancellation
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </CardFooter>
                         </Card>
                     )}
