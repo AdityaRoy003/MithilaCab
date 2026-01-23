@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Car, CarFront, MapPin, Truck } from 'lucide-react';
 import type { RideType } from '@/lib/data';
 
@@ -17,16 +17,98 @@ interface BookingFormProps {
   initialDestination?: string | null;
 }
 
+// Mock locations in Mithila region
+const mithilaLocations = [
+  "Darbhanga Tower, Darbhanga",
+  "Laheriasarai Station, Laheriasarai",
+  "DMCH Hospital, Darbhanga",
+  "Mithila University, Darbhanga",
+  "V2 Mall, Darbhanga",
+  "Donar Chowk, Darbhanga",
+  "Allalpatti, Darbhanga",
+  "Panda Sarai, Madhubani",
+  "Kathalbari, Darbhanga",
+  "Bengali Tola, Darbhanga",
+  "Sakri, Madhubani",
+  "Madhubani Station, Madhubani",
+  "Rajnagar Palace, Madhubani",
+  "Saurath, Madhubani",
+  "Benipatti, Madhubani",
+  "Jhanjharpur, Madhubani",
+  "Samastipur Junction, Samastipur",
+  "Pusa Road, Samastipur",
+  "Rosera, Samastipur",
+  "Dalsinghsarai, Samastipur",
+];
+
+
 export function BookingForm({ onBookingRequest, initialPickup, initialDestination }: BookingFormProps) {
   const [pickup, setPickup] = useState(initialPickup || '');
   const [destination, setDestination] = useState(initialDestination || '');
   const [rideType, setRideType] = useState<RideType>('Standard');
   
+  const [pickupSuggestions, setPickupSuggestions] = useState<string[]>([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([]);
+  const [activeSuggestionBox, setActiveSuggestionBox] = useState<'pickup' | 'destination' | null>(null);
+
+  const pickupRef = useRef<HTMLDivElement>(null);
+  const destinationRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (initialPickup) setPickup(initialPickup);
     if (initialDestination) setDestination(initialDestination);
   }, [initialPickup, initialDestination]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (
+            pickupRef.current && !pickupRef.current.contains(event.target as Node) &&
+            destinationRef.current && !destinationRef.current.contains(event.target as Node)
+        ) {
+            setActiveSuggestionBox(null);
+        }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handlePickupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPickup(value);
+    if (value) {
+      const filtered = mithilaLocations.filter(loc => loc.toLowerCase().includes(value.toLowerCase()));
+      setPickupSuggestions(filtered);
+      setActiveSuggestionBox('pickup');
+    } else {
+      setPickupSuggestions([]);
+      setActiveSuggestionBox(null);
+    }
+  };
+
+  const handleDestinationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setDestination(value);
+    if (value) {
+      const filtered = mithilaLocations.filter(loc => loc.toLowerCase().includes(value.toLowerCase()));
+      setDestinationSuggestions(filtered);
+      setActiveSuggestionBox('destination');
+    } else {
+      setDestinationSuggestions([]);
+      setActiveSuggestionBox(null);
+    }
+  };
+
+  const handleSuggestionClick = (location: string, type: 'pickup' | 'destination') => {
+    if (type === 'pickup') {
+      setPickup(location);
+    } else {
+      setDestination(location);
+    }
+    setActiveSuggestionBox(null);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +116,23 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
       onBookingRequest(pickup, destination, rideType);
     }
   };
+
+  const SuggestionsBox = ({ suggestions, onSelect, type }: { suggestions: string[], onSelect: (loc: string, type: 'pickup' | 'destination') => void, type: 'pickup' | 'destination' }) => {
+    if (suggestions.length === 0) return null;
+    return (
+      <div className="absolute z-10 w-full mt-1 bg-card border rounded-md shadow-lg max-h-48 overflow-y-auto">
+        {suggestions.map((suggestion, index) => (
+          <div
+            key={index}
+            onClick={() => onSelect(suggestion, type)}
+            className="p-2 hover:bg-accent cursor-pointer text-sm"
+          >
+            {suggestion}
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -43,7 +142,7 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
+            <div className="space-y-2 relative" ref={pickupRef}>
               <Label htmlFor="pickup">Pickup Location</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -51,13 +150,18 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
                   id="pickup"
                   placeholder="Enter pickup location"
                   value={pickup}
-                  onChange={(e) => setPickup(e.target.value)}
+                  onChange={handlePickupChange}
+                  onFocus={() => { if(pickup) setActiveSuggestionBox('pickup')}}
                   required
                   className="pl-10"
+                  autoComplete="off"
                 />
               </div>
+              {activeSuggestionBox === 'pickup' && (
+                <SuggestionsBox suggestions={pickupSuggestions} onSelect={handleSuggestionClick} type="pickup" />
+              )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 relative" ref={destinationRef}>
               <Label htmlFor="destination">Destination</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -65,11 +169,16 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
                   id="destination"
                   placeholder="Enter destination"
                   value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
+                  onChange={handleDestinationChange}
+                  onFocus={() => { if(destination) setActiveSuggestionBox('destination')}}
                   required
                   className="pl-10"
+                  autoComplete="off"
                 />
               </div>
+              {activeSuggestionBox === 'destination' && (
+                <SuggestionsBox suggestions={destinationSuggestions} onSelect={handleSuggestionClick} type="destination" />
+               )}
             </div>
 
              <div className="space-y-2">
