@@ -58,8 +58,8 @@ const LiveChatDialog = () => {
             </ScrollArea>
             <DialogFooter className="p-4 border-t">
                 <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
-                    <Input 
-                        placeholder="Type your message..." 
+                    <Input
+                        placeholder="Type your message..."
                         value={input}
                         onChange={e => setInput(e.target.value)}
                     />
@@ -183,7 +183,7 @@ export default function SafetyPage() {
                                 </Dialog>
                             </CardContent>
                         </Card>
-                        
+
                         {/* Insurance */}
                         <Card>
                             <CardHeader>
@@ -193,7 +193,7 @@ export default function SafetyPage() {
                                 <p className="text-sm text-muted-foreground">All rides are insured in partnership with leading insurance providers. This covers accidents and emergencies during your trip, providing you and your loved ones with peace of mind. <a href="#" className="underline text-primary" onClick={(e) => {e.preventDefault(); handleNotImplemented('Insurance Details')}}>Learn more</a>.</p>
                             </CardContent>
                         </Card>
-                        
+
                          {/* Safety Tips */}
                         <Card>
                             <CardHeader>
