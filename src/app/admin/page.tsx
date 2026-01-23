@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { RideList } from './ride-list';
+import { RealtimeMap } from './realtime-map';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -153,20 +154,7 @@ export default function AdminDashboardPage() {
             <RideList />
         </motion.div>
         <motion.div variants={itemVariants}>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Real-time Ride Heatmap</CardTitle>
-                    <CardDescription>Visualize high-demand zones and driver locations.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="h-96 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-                        <div className="text-center">
-                            <Map className="h-12 w-12 mx-auto mb-2" />
-                            <p>Ride heatmap feature coming soon.</p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+            <RealtimeMap />
         </motion.div>
       </motion.div>
     </div>
