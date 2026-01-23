@@ -5,7 +5,7 @@ import type { Ride } from "@/lib/data";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
-import { IndianRupee, Star, RefreshCw, Download, Flag, Print } from "lucide-react";
+import { IndianRupee, Star, RefreshCw, Download, Flag, Printer } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -202,7 +202,7 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
             <RideReceipt ride={ride} />
             <DialogFooter className="p-4 border-t bg-muted/50 sm:justify-between non-printable">
                 <Button variant="ghost" onClick={() => setIsReceiptOpen(false)}>Close</Button>
-                <Button onClick={handlePrint}><Print className="mr-2 h-4 w-4" /> Print Receipt</Button>
+                <Button onClick={handlePrint}><Printer className="mr-2 h-4 w-4" /> Print Receipt</Button>
             </DialogFooter>
         </DialogContent>
       </Dialog>
