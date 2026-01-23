@@ -28,6 +28,7 @@ interface FareEstimateProps {
 export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [estimate, setEstimate] = useState<{ distance: string; time: number; fare: number, surgeMultiplier: number; } | null>(null);
+  const [breakdown, setBreakdown] = useState<{baseFare: number, distanceCharge: number} | null>(null);
 
   const firestore = useFirestore();
   const settingsDocRef = useMemoFirebase(() => doc(firestore, 'settings', 'platform'), [firestore]);
@@ -50,9 +51,11 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
     const baseFare = rideSettings.baseFare;
     const perKmRate = rideSettings.perKmRate;
 
-    const finalFare = Math.round((baseFare + dist * perKmRate) * surgeMultiplier);
+    const distanceCharge = dist * perKmRate;
+    const finalFare = Math.round((baseFare + distanceCharge) * surgeMultiplier);
     const travelTime = Math.round(dist * 2.5);
-
+    
+    setBreakdown({ baseFare, distanceCharge });
     setEstimate({
       distance: dist.toFixed(1),
       time: travelTime,
@@ -73,7 +76,7 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
     }
   };
   
-  const showSkeletons = isLoading || settingsLoading || !estimate;
+  const showSkeletons = isLoading || settingsLoading || !estimate || !breakdown;
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -117,19 +120,34 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
           )}
 
            {showSkeletons ? (
-              <Skeleton className="h-[92px] w-full" />
+              <Skeleton className="h-20 w-full" />
+           ): (
+            <div className="text-sm space-y-2 p-4 rounded-lg bg-muted/50">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Base Fare</span>
+                <span>₹{breakdown.baseFare.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Distance Charge ({estimate.distance} km)</span>
+                <span>₹{breakdown.distanceCharge.toFixed(2)}</span>
+              </div>
+              {estimate.surgeMultiplier > 1 && (
+                <div className="flex justify-between text-destructive">
+                  <span className="flex items-center gap-1"><Zap className="h-4 w-4"/> Surge ({estimate.surgeMultiplier}x)</span>
+                  <span>+ ₹{((breakdown.baseFare + breakdown.distanceCharge) * (estimate.surgeMultiplier - 1)).toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+           )}
+
+           {showSkeletons ? (
+              <Skeleton className="h-[76px] w-full" />
            ): (
             <div className="text-center p-4 rounded-lg bg-accent/10 border border-accent">
-                <p className="text-sm text-accent-foreground/80">Estimated Fare</p>
+                <p className="text-sm text-accent-foreground/80">Estimated Total</p>
                 <p className="font-headline font-bold text-4xl text-accent flex items-center justify-center">
                     <IndianRupee size={30} className="mt-1" />{estimate.fare.toFixed(2)}
                 </p>
-                {estimate.surgeMultiplier > 1 && (
-                    <Badge variant="destructive" className="mt-2 animate-pulse">
-                        <Zap className="mr-1 h-3 w-3" />
-                        Surge Pricing Active: {estimate.surgeMultiplier}x
-                    </Badge>
-                )}
             </div>
            )}
 
