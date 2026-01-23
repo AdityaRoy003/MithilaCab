@@ -6,19 +6,49 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Banknote, IndianRupee, CreditCard, Wallet, Plus, History, Tag } from 'lucide-react';
+import { ArrowLeft, Banknote, IndianRupee, CreditCard, Wallet, Plus, History, Tag, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
+
+// Mock data
+const mockTransactions = [
+    { id: 't1', type: 'Top-up', date: '2024-07-30', amount: 500.00, status: 'Success' },
+    { id: 't2', type: 'Ride Fare', date: '2024-07-29', amount: -120.50, status: 'Success' },
+    { id: 't3', type: 'Refund', date: '2024-07-28', amount: 50.00, status: 'Success' },
+    { id: 't4', type: 'Ride Fare', date: '2024-07-27', amount: -85.00, status: 'Success' },
+];
 
 export default function PaymentPage() {
     const router = useRouter();
     const { toast } = useToast();
+    const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+    const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [topUpAmount, setTopUpAmount] = useState('');
 
-    const handleNotImplemented = (e?: React.MouseEvent) => {
-        e?.preventDefault();
-        toast({
-          title: "Feature coming soon!",
-          description: "This feature is not yet available."
-        })
-    }
+    const handleTopUp = () => {
+        if (!topUpAmount || +topUpAmount <= 0) {
+            toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Please enter a valid amount to top up.' });
+            return;
+        }
+        toast({ title: 'Top-up Successful', description: `₹${topUpAmount} has been added to your wallet.` });
+        setIsTopUpOpen(false);
+        setTopUpAmount('');
+    };
+    
+    const handleAddPayment = () => {
+        toast({ title: 'Payment Method Added', description: 'Your new payment method has been saved.' });
+        setIsAddPaymentOpen(false);
+    };
+
+    const handleRemovePayment = () => {
+        toast({ title: 'Payment Method Removed', description: 'The selected payment method has been removed.' });
+    };
 
     return (
         <AppLayout>
@@ -49,14 +79,61 @@ export default function PaymentPage() {
                                 </div>
                             </CardContent>
                              <CardFooter className="flex gap-4">
-                                <Button onClick={handleNotImplemented} className="w-full font-bold">
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Top-up Balance
-                                </Button>
-                                <Button onClick={handleNotImplemented} variant="outline" className="w-full">
-                                    <History className="mr-2 h-4 w-4" />
-                                    Transaction History
-                                </Button>
+                                <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button className="w-full font-bold">
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Top-up Balance
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Top-up Wallet</DialogTitle>
+                                            <DialogDescription>Enter the amount you want to add to your wallet.</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="py-4">
+                                            <Label htmlFor="top-up-amount">Amount (₹)</Label>
+                                            <Input id="top-up-amount" type="number" placeholder="e.g., 500" value={topUpAmount} onChange={(e) => setTopUpAmount(e.target.value)} />
+                                        </div>
+                                        <DialogFooter>
+                                            <Button variant="outline" onClick={() => setIsTopUpOpen(false)}>Cancel</Button>
+                                            <Button onClick={handleTopUp}>Add to Wallet</Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                                <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="w-full">
+                                            <History className="mr-2 h-4 w-4" />
+                                            Transaction History
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-lg">
+                                        <DialogHeader>
+                                            <DialogTitle>Transaction History</DialogTitle>
+                                        </DialogHeader>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Date</TableHead>
+                                                    <TableHead>Description</TableHead>
+                                                    <TableHead className="text-right">Amount</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {mockTransactions.map(tx => (
+                                                    <TableRow key={tx.id}>
+                                                        <TableCell className="text-xs">{tx.date}</TableCell>
+                                                        <TableCell>{tx.type}</TableCell>
+                                                        <TableCell className={`text-right font-mono ${tx.amount > 0 ? 'text-green-600' : 'text-destructive'}`}>
+                                                            {tx.amount > 0 ? `+₹${tx.amount.toFixed(2)}` : `-₹${Math.abs(tx.amount).toFixed(2)}`}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </DialogContent>
+                                </Dialog>
                             </CardFooter>
                         </Card>
 
@@ -75,7 +152,19 @@ export default function PaymentPage() {
                                             <p className="text-xs text-muted-foreground">Expires 12/25</p>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="sm" onClick={handleNotImplemented}>Remove</Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="h-4 w-4 mr-1" /> Remove</Button></AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>This will remove the saved payment method from your account.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleRemovePayment}>Remove</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                                  <div className="flex items-center justify-between p-3 rounded-md border">
                                     <div className="flex items-center gap-4">
@@ -85,13 +174,55 @@ export default function PaymentPage() {
                                             <p className="text-xs text-muted-foreground">UPI ID</p>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="sm" onClick={handleNotImplemented}>Remove</Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="h-4 w-4 mr-1"/> Remove</Button></AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>This will remove the saved payment method from your account.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleRemovePayment}>Remove</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </CardContent>
                              <CardFooter>
-                                <Button variant="outline" className="w-full" onClick={handleNotImplemented}>
-                                    <Plus className="mr-2 h-4 w-4" /> Add Payment Method
-                                </Button>
+                                <Dialog open={isAddPaymentOpen} onOpenChange={setIsAddPaymentOpen}>
+                                    <DialogTrigger asChild>
+                                         <Button variant="outline" className="w-full">
+                                            <Plus className="mr-2 h-4 w-4" /> Add Payment Method
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Add Payment Method</DialogTitle>
+                                            <DialogDescription>Add a new credit/debit card. (This is a mock form)</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="py-4 space-y-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="card-number">Card Number</Label>
+                                                <Input id="card-number" placeholder="•••• •••• •••• ••••" />
+                                            </div>
+                                             <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="expiry">Expiry</Label>
+                                                    <Input id="expiry" placeholder="MM/YY" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="cvc">CVC</Label>
+                                                    <Input id="cvc" placeholder="•••" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button variant="outline" onClick={() => setIsAddPaymentOpen(false)}>Cancel</Button>
+                                            <Button onClick={handleAddPayment}>Add Card</Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
                             </CardFooter>
                         </Card>
 
