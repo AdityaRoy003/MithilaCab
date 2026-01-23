@@ -129,10 +129,10 @@ service cloud.firestore {
     }
 
     match /settings/{settingId} {
-      // Only admins can read and write platform settings.
-      allow read, write: if isAdmin();
+      // All signed-in users can read platform settings for fare calculation.
+      allow read: if isSignedIn();
+      // Only admins can write platform settings.
+      allow write: if isAdmin();
     }
   }
 }
-
-    
