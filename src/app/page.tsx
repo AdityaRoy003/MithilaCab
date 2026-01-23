@@ -754,7 +754,7 @@ export default function LandingPage() {
                                   animate={{ rotateY: flippedStep === index ? -180 : 0 }}
                                   transition={{ duration: 0.6 }}
                               >
-                                  <div className="mb-4 text-5xl font-bold text-primary/10 absolute top-4 left-4">{step.step}</div>
+                                  <div className="mb-4 text-5xl font-bold text-muted-foreground/20 absolute top-4 left-4">{step.step}</div>
                                   <step.icon className="h-12 w-12 text-primary mb-4" />
                                   <h4 className="font-semibold text-lg">{step.title}</h4>
                               </motion.div>
