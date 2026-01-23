@@ -30,14 +30,19 @@ export default function SafetyPage() {
                         title: "Trip Shared",
                         description: "Your location has been shared."
                     });
-                } catch (err) {
-                    // This error can happen if the user cancels the share sheet
-                    console.error("Share error:", err);
-                     toast({
-                        variant: 'destructive',
-                        title: "Sharing Cancelled",
-                        description: "Your trip was not shared."
-                    });
+                } catch (err: any) {
+                    // This error can happen if the user cancels the share sheet.
+                    // We check for the specific error name to avoid showing an error toast.
+                    if (err.name === 'AbortError' || err.name === 'NotAllowedError') {
+                        console.log("Share action cancelled by user.");
+                    } else {
+                        console.error("Share error:", err);
+                        toast({
+                            variant: 'destructive',
+                            title: "Sharing Failed",
+                            description: "An unexpected error occurred while sharing."
+                        });
+                    }
                 }
             }, (error) => {
                 // Geolocation failed
