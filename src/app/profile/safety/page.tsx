@@ -118,13 +118,6 @@ export default function SafetyPage() {
         }
     };
 
-    const handleNotImplemented = (feature: string) => {
-        toast({
-          title: "Feature coming soon!",
-          description: `${feature} is not yet available.`
-        })
-    }
-
     return (
         <AppLayout>
             <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
@@ -190,7 +183,7 @@ export default function SafetyPage() {
                                 <CardTitle className="flex items-center gap-2"><ShieldCheck /> Ride Insurance</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-muted-foreground">All rides are insured in partnership with leading insurance providers. This covers accidents and emergencies during your trip, providing you and your loved ones with peace of mind. <a href="#" className="underline text-primary" onClick={(e) => {e.preventDefault(); handleNotImplemented('Insurance Details')}}>Learn more</a>.</p>
+                                <p className="text-sm text-muted-foreground">All rides are insured in partnership with leading insurance providers. This covers accidents and emergencies during your trip, providing you and your loved ones with peace of mind. <a href="#" className="underline text-primary" onClick={(e) => {e.preventDefault(); router.push('/profile/safety/insurance')}}>Learn more</a>.</p>
                             </CardContent>
                         </Card>
 
