@@ -314,10 +314,18 @@ function StaffList({ roles }: { roles: Role[] | null }) {
     const [newRole, setNewRole] = useState<string>();
     const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
 
-    const staffQuery = useMemoFirebase(
-        () => query(collection(firestore, 'users'), where('role', '!=', 'passenger'), where('role', '!=', 'driver')),
-        [firestore]
-    );
+    const staffQuery = useMemoFirebase(() => {
+        // If roles are not loaded yet, or there are no roles, don't query.
+        if (!roles || roles.length === 0) {
+            return null;
+        }
+        const staffRoleIds = roles.map(r => r.id);
+        if (staffRoleIds.length === 0) {
+            return null; // No roles to query for
+        }
+        // Firestore 'in' queries are limited to 30 values, which is more than enough for roles.
+        return query(collection(firestore, 'users'), where('role', 'in', staffRoleIds));
+    }, [firestore, roles]);
     const { data: staff, isLoading } = useCollection<StaffMember>(staffQuery);
 
     const handleOpenRoleDialog = (user: StaffMember) => {
@@ -436,8 +444,6 @@ export default function ManageStaffPage() {
   const rolesQuery = useMemoFirebase(() => query(collection(firestore, 'roles')), [firestore]);
   const { data: roles, isLoading: rolesLoading } = useCollection<Role>(rolesQuery);
 
-  const staffRoles = useMemoFirebase(() => roles?.filter(r => r.id === 'admin' || r.id === 'support'), [roles]);
-
   const form = useForm<z.infer<typeof staffFormSchema>>({
     resolver: zodResolver(staffFormSchema),
     defaultValues: {
@@ -526,7 +532,7 @@ export default function ManageStaffPage() {
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                {staffRoles?.map(role => (
+                                {roles?.map(role => (
                                     <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
                                 ))}
                             </SelectContent>
