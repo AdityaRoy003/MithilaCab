@@ -41,7 +41,7 @@ service cloud.firestore {
         let data = request.resource.data;
         return data.id == request.auth.uid &&
                data.email == request.auth.token.email &&
-               data.role in ['passenger', 'driver', 'admin'];
+               data.role in ['passenger', 'driver'];
     }
     
     // Validates that a user is only updating non-critical fields.
@@ -138,6 +138,13 @@ service cloud.firestore {
       // All signed-in users can read platform settings for fare calculation.
       allow read: if isSignedIn();
       // Only admins can write platform settings.
+      allow write: if isAdmin();
+    }
+
+    match /roles/{roleId} {
+      // Any signed-in staff member can read roles to understand permissions.
+      allow read, list: if isSignedIn();
+      // Only admins can create, update, or delete roles.
       allow write: if isAdmin();
     }
   }

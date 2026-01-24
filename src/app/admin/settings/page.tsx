@@ -19,10 +19,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Percent, IndianRupee, Car, CarFront, Truck, Zap, Users, Plus, Send, Smartphone, FileWarning } from 'lucide-react';
+import { Percent, IndianRupee, Car, CarFront, Truck, Zap, Smartphone, FileWarning, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
@@ -230,43 +229,6 @@ export default function AdminSettingsPage() {
             </Form>
 
             <Separator />
-
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle className="flex items-center gap-2"><Users />Role-Based Access Control</CardTitle>
-                        <CardDescription>Create and manage admin roles and their permissions.</CardDescription>
-                    </div>
-                    <Button onClick={handleNotImplemented}><Plus className="mr-2 h-4 w-4" /> Add Role</Button>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Permissions</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell>Admin</TableCell>
-                                <TableCell>Full Access</TableCell>
-                                <TableCell className="text-right">
-                                <Button variant="outline" size="sm" onClick={handleNotImplemented}>Manage</Button>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Support</TableCell>
-                                <TableCell>Manage users, view rides, process refunds</TableCell>
-                                <TableCell className="text-right">
-                                <Button variant="outline" size="sm" onClick={handleNotImplemented}>Manage</Button>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
             
             <Card>
                 <CardHeader>

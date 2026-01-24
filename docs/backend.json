@@ -475,6 +475,38 @@
         "amount",
         "status"
       ]
+    },
+    "Role": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Role",
+      "description": "Defines a user role and its associated permissions within the application.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the role (e.g., 'admin', 'support')."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name of the role (e.g., 'Administrator')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of what the role entails."
+        },
+        "permissions": {
+          "type": "array",
+          "description": "A list of permission strings granted to this role.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "permissions"
+      ]
     }
   },
   "auth": {
@@ -580,6 +612,22 @@
             {
               "name": "settingId",
               "description": "The unique identifier for the settings document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles/{roleId}",
+        "definition": {
+          "entityName": "Role",
+          "schema": {
+            "$ref": "#/backend/entities/Role"
+          },
+          "description": "Stores application roles and their permissions for RBAC.",
+          "params": [
+            {
+              "name": "roleId",
+              "description": "The unique identifier for the role."
             }
           ]
         }
