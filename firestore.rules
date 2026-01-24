@@ -20,6 +20,11 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Checks if the requesting user has a 'support' role.
+    function isSupport() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'support';
+    }
+
     // Ensures the document ID being written matches the user's auth UID.
     // This is used for creating user-owned documents like profiles.
     function isCreatingOwnDocument(docId) {
@@ -53,18 +58,19 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     match /users/{userId} {
-      // A user can read their own profile. Admins can read any profile.
-      allow get: if isOwner(userId) || isAdmin();
+      // A user can read their own profile. Admins and Support can read any profile.
+      allow get: if isOwner(userId) || isAdmin() || isSupport();
 
       // Only allow creating your own user document with valid data.
       allow create: if isCreatingOwnDocument(userId) && isValidUserCreate();
       
-      // A user can update their own profile, but not change their ID, email, role, or join date.
-      // Admins can update any profile.
-      allow update: if (isOwner(userId) && isValidUserUpdate()) || isAdmin();
+      // A user can update their own profile (but not role). Admins can update anything.
+      // Support can update users (but not admins) and cannot change roles.
+      allow update: if (isOwner(userId) && isValidUserUpdate()) || isAdmin() || (isSupport() && isValidUserUpdate() && resource.data.role != 'admin');
       
-      // Admins can list and delete users.
-      allow list, delete: if isAdmin();
+      // Admins and Support can list users. Only Admins can delete.
+      allow list: if isAdmin() || isSupport();
+      allow delete: if isAdmin();
 
       match /transactions/{transactionId} {
         // A user can read their own transactions. Admins can read any.
@@ -93,8 +99,8 @@ service cloud.firestore {
     }
 
     match /rides/{rideId} {
-      // GET: A user can read a single ride document if they are the passenger, the driver, or an admin.
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin());
+      // GET: A user can read a single ride document if they are the passenger, the driver, or an admin/support staff.
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin() || isSupport());
       
       // LIST: Any signed-in user can query the rides collection.
       // Client-side queries should enforce further constraints.

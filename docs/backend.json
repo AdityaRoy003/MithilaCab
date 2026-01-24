@@ -67,7 +67,7 @@
         "role": {
           "type": "string",
           "description": "Defines the user's role, granting different permissions.",
-          "enum": ["passenger", "driver", "admin"]
+          "enum": ["passenger", "driver", "admin", "support"]
         },
         "savedAddresses": {
           "type": "object",
