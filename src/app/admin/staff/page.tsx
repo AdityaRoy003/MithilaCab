@@ -31,7 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
@@ -57,7 +57,8 @@ const staffFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  role: z.string({ required_error: "Please select a role." }),
+  roleName: z.string().min(2, { message: "Role Name is required."}),
+  permissions: z.array(z.string()).min(1, "At least one permission is required."),
 });
 
 const allPermissions = [
@@ -231,12 +232,9 @@ function RolesAndPermissions({ roles, isLoading }: { roles: Role[] | null, isLoa
             <CardHeader className="flex-row items-center justify-between">
                 <div>
                     <CardTitle className="flex items-center gap-2"><Shield /> Roles & Permissions</CardTitle>
-                    <CardDescription>Define custom roles and manage their access levels.</CardDescription>
+                    <CardDescription>View, edit, or delete existing roles and their access levels.</CardDescription>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => handleOpenDialog()}><Plus className="mr-2 h-4 w-4" /> Add Role</Button>
-                    </DialogTrigger>
+                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogContent className="max-h-[90vh] overflow-y-auto">
                         <RoleFormDialog role={editingRole} onFinished={handleCloseDialog} />
                     </DialogContent>
@@ -450,37 +448,46 @@ export default function ManageStaffPage() {
       name: "",
       email: "",
       password: "",
-      role: "support",
+      roleName: "",
+      permissions: [],
     },
   });
 
   async function handleCreateStaff(values: z.infer<typeof staffFormSchema>) {
     try {
+      // 1. Create the new role definition
+      const newRole = {
+        name: values.roleName,
+        permissions: values.permissions,
+        description: `Custom role for ${values.name}`,
+      };
+      const roleDocRef = await addDoc(collection(firestore, 'roles'), newRole);
+
+      // 2. Create the Auth user
       const appName = `admin-creation-${Date.now()}`;
       const secondaryApp = initializeApp(firebaseConfig, appName);
       const secondaryAuth = getAuth(secondaryApp);
-
       const userCredential = await createUserWithEmailAndPassword(secondaryAuth, values.email, values.password);
       const user = userCredential.user;
-
       await updateProfile(user, { displayName: values.name });
 
+      // 3. Create the user document with the new role
       const userProfile = {
         id: user.uid,
         name: values.name,
         email: values.email,
         phone: "",
         dateJoined: serverTimestamp(),
-        role: values.role,
+        role: roleDocRef.id, // Use the new role's ID
         isSuspended: false,
       };
-
       const userDocRef = doc(firestore, "users", user.uid);
       await setDoc(userDocRef, userProfile);
 
+
       toast({
         title: "Staff Created",
-        description: `Account for ${values.email} has been created with the role: ${values.role}.`,
+        description: `Account for ${values.email} has been created with the role: ${values.roleName}.`,
       });
       setIsCreateStaffOpen(false);
       form.reset();
@@ -510,37 +517,15 @@ export default function ManageStaffPage() {
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="mr-2 h-4 w-4"/> Create Staff</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Staff Member</DialogTitle>
                 <DialogDescription>
-                  Enter the details for the new staff account.
+                  Enter the details for the new staff account and define their role.
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleCreateStaff)} className="space-y-4 py-2">
-                   <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a role" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {roles?.map(role => (
-                                    <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   <FormField
                     control={form.control}
                     name="name"
@@ -576,6 +561,64 @@ export default function ManageStaffPage() {
                         <FormControl>
                           <Input type="password" placeholder="Must be at least 6 characters" {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name="roleName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Role Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Support Manager" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="permissions"
+                    render={() => (
+                      <FormItem>
+                        <div className="mb-4">
+                          <FormLabel className="text-base">Permissions</FormLabel>
+                        </div>
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                          {allPermissions.map((item) => (
+                            <FormField
+                              key={item.id}
+                              control={form.control}
+                              name="permissions"
+                              render={({ field }) => {
+                                return (
+                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={(field.value || []).includes(item.id)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([...(field.value || []), item.id])
+                                            : field.onChange(
+                                                (field.value || []).filter(
+                                                  (value) => value !== item.id
+                                                )
+                                              )
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                      <FormLabel>{item.label}</FormLabel>
+                                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                                    </div>
+                                  </FormItem>
+                                )
+                              }}
+                            />
+                          ))}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
