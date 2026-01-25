@@ -17,12 +17,16 @@ service cloud.firestore {
     
     // Checks if the requesting user has an 'admin' role.
     function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     // Checks if the requesting user has a 'support' role.
     function isSupport() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'support';
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'support';
     }
 
     // Ensures the document ID being written matches the user's auth UID.
@@ -102,9 +106,9 @@ service cloud.firestore {
       // GET: A user can read a single ride document if they are the passenger, the driver, or an admin/support staff.
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin() || isSupport());
       
-      // LIST: Any signed-in user can query the rides collection.
-      // Client-side queries should enforce further constraints.
-      allow list: if isSignedIn();
+      // LIST: Only Admins and Support staff can query the entire rides collection.
+      // Client-side queries must enforce constraints for other users (e.g., where('userId', '==', request.auth.uid)).
+      allow list: if isAdmin() || isSupport();
 
       // CREATE: A user can create a ride request for themselves.
       // The userId in the new document must match their own auth uid.
