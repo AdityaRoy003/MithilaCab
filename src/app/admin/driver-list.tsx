@@ -34,6 +34,7 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
+    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
     Dialog,
@@ -144,6 +145,7 @@ export function DriverList() {
           });
           setSuspensionReason('');
       } catch (error) {
+          console.error("RAW FIREBASE ERROR in handleSuspendDriver:", error);
           toast({
               variant: "destructive",
               title: "Update Failed",
@@ -161,6 +163,7 @@ export function DriverList() {
             description: "The driver account has been permanently removed.",
         });
     } catch (error) {
+        console.error("RAW FIREBASE ERROR in handleDeleteDriver:", error);
         toast({
             variant: "destructive",
             title: "Deletion Failed",
@@ -199,6 +202,7 @@ export function DriverList() {
             description: `The driver has been successfully ${!currentStatus ? 'verified' : 'marked as unverified'}.`,
         });
     } catch (error) {
+        console.error("RAW FIREBASE ERROR in handleVerifyDriver:", error);
         toast({
             variant: "destructive",
             title: "Update Failed",
