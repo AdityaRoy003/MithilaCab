@@ -8,8 +8,6 @@ import {
   FirestoreError,
   CollectionReference,
 } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -83,12 +81,8 @@ export function useCollection<T = any>(
             }
         } catch (err) {
             if (!isCancelled) {
-                 const contextualError = new FirestorePermissionError({
-                    operation: 'list',
-                    path: getPath(memoizedTargetRefOrQuery)!,
-                });
-                setState({ data: null, isLoading: false, error: contextualError });
-                errorEmitter.emit('permission-error', contextualError);
+                 console.error("RAW FIREBASE ERROR in useCollection:", err);
+                 setState({ data: null, isLoading: false, error: err as Error });
             }
         }
     }
