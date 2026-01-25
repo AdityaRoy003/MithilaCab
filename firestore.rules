@@ -1,10 +1,69 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // This is a temporary, insecure rule for diagnostics.
-    // It grants the admin full access to everything, and blocks everyone else.
-    match /{document=**} {
-      allow read, write: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
+
+    // HELPER FUNCTIONS
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
+    }
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // DEFAULT RULE (Deny all access by default)
+    match /{path=**} {
+      allow read, write: if false;
+    }
+
+    // USER PROFILES
+    match /users/{userId} {
+      allow get: if isSuperAdmin() || isOwner(userId);
+      allow list: if isSuperAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isSuperAdmin() || isOwner(userId);
+      allow delete: if isSuperAdmin();
+      
+      // Transactions Subcollection
+      match /transactions/{transactionId} {
+        allow read, create: if isOwner(userId) || isSuperAdmin();
+        allow list: if isOwner(userId) || isSuperAdmin();
+      }
+    }
+
+    // DRIVER PROFILES
+    match /drivers/{driverId} {
+      allow get, list: if isSuperAdmin() || request.auth != null;
+      allow create, update: if isOwner(driverId) || isSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // RIDES
+    match /rides/{rideId} {
+      allow get: if isSuperAdmin() || isOwner(resource.data.userId) || (resource.data.driverId != null && isOwner(resource.data.driverId));
+      allow list: if isSuperAdmin(); // Admins can list all rides
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isSuperAdmin() || isOwner(resource.data.userId) || (resource.data.driverId != null && isOwner(resource.data.driverId));
+      allow delete: if isSuperAdmin();
+    }
+
+    // REFUNDS
+    match /refunds/{refundId} {
+        allow get, list: if isSuperAdmin();
+        allow create: if request.auth != null;
+        allow update, delete: if isSuperAdmin();
+    }
+    
+    // ADMIN-ONLY COLLECTIONS
+    match /settings/{docId} {
+      allow read, write: if isSuperAdmin();
+    }
+    match /roles/{docId} {
+      allow read, write: if isSuperAdmin();
+    }
+    match /incentives/{docId} {
+      allow read, write: if isSuperAdmin();
     }
   }
 }
