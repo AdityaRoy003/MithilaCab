@@ -18,7 +18,7 @@ service cloud.firestore {
     // Generic permission checker. This is the new source of truth for authorization.
     function hasPermission(permission) {
       // 1. User must be signed in.
-      if (request.auth == null) {
+      if (!isSignedIn()) {
         return false;
       }
 
@@ -27,29 +27,35 @@ service cloud.firestore {
       if (!exists(userDocPath)) {
         return false;
       }
-      
-      // 3. Get user data and role.
+
+      // 3. Get user data and safely access the role.
       let userData = get(userDocPath).data;
-      if (!('role' in userData)) {
+      let userRole = userData.get('role', null); // Use .get() for safe access
+
+      // 4. If role is null, deny permission.
+      if (userRole == null) {
         return false;
       }
-      let userRole = userData.role;
-
-      // 4. Handle legacy 'admin' role. If it matches, grant permission and stop.
+      
+      // 5. If role is the legacy 'admin' string, grant all permissions.
       if (userRole == 'admin') {
         return true;
       }
-      
-      // 5. If not a legacy admin, check for document-based roles.
-      if (userRole is string && exists(/databases/$(database)/documents/roles/$(userRole))) {
-        let roleData = get(/databases/$(database)/documents/roles/$(userRole)).data;
-        // Check for a valid permissions list and the required permission.
-        return 'permissions' in roleData && 
-               roleData.permissions is list && 
-               roleData.permissions.hasAny([permission, 'admin.full_access']);
-      }
 
-      // 6. If no conditions are met, deny.
+      // 6. If role is a string (and not 'admin'), check for a corresponding role document.
+      if (userRole is string) {
+        let roleDocPath = /databases/$(database)/documents/roles/$(userRole);
+        if (exists(roleDocPath)) {
+          let roleData = get(roleDocPath).data;
+          // Check for a valid permissions list and the required permission.
+          let permissionsList = roleData.get('permissions', []);
+          if (permissionsList is list) {
+            return permission in permissionsList || 'admin.full_access' in permissionsList;
+          }
+        }
+      }
+      
+      // 7. If no conditions are met, deny.
       return false;
     }
 
