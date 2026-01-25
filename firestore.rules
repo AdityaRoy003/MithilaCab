@@ -140,7 +140,8 @@ service cloud.firestore {
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || hasPermission('rides.monitor'));
       
       // Only staff can query the entire rides collection.
-      allow list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || hasPermission('rides.monitor');
+      allow list: if exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+                     (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || hasPermission('rides.monitor'));
 
       // A user can create a ride request for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
