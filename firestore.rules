@@ -10,41 +10,42 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      // Check if the signed-in user's email matches the designated admin email.
-      // This is a direct and robust way to grant admin privileges.
-      return request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-    }
-
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    function hasPermission(permission) {
-      // This function is for non-admin staff with document-based roles.
-      if (!isSignedIn()) {
-        return false;
+    function can(permission) {
+      // 1. Super-admin by email address always has access.
+      if (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com') {
+        return true;
       }
       
+      // 2. Check for user profile document for role-based access.
       let userDocPath = /databases/$(database)/documents/users/$(request.auth.uid);
       if (!exists(userDocPath)) {
         return false;
       }
-
+      
       let userRole = get(userDocPath).data.get('role', null);
       
-      // If userRole is a string (and not a simple user role), treat it as a role document ID.
+      // 3. Handle legacy 'admin' string role for backward compatibility.
+      if (userRole == 'admin') {
+          return true;
+      }
+
+      // 4. Handle document-based roles for other staff.
       if (userRole is string && !(userRole in ['passenger', 'driver', 'admin'])) {
         let roleDocPath = /databases/$(database)/documents/roles/$(userRole);
         if (exists(roleDocPath)) {
           let roleData = get(roleDocPath).data;
-          // Safely check for permissions list
           if ('permissions' in roleData && roleData.permissions is list) {
+            // Check for the specific permission or a full admin access permission.
             return permission in roleData.permissions || 'admin.full_access' in roleData.permissions;
           }
         }
       }
       
+      // 5. Deny access if no valid permission found.
       return false;
     }
 
@@ -73,15 +74,14 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin() || hasPermission('users.manage');
-      allow create: if (isOwner(userId) && isValidUserCreate()) || isAdmin();
-      allow update: if (isOwner(userId) && isValidUserUpdate()) || isAdmin() || hasPermission('users.manage');
-      // Admin check is now primary for list operations to prevent errors.
-      allow list, delete: if isAdmin() || hasPermission('users.manage');
+      allow get: if isOwner(userId) || can('users.manage');
+      allow create: if (isOwner(userId) && isValidUserCreate()) || can('admin.full_access');
+      allow update: if (isOwner(userId) && isValidUserUpdate()) || can('users.manage');
+      allow list, delete: if can('users.manage');
 
       match /transactions/{transactionId} {
-        allow read, list: if isOwner(userId) || isAdmin() || hasPermission('finance.view');
-        allow create: if isOwner(userId) || isAdmin() || hasPermission('finance.manage');
+        allow read, list: if isOwner(userId) || can('finance.view');
+        allow create: if isOwner(userId) || can('finance.manage');
         allow update, delete: if false;
       }
     }
@@ -89,52 +89,43 @@ service cloud.firestore {
     match /drivers/{driverId} {
       allow get: if isSignedIn();
       allow create: if isOwner(driverId);
-      allow update: if (isOwner(driverId) && isFieldImmutable('id')) || isAdmin() || hasPermission('drivers.manage');
-      // Admin check is now primary for list operations.
-      allow list, delete: if isAdmin() || hasPermission('drivers.manage');
+      allow update: if (isOwner(driverId) && isFieldImmutable('id')) || can('drivers.manage');
+      allow list, delete: if can('drivers.manage');
     }
 
     match /rides/{rideId} {
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin() || hasPermission('rides.monitor'));
-      
-      // This is the critical fix: use isAdmin() directly and separately.
-      allow list: if isAdmin() || hasPermission('rides.monitor');
-
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || can('rides.monitor'));
+      allow list: if can('rides.monitor');
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
       allow update: if isSignedIn() && (
                       (isOwner(resource.data.userId) && isFieldImmutable('userId')) ||
                       (resource.data.driverId == null && request.resource.data.driverId == request.auth.uid) ||
                       (isOwner(resource.data.driverId) && isFieldImmutable('userId') && isFieldImmutable('driverId')) ||
-                      isAdmin() || hasPermission('rides.monitor')
+                      can('rides.monitor')
                     );
-      allow delete: if isOwner(resource.data.userId) || isAdmin() || hasPermission('rides.monitor');
+      allow delete: if isOwner(resource.data.userId) || can('rides.monitor');
     }
     
     match /incentives/{incentiveId} {
-      allow write: if isAdmin() || hasPermission('finance.manage');
-      // Admin check is now primary for list operations.
-      allow get, list: if isAdmin() || hasPermission('finance.manage') || isSignedIn();
+      allow read, list: if isSignedIn();
+      allow write: if can('finance.manage');
     }
 
     match /settings/{settingId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || hasPermission('settings.manage');
+      allow write: if can('settings.manage');
     }
 
     match /roles/{roleId} {
-      // Admin check is now primary for list operations.
-      allow read, list: if isAdmin() || hasPermission('users.manage');
-      allow write: if isAdmin() || hasPermission('admin.full_access');
+      allow read, list: if can('users.manage');
+      allow write: if can('admin.full_access');
     }
     
     match /refunds/{refundId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || hasPermission('support.access'));
-      // Admin check is now primary for list operations.
-      allow list: if isAdmin() || hasPermission('support.access');
-      allow update: if isAdmin() || hasPermission('support.access');
-      allow delete: if isAdmin() || hasPermission('admin.full_access');
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || can('support.access'));
+      allow list, update: if can('support.access');
+      allow delete: if can('admin.full_access');
     }
   }
 }
