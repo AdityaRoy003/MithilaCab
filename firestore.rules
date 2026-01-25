@@ -1,65 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function for immutability check
-    function isFieldImmutable(fieldName) {
-      return request.resource.data[fieldName] == resource.data[fieldName];
-    }
-
-    match /users/{userId} {
-      allow get: if (request.auth != null && request.auth.uid == userId) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
-      allow create: if (request.auth != null && request.auth.uid == userId && request.resource.data.id == request.auth.uid && request.resource.data.email == request.auth.token.email && request.resource.data.role in ['passenger', 'driver']) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
-      allow update: if (request.auth != null && request.auth.uid == userId && isFieldImmutable('id') && isFieldImmutable('email') && isFieldImmutable('role') && isFieldImmutable('dateJoined')) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
-      allow list, delete: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-
-      match /transactions/{transactionId} {
-        allow read, list: if (request.auth != null && request.auth.uid == userId) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
-        allow create: if (request.auth != null && request.auth.uid == userId) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
-        allow update, delete: if false;
-      }
-    }
-
-    match /drivers/{driverId} {
-      allow get: if request.auth != null;
-      allow create: if request.auth != null && request.auth.uid == driverId;
-      allow update: if (request.auth != null && request.auth.uid == driverId && isFieldImmutable('id')) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
-      allow list, delete: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-    }
-
-    match /rides/{rideId} {
-      allow get: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || request.auth.token.email == 'mithila@cabadmingmail.com');
-      allow list: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && (
-                      (request.auth.uid == resource.data.userId && isFieldImmutable('userId')) ||
-                      (resource.data.driverId == null && request.resource.data.driverId == request.auth.uid) ||
-                      (request.auth.uid == resource.data.driverId && isFieldImmutable('userId') && isFieldImmutable('driverId')) ||
-                      request.auth.token.email == 'mithila@cabadmingmail.com'
-                    );
-      allow delete: if (request.auth != null && request.auth.uid == resource.data.userId) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
-    }
-    
-    match /incentives/{incentiveId} {
-      allow read, list: if request.auth != null;
-      allow write: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-    }
-
-    match /settings/{settingId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-    }
-
-    match /roles/{roleId} {
-      allow read, list: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-      allow write: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-    }
-    
-    match /refunds/{refundId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow get: if request.auth != null && (resource.data.userId == request.auth.uid || request.auth.token.email == 'mithila@cabadmingmail.com');
-      allow list, update: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-      allow delete: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
+    // This is a temporary, insecure rule for diagnostics.
+    // It grants the admin full access to everything, and blocks everyone else.
+    match /{document=**} {
+      allow read, write: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
     }
   }
 }
