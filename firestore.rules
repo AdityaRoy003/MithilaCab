@@ -17,32 +17,49 @@ service cloud.firestore {
     
     // Generic permission checker. This is the new source of truth for authorization.
     function hasPermission(permission) {
-      // User must be signed in and have a user document.
-      if (!isSignedIn() || !exists(/databases/$(database)/documents/users/$(request.auth.uid))) {
+      // User must be signed in.
+      if (request.auth == null) {
+        return false;
+      }
+
+      // The user's profile document must exist.
+      let userDocPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      if (!exists(userDocPath)) {
         return false;
       }
       
-      // Use a 'let' binding to fetch the user data once.
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let userData = get(userDocPath).data;
+
+      // The user must have a role assigned.
+      if (!('role' in userData)) {
+        return false;
+      }
       let userRole = userData.role;
 
-      // Handle legacy 'admin' role string. They have all permissions.
+      // Legacy 'admin' string role gets all permissions.
       if (userRole == 'admin') {
         return true;
       }
-      
-      // Handle document-based roles.
-      // Check that the role is a string and a corresponding role document exists.
-      if (userRole is string && exists(/databases/$(database)/documents/roles/$(userRole))) {
-        let permissionsList = get(/databases/$(database)/documents/roles/$(userRole)).data.permissions;
-        
-        // Ensure permissionsList is actually a list before calling hasAny.
-        if (permissionsList is list) {
-          return permissionsList.hasAny([permission, 'admin.full_access']);
-        }
+
+      if (!(userRole is string)) {
+          return false;
       }
       
-      return false;
+      // For document-based roles, the role document must exist.
+      let roleDocPath = /databases/$(database)/documents/roles/$(userRole);
+      if (!exists(roleDocPath)) {
+        return false;
+      }
+      
+      let roleData = get(roleDocPath).data;
+      
+      // The role document must have a 'permissions' list.
+      if (!('permissions' in roleData) || !(roleData.permissions is list)) {
+          return false;
+      }
+      
+      // Check if the required permission or 'admin.full_access' is in the list.
+      return roleData.permissions.hasAny([permission, 'admin.full_access']);
     }
 
     // Ensures the document ID being written matches the user's auth UID.
