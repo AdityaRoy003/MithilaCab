@@ -36,9 +36,8 @@ service cloud.firestore {
 
       let userRole = get(userDocPath).data.get('role', null);
 
-      // Only proceed if userRole is a string that could be a document ID.
-      // Ignore simple roles like 'passenger', 'driver', or 'admin' (which is handled by isAdmin()).
-      if (userRole == null || userRole in ['passenger', 'driver', 'admin']) {
+      // This is for document-based roles, ignore simple string roles here.
+      if (userRole == null || userRole is bool || userRole is number || userRole in ['passenger', 'driver', 'admin']) {
         return false;
       }
       
@@ -46,9 +45,8 @@ service cloud.firestore {
         let roleDocPath = /databases/$(database)/documents/roles/$(userRole);
         if (exists(roleDocPath)) {
           let roleData = get(roleDocPath).data;
-          let permissionsList = roleData.get('permissions', []);
-          if (permissionsList is list) {
-            return permission in permissionsList || 'admin.full_access' in permissionsList;
+          if ('permissions' in roleData && roleData.permissions is list) {
+            return permission in roleData.permissions || 'admin.full_access' in roleData.permissions;
           }
         }
       }
@@ -102,7 +100,6 @@ service cloud.firestore {
     match /rides/{rideId} {
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin() || hasPermission('rides.monitor'));
       
-      // Corrected 'list' rule
       allow list: if isAdmin() || hasPermission('rides.monitor');
 
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
