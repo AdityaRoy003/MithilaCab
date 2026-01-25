@@ -19,39 +19,6 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    function hasPermission(permission) {
-      // This function checks for permissions based on role documents for non-super-admins.
-      let userDocPath = /databases/$(database)/documents/users/$(request.auth.uid);
-      
-      // 1. User must have a profile.
-      if (!exists(userDocPath)) {
-        return false;
-      }
-      
-      let userProfile = get(userDocPath).data;
-      let userRole = userProfile.get('role', null);
-
-      // 2. User must have a role that points to a document.
-      if (userRole == null || userRole in ['passenger', 'driver', 'admin']) {
-        return false;
-      }
-
-      // 3. The role document must exist.
-      let roleDocPath = /databases/$(database)/documents/roles/$(userRole);
-      if (!exists(roleDocPath)) {
-        return false;
-      }
-
-      // 4. The role document must have a list of permissions.
-      let roleData = get(roleDocPath).data;
-      if (!('permissions' in roleData) || !(roleData.permissions is list)) {
-        return false;
-      }
-      
-      // 5. Check for the specific permission or a full admin access permission.
-      return permission in roleData.permissions || 'admin.full_access' in roleData.permissions;
-    }
-
     function isFieldImmutable(fieldName) {
       // This function can only be used in 'update' rules.
       return request.resource.data[fieldName] == resource.data[fieldName];
@@ -77,14 +44,14 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || (isSuperAdmin() ? true : hasPermission('users.manage'));
+      allow get: if isOwner(userId) || isSuperAdmin();
       allow create: if (isOwner(userId) && isValidUserCreate()) || isSuperAdmin();
-      allow update: if (isOwner(userId) && isValidUserUpdate()) || (isSuperAdmin() ? true : hasPermission('users.manage'));
-      allow list, delete: if isSuperAdmin() ? true : hasPermission('users.manage');
+      allow update: if (isOwner(userId) && isValidUserUpdate()) || isSuperAdmin();
+      allow list, delete: if isSuperAdmin();
 
       match /transactions/{transactionId} {
-        allow read, list: if isOwner(userId) || (isSuperAdmin() ? true : hasPermission('finance.view'));
-        allow create: if isOwner(userId) || (isSuperAdmin() ? true : hasPermission('finance.manage'));
+        allow read, list: if isOwner(userId) || isSuperAdmin();
+        allow create: if isOwner(userId) || isSuperAdmin();
         allow update, delete: if false;
       }
     }
@@ -92,42 +59,42 @@ service cloud.firestore {
     match /drivers/{driverId} {
       allow get: if isSignedIn();
       allow create: if isOwner(driverId);
-      allow update: if (isOwner(driverId) && isFieldImmutable('id')) || (isSuperAdmin() ? true : hasPermission('drivers.manage'));
-      allow list, delete: if isSuperAdmin() ? true : hasPermission('drivers.manage');
+      allow update: if (isOwner(driverId) && isFieldImmutable('id')) || isSuperAdmin();
+      allow list, delete: if isSuperAdmin();
     }
 
     match /rides/{rideId} {
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || (isSuperAdmin() ? true : hasPermission('rides.monitor')));
-      allow list: if isSuperAdmin() ? true : (hasPermission('rides.monitor') || hasPermission('support.access'));
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isSuperAdmin());
+      allow list: if isSuperAdmin();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && (
                       (isOwner(resource.data.userId) && isFieldImmutable('userId')) ||
                       (resource.data.driverId == null && request.resource.data.driverId == request.auth.uid) ||
                       (isOwner(resource.data.driverId) && isFieldImmutable('userId') && isFieldImmutable('driverId')) ||
-                      (isSuperAdmin() ? true : hasPermission('rides.monitor'))
+                      isSuperAdmin()
                     );
-      allow delete: if isOwner(resource.data.userId) || (isSuperAdmin() ? true : hasPermission('rides.monitor'));
+      allow delete: if isOwner(resource.data.userId) || isSuperAdmin();
     }
     
     match /incentives/{incentiveId} {
       allow read, list: if isSignedIn();
-      allow write: if isSuperAdmin() ? true : hasPermission('finance.manage');
+      allow write: if isSuperAdmin();
     }
 
     match /settings/{settingId} {
       allow read: if isSignedIn();
-      allow write: if isSuperAdmin() ? true : hasPermission('settings.manage');
+      allow write: if isSuperAdmin();
     }
 
     match /roles/{roleId} {
-      allow read, list: if isSuperAdmin() ? true : hasPermission('users.manage');
+      allow read, list: if isSuperAdmin();
       allow write: if isSuperAdmin();
     }
     
     match /refunds/{refundId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || (isSuperAdmin() ? true : hasPermission('support.access')));
-      allow list, update: if isSuperAdmin() ? true : hasPermission('support.access');
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow list, update: if isSuperAdmin();
       allow delete: if isSuperAdmin();
     }
   }
