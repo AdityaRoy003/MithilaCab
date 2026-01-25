@@ -5,12 +5,15 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Ride } from '@/lib/data';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
+import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Car, Star, Phone } from 'lucide-react';
+import { Car, Star, Phone, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -31,6 +34,8 @@ export function RideTracking({ rideDetails, onComplete, onCancel }: RideTracking
   const [stageIndex, setStageIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const mapImage = PlaceHolderImages.find(img => img.id === 'map-background');
+  const firestore = useFirestore();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (stageIndex < rideStages.length) {
@@ -49,6 +54,16 @@ export function RideTracking({ rideDetails, onComplete, onCancel }: RideTracking
       setProgress(rideStages[stageIndex].progress);
     }
   }, [stageIndex]);
+  
+  const handleSOS = () => {
+    if (!rideDetails.id) return;
+    const rideRef = doc(firestore, 'rides', rideDetails.id);
+    updateDocumentNonBlocking(rideRef, { isFlagged: true });
+    toast({
+        title: "SOS Activated",
+        description: "Your ride has been flagged for an emergency. Our safety team has been notified.",
+    });
+  };
 
   const { driver } = rideDetails;
 
@@ -141,10 +156,31 @@ export function RideTracking({ rideDetails, onComplete, onCancel }: RideTracking
             </Button>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="grid grid-cols-2 gap-4">
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="w-full font-bold">Cancel Ride</Button>
+                    <Button variant="destructive" className="w-full font-bold">
+                        <AlertTriangle className="mr-2 h-4 w-4" /> SOS
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Emergency SOS</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to trigger an SOS? This will immediately flag the ride for emergency review and alert our safety team. Only use this in a genuine emergency.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleSOS} className={buttonVariants({ variant: "destructive" })}>
+                            Confirm SOS
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="w-full font-bold">Cancel Ride</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>

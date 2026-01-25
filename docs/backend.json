@@ -327,6 +327,10 @@
         "comment": {
           "type": "string",
           "description": "Optional comment left by the user after the ride."
+        },
+        "isFlagged": {
+          "type": "boolean",
+          "description": "Indicates if the ride has been flagged for a safety emergency."
         }
       },
       "required": [
