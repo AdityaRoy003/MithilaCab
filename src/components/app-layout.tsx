@@ -14,7 +14,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LogOut, Shield, Bell } from "lucide-react";
+import { User, LogOut, Shield, Bell, Facebook, Instagram, MessageSquare } from "lucide-react";
 import { useUser, useAuth, useDriver, useAdmin } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -144,7 +144,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, isUserLoading: loading } = useUser();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [year, setYear] = useState<number | null>(null);
 
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -196,6 +200,55 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
         </header>
         {children}
+        <footer className="bg-muted/40 border-t">
+            <div className="container mx-auto px-4 py-16">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+                    {/* Column 1: Logo & Socials */}
+                    <div className="space-y-6">
+                        <Logo />
+                        <p className="text-sm text-muted-foreground">Connecting Mithila, one ride at a time. Safe, reliable, and culturally aware transportation.</p>
+                        <div className="flex gap-4">
+                            <a href="#"><Facebook className="text-muted-foreground hover:text-primary"/></a>
+                            <a href="#"><Instagram className="text-muted-foreground hover:text-primary"/></a>
+                            <a href="#"><MessageSquare className="text-muted-foreground hover:text-primary"/></a>
+                        </div>
+                    </div>
+
+                    {/* Column 2: Quick Links */}
+                    <div>
+                        <h4 className="font-semibold mb-4">Quick Links</h4>
+                        <ul className="space-y-3 text-sm">
+                            <li><Link href="/home" className="text-muted-foreground hover:text-primary">Home</Link></li>
+                            <li><Link href="/history" className="text-muted-foreground hover:text-primary">My Rides</Link></li>
+                            <li><Link href="/profile" className="text-muted-foreground hover:text-primary">Profile</Link></li>
+                            <li><Link href="/signup" className="text-muted-foreground hover:text-primary">Become a Driver</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Column 3: Support */}
+                    <div>
+                        <h4 className="font-semibold mb-4">Support</h4>
+                        <ul className="space-y-3 text-sm">
+                            <li><Link href="/profile/safety" className="text-muted-foreground hover:text-primary">Help Center</Link></li>
+                            <li><Link href="/profile/faq" className="text-muted-foreground hover:text-primary">FAQs</Link></li>
+                            <li><Link href="/profile/safety" className="text-muted-foreground hover:text-primary">Contact Support</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Column 4: Legal */}
+                    <div>
+                        <h4 className="font-semibold mb-4">Legal</h4>
+                        <ul className="space-y-3 text-sm">
+                            <li><Link href="#" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
+                            <li><Link href="#" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
+                        </ul>
+                    </div>
+                </div>
+                <div className="mt-16 border-t pt-8 text-center text-sm text-muted-foreground">
+                    <p>&copy; {year} MithilaCab. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
       </div>
     </>
   );
