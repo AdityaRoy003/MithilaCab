@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import {
   Query,
-  getDocs,
+  onSnapshot,
   DocumentData,
   FirestoreError,
   CollectionReference,
+  QuerySnapshot,
 } from 'firebase/firestore';
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -35,9 +36,9 @@ export interface InternalQuery extends Query<DocumentData> {
 }
 
 /**
- * React hook to fetch a Firestore collection or query.
+ * React hook to fetch a Firestore collection or query in real-time.
  * This hook is designed to be robust against race conditions by explicitly managing
- * its loading state. It performs a one-time fetch using getDocs.
+ * its loading state. It uses onSnapshot to listen for real-time updates.
  *
  * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or you may cause
  * infinite render loops.
@@ -56,11 +57,6 @@ export function useCollection<T = any>(
     error: null,
   });
 
-  const getPath = (target: typeof memoizedTargetRefOrQuery) => {
-    if (!target) return undefined;
-    return target.type === 'collection' ? target.path : (target as InternalQuery)._query.path.canonicalString();
-  };
-
   useEffect(() => {
     // A change in the query ref means we need to start a new fetch.
     setState({ data: null, isLoading: true, error: null });
@@ -69,29 +65,20 @@ export function useCollection<T = any>(
       setState({ data: null, isLoading: false, error: null });
       return;
     }
-    
-    let isCancelled = false;
 
-    const fetchData = async () => {
-        try {
-            const snapshot = await getDocs(memoizedTargetRefOrQuery);
-            if (!isCancelled) {
-                const results: WithId<T>[] = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
-                setState({ data: results, isLoading: false, error: null });
-            }
-        } catch (err) {
-            if (!isCancelled) {
-                 console.error("RAW FIREBASE ERROR in useCollection:", err);
-                 setState({ data: null, isLoading: false, error: err as Error });
-            }
-        }
-    }
+    const unsubscribe = onSnapshot(
+      memoizedTargetRefOrQuery,
+      (snapshot: QuerySnapshot) => {
+        const results: WithId<T>[] = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
+        setState({ data: results, isLoading: false, error: null });
+      },
+      (err) => {
+        console.error("RAW FIREBASE ERROR in useCollection:", err);
+        setState({ data: null, isLoading: false, error: err as Error });
+      }
+    );
 
-    fetchData();
-
-    return () => {
-      isCancelled = true;
-    };
+    return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]);
 
   return state;
