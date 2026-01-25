@@ -12,64 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-const LiveChatDialog = () => {
-    const [messages, setMessages] = useState([
-        { from: 'agent', text: 'Hello! How can I assist you today?' }
-    ]);
-    const [input, setInput] = useState('');
-
-    const handleSendMessage = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input.trim()) return;
-
-        const newMessages = [...messages, { from: 'user', text: input }];
-        setMessages(newMessages);
-        setInput('');
-
-        // Simulate agent response
-        setTimeout(() => {
-            setMessages(prev => [...prev, { from: 'agent', text: "Thank you for your message. An agent will be with you shortly to address your concern." }]);
-        }, 1500);
-    };
-
-    return (
-        <DialogContent className="sm:max-w-[425px] grid-rows-[auto_1fr_auto] p-0 max-h-[90vh]">
-            <DialogHeader className="p-6 pb-2">
-                <DialogTitle className="flex items-center gap-2"><MessageSquare /> Live Chat</DialogTitle>
-                <DialogDescription>
-                    Connected with a support agent.
-                </DialogDescription>
-            </DialogHeader>
-            <ScrollArea className="h-96 px-6">
-                 <div className="space-y-4">
-                    {messages.map((msg, index) => (
-                        <div key={index} className={`flex items-end gap-2 ${msg.from === 'user' ? 'justify-end' : ''}`}>
-                             {msg.from === 'agent' && (
-                                <Avatar className="h-8 w-8">
-                                    <AvatarFallback>A</AvatarFallback>
-                                </Avatar>
-                             )}
-                            <div className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${msg.from === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                                {msg.text}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </ScrollArea>
-            <DialogFooter className="p-4 border-t">
-                <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
-                    <Input
-                        placeholder="Type your message..."
-                        value={input}
-                        onChange={e => setInput(e.target.value)}
-                    />
-                    <Button type="submit" size="icon"><Send className="h-4 w-4" /></Button>
-                </form>
-            </DialogFooter>
-        </DialogContent>
-    );
-};
-
 export default function SafetyPage() {
     const router = useRouter();
     const { toast } = useToast();
@@ -161,19 +103,15 @@ export default function SafetyPage() {
                         <Card>
                              <CardHeader>
                                 <CardTitle className="flex items-center gap-2"><HelpCircle /> Help Center</CardTitle>
-                                <CardDescription>Find answers or get in touch with our support team.</CardDescription>
+                                <CardDescription>Find answers, raise a complaint, or get in touch with our support team.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-3">
-                                <Button variant="outline" className="w-full justify-start" onClick={() => router.push('/profile/faq')}><HelpCircle className="mr-2"/> Read FAQs</Button>
-                                <Button asChild variant="outline" className="w-full justify-start">
-                                    <a href="mailto:royadityaa003@gmail.com"><Mail className="mr-2"/> Contact Support</a>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    Our support hub has everything you need, from FAQs to direct contact options.
+                                </p>
+                                <Button className="w-full" onClick={() => router.push('/profile/help-center')}>
+                                    Visit Help Center
                                 </Button>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" className="w-full justify-start"><MessageSquare className="mr-2"/> Live Chat with Agent</Button>
-                                    </DialogTrigger>
-                                    <LiveChatDialog />
-                                </Dialog>
                             </CardContent>
                         </Card>
 
