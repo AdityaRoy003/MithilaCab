@@ -3,10 +3,9 @@
 import { useState, useEffect } from 'react';
 import {
   Query,
-  onSnapshot,
+  getDocs,
   DocumentData,
   FirestoreError,
-  QuerySnapshot,
   CollectionReference,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -38,9 +37,9 @@ export interface InternalQuery extends Query<DocumentData> {
 }
 
 /**
- * React hook to subscribe to a Firestore collection or query in real-time.
+ * React hook to fetch a Firestore collection or query.
  * This hook is designed to be robust against race conditions by explicitly managing
- * its loading state.
+ * its loading state. It performs a one-time fetch using getDocs.
  *
  * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or you may cause
  * infinite render loops.
@@ -66,31 +65,39 @@ export function useCollection<T = any>(
 
   useEffect(() => {
     // A change in the query ref means we need to start a new fetch.
-    // Reset the state to loading. This is the key to preventing race conditions.
     setState({ data: null, isLoading: true, error: null });
 
     if (!memoizedTargetRefOrQuery) {
       setState({ data: null, isLoading: false, error: null });
       return;
     }
+    
+    let isCancelled = false;
 
-    const unsubscribe = onSnapshot(
-      memoizedTargetRefOrQuery,
-      (snapshot: QuerySnapshot<DocumentData>) => {
-        const results: WithId<T>[] = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
-        setState({ data: results, isLoading: false, error: null });
-      },
-      (err: FirestoreError) => {
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
-          path: getPath(memoizedTargetRefOrQuery)!,
-        });
-        setState({ data: null, isLoading: false, error: contextualError });
-        errorEmitter.emit('permission-error', contextualError);
-      }
-    );
+    const fetchData = async () => {
+        try {
+            const snapshot = await getDocs(memoizedTargetRefOrQuery);
+            if (!isCancelled) {
+                const results: WithId<T>[] = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
+                setState({ data: results, isLoading: false, error: null });
+            }
+        } catch (err) {
+            if (!isCancelled) {
+                 const contextualError = new FirestorePermissionError({
+                    operation: 'list',
+                    path: getPath(memoizedTargetRefOrQuery)!,
+                });
+                setState({ data: null, isLoading: false, error: contextualError });
+                errorEmitter.emit('permission-error', contextualError);
+            }
+        }
+    }
 
-    return () => unsubscribe();
+    fetchData();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [memoizedTargetRefOrQuery]);
 
   return state;
