@@ -2,100 +2,64 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // -------------------------------------------------------------------------
-    // Helper Functions
-    // -------------------------------------------------------------------------
-
-    function isSuperAdmin() {
-      // Super-admin by email address always has access.
-      return request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
-    }
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-    
+    // Helper function for immutability check
     function isFieldImmutable(fieldName) {
-      // This function can only be used in 'update' rules.
       return request.resource.data[fieldName] == resource.data[fieldName];
     }
-    
-    function isValidUserCreate() {
-        let data = request.resource.data;
-        return data.id == request.auth.uid &&
-               data.email == request.auth.token.email &&
-               data.role in ['passenger', 'driver'];
-    }
-    
-    function isValidUserUpdate() {
-        let data = request.resource.data;
-        return isFieldImmutable('id') &&
-               isFieldImmutable('email') &&
-               isFieldImmutable('role') &&
-               isFieldImmutable('dateJoined');
-    }
-
-    // -------------------------------------------------------------------------
-    // Collection Rules
-    // -------------------------------------------------------------------------
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isSuperAdmin();
-      allow create: if (isOwner(userId) && isValidUserCreate()) || isSuperAdmin();
-      allow update: if (isOwner(userId) && isValidUserUpdate()) || isSuperAdmin();
-      allow list, delete: if isSuperAdmin();
+      allow get: if (request.auth != null && request.auth.uid == userId) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
+      allow create: if (request.auth != null && request.auth.uid == userId && request.resource.data.id == request.auth.uid && request.resource.data.email == request.auth.token.email && request.resource.data.role in ['passenger', 'driver']) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
+      allow update: if (request.auth != null && request.auth.uid == userId && isFieldImmutable('id') && isFieldImmutable('email') && isFieldImmutable('role') && isFieldImmutable('dateJoined')) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
+      allow list, delete: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
 
       match /transactions/{transactionId} {
-        allow read, list: if isOwner(userId) || isSuperAdmin();
-        allow create: if isOwner(userId) || isSuperAdmin();
+        allow read, list: if (request.auth != null && request.auth.uid == userId) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
+        allow create: if (request.auth != null && request.auth.uid == userId) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
         allow update, delete: if false;
       }
     }
 
     match /drivers/{driverId} {
-      allow get: if isSignedIn();
-      allow create: if isOwner(driverId);
-      allow update: if (isOwner(driverId) && isFieldImmutable('id')) || isSuperAdmin();
-      allow list, delete: if isSuperAdmin();
+      allow get: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == driverId;
+      allow update: if (request.auth != null && request.auth.uid == driverId && isFieldImmutable('id')) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
+      allow list, delete: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
     }
 
     match /rides/{rideId} {
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isSuperAdmin());
-      allow list: if isSuperAdmin();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && (
-                      (isOwner(resource.data.userId) && isFieldImmutable('userId')) ||
+      allow get: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || request.auth.token.email == 'mithila@cabadmingmail.com');
+      allow list: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && (
+                      (request.auth.uid == resource.data.userId && isFieldImmutable('userId')) ||
                       (resource.data.driverId == null && request.resource.data.driverId == request.auth.uid) ||
-                      (isOwner(resource.data.driverId) && isFieldImmutable('userId') && isFieldImmutable('driverId')) ||
-                      isSuperAdmin()
+                      (request.auth.uid == resource.data.driverId && isFieldImmutable('userId') && isFieldImmutable('driverId')) ||
+                      request.auth.token.email == 'mithila@cabadmingmail.com'
                     );
-      allow delete: if isOwner(resource.data.userId) || isSuperAdmin();
+      allow delete: if (request.auth != null && request.auth.uid == resource.data.userId) || (request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com');
     }
     
     match /incentives/{incentiveId} {
-      allow read, list: if isSignedIn();
-      allow write: if isSuperAdmin();
+      allow read, list: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
     }
 
     match /settings/{settingId} {
-      allow read: if isSignedIn();
-      allow write: if isSuperAdmin();
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
     }
 
     match /roles/{roleId} {
-      allow read, list: if isSuperAdmin();
-      allow write: if isSuperAdmin();
+      allow read, list: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
+      allow write: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
     }
     
     match /refunds/{refundId} {
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperAdmin());
-      allow list, update: if isSuperAdmin();
-      allow delete: if isSuperAdmin();
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow get: if request.auth != null && (resource.data.userId == request.auth.uid || request.auth.token.email == 'mithila@cabadmingmail.com');
+      allow list, update: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
+      allow delete: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
     }
   }
 }
