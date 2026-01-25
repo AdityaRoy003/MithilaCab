@@ -24,16 +24,16 @@ service cloud.firestore {
       
       let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
       
-      // Case 1: Handle legacy 'admin' role. They have all permissions.
+      // Case 1: Handle legacy 'admin' role string. They have all permissions.
       if (userData.role == 'admin') {
         return true;
       }
       
       // Case 2: Role is a document ID. Look up the role and check its permissions array.
       if (exists(/databases/$(database)/documents/roles/$(userData.role))) {
-        let permissions = get(/databases/$(database)/documents/roles/$(userData.role)).data.permissions;
-        // Check for specific permission OR the global 'admin.full_access' permission.
-        return permission in permissions || 'admin.full_access' in permissions;
+        let permissionsList = get(/databases/$(database)/documents/roles/$(userData.role)).data.permissions;
+        // Check for the specific permission OR the global 'admin.full_access' permission in the list.
+        return permissionsList.hasAny([permission, 'admin.full_access']);
       }
       
       return false;
