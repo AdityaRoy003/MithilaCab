@@ -11,12 +11,9 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Safely check if the user is an admin.
-      // 1. Ensure a user is signed in.
-      // 2. Check for the existence of their user profile document.
-      // 3. Safely get the 'role' field and check if it is 'admin'.
-      let userDocPath = /databases/$(database)/documents/users/$(request.auth.uid);
-      return isSignedIn() && exists(userDocPath) && get(userDocPath).data.get('role', '') == 'admin';
+      // Check if the signed-in user's email matches the designated admin email.
+      // This is a direct and robust way to grant admin privileges.
+      return request.auth.token.email == 'mithila@cabadmingmail.com';
     }
 
     function isOwner(userId) {
