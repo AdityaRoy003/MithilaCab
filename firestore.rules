@@ -95,7 +95,7 @@ service cloud.firestore {
 
     match /rides/{rideId} {
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || can('rides.monitor'));
-      allow list: if can('rides.monitor');
+      allow list: if can('rides.monitor') || can('support.access');
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && (
                       (isOwner(resource.data.userId) && isFieldImmutable('userId')) ||
