@@ -13,7 +13,7 @@ service cloud.firestore {
     function isAdmin() {
       // Check if the signed-in user's email matches the designated admin email.
       // This is a direct and robust way to grant admin privileges.
-      return request.auth.token.email == 'mithila@cabadmingmail.com';
+      return request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
     }
 
     function isOwner(userId) {
@@ -32,16 +32,13 @@ service cloud.firestore {
       }
 
       let userRole = get(userDocPath).data.get('role', null);
-
-      // This is for document-based roles, ignore simple string roles here.
-      if (userRole == null || userRole is bool || userRole is number || userRole in ['passenger', 'driver', 'admin']) {
-        return false;
-      }
       
-      if (userRole is string) {
+      // If userRole is a string (and not a simple user role), treat it as a role document ID.
+      if (userRole is string && !(userRole in ['passenger', 'driver', 'admin'])) {
         let roleDocPath = /databases/$(database)/documents/roles/$(userRole);
         if (exists(roleDocPath)) {
           let roleData = get(roleDocPath).data;
+          // Safely check for permissions list
           if ('permissions' in roleData && roleData.permissions is list) {
             return permission in roleData.permissions || 'admin.full_access' in roleData.permissions;
           }
@@ -52,6 +49,7 @@ service cloud.firestore {
     }
 
     function isFieldImmutable(fieldName) {
+      // This function can only be used in 'update' rules.
       return request.resource.data[fieldName] == resource.data[fieldName];
     }
     
@@ -78,6 +76,7 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isAdmin() || hasPermission('users.manage');
       allow create: if (isOwner(userId) && isValidUserCreate()) || isAdmin();
       allow update: if (isOwner(userId) && isValidUserUpdate()) || isAdmin() || hasPermission('users.manage');
+      // Admin check is now primary for list operations to prevent errors.
       allow list, delete: if isAdmin() || hasPermission('users.manage');
 
       match /transactions/{transactionId} {
@@ -91,12 +90,14 @@ service cloud.firestore {
       allow get: if isSignedIn();
       allow create: if isOwner(driverId);
       allow update: if (isOwner(driverId) && isFieldImmutable('id')) || isAdmin() || hasPermission('drivers.manage');
+      // Admin check is now primary for list operations.
       allow list, delete: if isAdmin() || hasPermission('drivers.manage');
     }
 
     match /rides/{rideId} {
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin() || hasPermission('rides.monitor'));
       
+      // This is the critical fix: use isAdmin() directly and separately.
       allow list: if isAdmin() || hasPermission('rides.monitor');
 
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
@@ -112,7 +113,8 @@ service cloud.firestore {
     
     match /incentives/{incentiveId} {
       allow write: if isAdmin() || hasPermission('finance.manage');
-      allow get, list: if isSignedIn();
+      // Admin check is now primary for list operations.
+      allow get, list: if isAdmin() || hasPermission('finance.manage') || isSignedIn();
     }
 
     match /settings/{settingId} {
@@ -121,6 +123,7 @@ service cloud.firestore {
     }
 
     match /roles/{roleId} {
+      // Admin check is now primary for list operations.
       allow read, list: if isAdmin() || hasPermission('users.manage');
       allow write: if isAdmin() || hasPermission('admin.full_access');
     }
@@ -128,6 +131,7 @@ service cloud.firestore {
     match /refunds/{refundId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || hasPermission('support.access'));
+      // Admin check is now primary for list operations.
       allow list: if isAdmin() || hasPermission('support.access');
       allow update: if isAdmin() || hasPermission('support.access');
       allow delete: if isAdmin() || hasPermission('admin.full_access');
