@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -794,7 +792,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0.5 }}
             >
               <Button asChild size="lg" className="font-bold text-lg">
-                <Link href="/signup">Become a Driver Today</Link>
+                <Link href="/signup?role=driver">Become a Driver Today</Link>
               </Button>
             </motion.div>
           </div>

@@ -222,7 +222,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             <li><Link href="/home" className="text-muted-foreground hover:text-primary">Home</Link></li>
                             <li><Link href="/history" className="text-muted-foreground hover:text-primary">My Rides</Link></li>
                             <li><Link href="/profile" className="text-muted-foreground hover:text-primary">Profile</Link></li>
-                            <li><Link href="/signup" className="text-muted-foreground hover:text-primary">Become a Driver</Link></li>
+                            <li><Link href="/signup?role=driver" className="text-muted-foreground hover:text-primary">Become a Driver</Link></li>
                         </ul>
                     </div>
 

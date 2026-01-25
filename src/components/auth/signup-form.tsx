@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -55,11 +55,14 @@ const roles = [
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+
+  const initialRole = searchParams.get('role');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,7 +71,7 @@ export function SignupForm() {
       email: "",
       phone: "",
       password: "",
-      role: "passenger",
+      role: initialRole === 'driver' ? 'driver' : "passenger",
     },
   });
 
