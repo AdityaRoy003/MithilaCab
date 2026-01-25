@@ -213,6 +213,32 @@
           "type": "string",
           "description": "The date and time when the driver joined.",
           "format": "date-time"
+        },
+        "documents": {
+          "type": "object",
+          "description": "URLs to the driver's uploaded verification documents.",
+          "properties": {
+            "license": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to the driver's license."
+            },
+            "rc": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to the vehicle registration certificate (RC)."
+            },
+            "insurance": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to the vehicle insurance document."
+            },
+            "pollution": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to the pollution under control (PUC) certificate."
+            }
+          }
         }
       },
       "required": [
