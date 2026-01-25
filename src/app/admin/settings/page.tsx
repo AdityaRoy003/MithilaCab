@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { doc } from 'firebase/firestore';
-import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { doc, collection, query } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking, useCollection } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -51,12 +51,12 @@ interface PlatformSettings {
     };
 }
 
-const mockUserVersions = [
-  { id: 'uv1', name: 'Ramesh Kumar', version: '1.0.0', platform: 'Android' },
-  { id: 'uv2', name: 'Sita Devi', version: '0.9.8', platform: 'iOS' },
-  { id: 'uv3', name: 'Madhavi Jha', version: '1.0.0', platform: 'iOS' },
-  { id: 'uv4', name: 'Amit Singh', version: '1.0.0', platform: 'Android' },
-];
+interface AppUser {
+    id: string;
+    name: string;
+    email: string;
+    role?: string;
+}
 
 const mockErrorLogs = [
   { id: 'el1', timestamp: subMinutes(new Date(), 5), message: "FirebaseError: Missing or insufficient permissions.", code: 'permission-denied', level: 'error' as const },
@@ -71,6 +71,9 @@ export default function AdminSettingsPage() {
 
     const settingsDocRef = useMemoFirebase(() => doc(firestore, 'settings', 'platform'), [firestore]);
     const { data: settings, isLoading } = useDoc<PlatformSettings>(settingsDocRef);
+    
+    const usersQuery = useMemoFirebase(() => query(collection(firestore, 'users')), [firestore]);
+    const { data: appUsers, isLoading: usersLoading } = useCollection<AppUser>(usersQuery);
     
     const [notificationTitle, setNotificationTitle] = useState('');
     const [notificationMessage, setNotificationMessage] = useState('');
@@ -294,7 +297,7 @@ export default function AdminSettingsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Smartphone />App Version Monitor</CardTitle>
-                        <CardDescription>Track which users are on outdated app versions.</CardDescription>
+                        <CardDescription>Track which users are on outdated app versions. (Version and platform are mock data)</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <Table>
@@ -306,13 +309,23 @@ export default function AdminSettingsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {mockUserVersions.map(user => (
-                                    <TableRow key={user.id}>
-                                        <TableCell className="font-medium">{user.name}</TableCell>
-                                        <TableCell><Badge variant={user.version === '1.0.0' ? 'default' : 'secondary'}>{user.version}</Badge></TableCell>
-                                        <TableCell>{user.platform}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {usersLoading ? (
+                                    Array.from({length: 3}).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-5 w-24"/></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-16"/></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-20"/></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    appUsers?.map(user => (
+                                        <TableRow key={user.id}>
+                                            <TableCell className="font-medium">{user.name}</TableCell>
+                                            <TableCell><Badge variant={user.email.includes('ramesh') ? 'secondary' : 'default'}>{user.email.includes('ramesh') ? '0.9.8' : '1.0.0'}</Badge></TableCell>
+                                            <TableCell>{user.email.includes('sita') ? 'iOS' : 'Android'}</TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                          </Table>
                     </CardContent>
@@ -321,7 +334,7 @@ export default function AdminSettingsPage() {
                     <CardHeader className="flex justify-between items-center">
                         <div >
                             <CardTitle className="flex items-center gap-2"><FileWarning />Error Logs Viewer</CardTitle>
-                            <CardDescription>See backend/API failures and debug info.</CardDescription>
+                            <CardDescription>See backend/API failures and debug info. (This is mock data)</CardDescription>
                         </div>
                         <Button variant="ghost" size="icon"><RefreshCw className="h-4 w-4" /></Button>
                     </CardHeader>

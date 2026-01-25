@@ -34,19 +34,29 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal, MessageSquare, Trash2, CheckCircle, FileText, BarChart, ShieldAlert } from 'lucide-react';
+import { MoreHorizontal, MessageSquare, Trash2, CheckCircle, FileText, BarChart, ShieldAlert, Car, Mail, Phone } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 
 interface Driver {
   id: string;
@@ -56,18 +66,43 @@ interface Driver {
   isAvailable: boolean;
   rating: number;
   vehicle: string;
+  licensePlate: string;
   image?: { imageUrl?: string; imageHint?: string; };
   dateJoined?: Timestamp;
   isSuspended?: boolean;
   suspensionReason?: string;
   isVerified?: boolean;
+  documents?: {
+      license?: string;
+      rc?: string;
+      insurance?: string;
+      pollution?: string;
+  }
 }
+
+const mockDocuments = {
+    license: "https://picsum.photos/seed/license1/800/500",
+    rc: "https://picsum.photos/seed/rc1/800/500",
+    insurance: "https://picsum.photos/seed/insurance1/800/500",
+    pollution: "https://picsum.photos/seed/pollution1/800/500",
+};
+
+const DocumentTabContent = ({ value, src }: { value: string, src: string }) => (
+    <TabsContent value={value}>
+        <div className="relative aspect-video w-full mt-2 rounded-md overflow-hidden border">
+            <Image src={src} alt={`${value} document`} fill className="object-contain" />
+        </div>
+    </TabsContent>
+);
 
 export function DriverList() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   const [suspensionReason, setSuspensionReason] = useState('');
+  const [viewingDocsDriver, setViewingDocsDriver] = useState<Driver | null>(null);
+  const [messagingDriver, setMessagingDriver] = useState<Driver | null>(null);
+  const [message, setMessage] = useState('');
 
   const driversQuery = useMemoFirebase(
     () => query(collection(firestore, 'drivers'), orderBy('dateJoined', 'desc')),
@@ -134,11 +169,25 @@ export function DriverList() {
     }
   };
 
-  const handleSendMessage = () => {
+  const handleOpenMessageDialog = (driver: Driver) => {
+    setMessagingDriver(driver);
+    setMessage('');
+  };
+
+  const handleSendDriverMessage = () => {
+    if (!messagingDriver || !message) {
+        toast({
+            variant: "destructive",
+            title: "Message empty",
+            description: "Cannot send an empty message.",
+        });
+        return;
+    };
     toast({
-        title: "Feature Coming Soon",
-        description: "Direct messaging will be available in a future update.",
+        title: "Message Sent (Simulated)",
+        description: `Your message has been sent to ${messagingDriver.name}. This is a UI demonstration.`,
     });
+    setMessagingDriver(null);
   };
   
   const handleVerifyDriver = async (driverId: string, currentStatus: boolean) => {
@@ -158,14 +207,8 @@ export function DriverList() {
     }
   };
 
-  const handleViewDocuments = () => {
-    toast({
-        title: "Feature Coming Soon",
-        description: "Viewing driver documents will be available in a future update.",
-    });
-  };
-
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Driver Accounts</CardTitle>
@@ -235,9 +278,9 @@ export function DriverList() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem onClick={() => router.push(`/admin/drivers/${driver.id}`)}>View profile</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={handleViewDocuments}><FileText className="mr-2 h-4 w-4" /> View Documents</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setViewingDocsDriver(driver)}><FileText className="mr-2 h-4 w-4" /> View Documents</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => router.push(`/admin/drivers/${driver.id}/performance`)}><BarChart className="mr-2 h-4 w-4" /> View Performance</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={handleSendMessage}><MessageSquare className="mr-2 h-4 w-4" /> Send Message</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleOpenMessageDialog(driver)}><MessageSquare className="mr-2 h-4 w-4" /> Send Message</DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
@@ -332,5 +375,83 @@ export function DriverList() {
         )}
       </CardContent>
     </Card>
+    
+    <Dialog open={!!viewingDocsDriver} onOpenChange={(isOpen) => !isOpen && setViewingDocsDriver(null)}>
+        <DialogContent className="sm:max-w-4xl p-0">
+            {viewingDocsDriver && (
+                <>
+                    <DialogHeader className="p-6 pb-0">
+                        <DialogTitle>Documents for {viewingDocsDriver.name}</DialogTitle>
+                        <DialogDescription>
+                            Review the driver's submitted documents.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid md:grid-cols-2 gap-x-6 px-6 max-h-[70vh] overflow-y-auto">
+                        {/* Driver Details */}
+                        <div className="space-y-4">
+                            <h3 className="font-semibold text-lg">Driver Profile</h3>
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarImage src={viewingDocsDriver.image?.imageUrl} alt={viewingDocsDriver.name} data-ai-hint={viewingDocsDriver.image?.imageHint}/>
+                                    <AvatarFallback>{viewingDocsDriver.name?.charAt(0) ?? 'D'}</AvatarFallback>
+                                </Avatar>
+                                <div className="space-y-1">
+                                    <p className="font-bold text-xl">{viewingDocsDriver.name}</p>
+                                    <p className="text-sm text-muted-foreground flex items-center gap-2"><Mail size={14}/>{viewingDocsDriver.email}</p>
+                                    <p className="text-sm text-muted-foreground flex items-center gap-2"><Phone size={14}/>{viewingDocsDriver.phone || 'Not provided'}</p>
+                                </div>
+                            </div>
+                            <Separator/>
+                            <div className="flex items-center gap-2">
+                                <Car className="h-5 w-5 text-muted-foreground"/>
+                                <div>
+                                    <p className="font-semibold">{viewingDocsDriver.vehicle}</p>
+                                    <p className="text-sm text-muted-foreground font-mono">{viewingDocsDriver.licensePlate}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Document Viewer */}
+                        <div>
+                            <Tabs defaultValue="license" className="w-full">
+                                <TabsList>
+                                    <TabsTrigger value="license">License</TabsTrigger>
+                                    <TabsTrigger value="rc">Vehicle RC</TabsTrigger>
+                                    <TabsTrigger value="insurance">Insurance</TabsTrigger>
+                                    <TabsTrigger value="pollution">Pollution</TabsTrigger>
+                                </TabsList>
+                                <DocumentTabContent value="license" src={viewingDocsDriver.documents?.license || mockDocuments.license} />
+                                <DocumentTabContent value="rc" src={viewingDocsDriver.documents?.rc || mockDocuments.rc} />
+                                <DocumentTabContent value="insurance" src={viewingDocsDriver.documents?.insurance || mockDocuments.insurance} />
+                                <DocumentTabContent value="pollution" src={viewingDocsDriver.documents?.pollution || mockDocuments.pollution} />
+                            </Tabs>
+                        </div>
+                    </div>
+                    <DialogFooter className="p-6 bg-muted/50 border-t">
+                        <Button variant="outline" onClick={() => setViewingDocsDriver(null)}>Close</Button>
+                    </DialogFooter>
+                </>
+            )}
+        </DialogContent>
+    </Dialog>
+
+    <Dialog open={!!messagingDriver} onOpenChange={(isOpen) => !isOpen && setMessagingDriver(null)}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Send Message to {messagingDriver?.name}</DialogTitle>
+                <DialogDescription>
+                    Compose a direct message to the driver. They will receive it as a notification.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <Label htmlFor="message-text" className="sr-only">Message</Label>
+                <Textarea id="message-text" placeholder="Type your message here..." rows={5} value={message} onChange={(e) => setMessage(e.target.value)} />
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setMessagingDriver(null)}>Cancel</Button>
+                <Button onClick={handleSendDriverMessage}>Send Message</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
