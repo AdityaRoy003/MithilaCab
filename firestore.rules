@@ -77,14 +77,14 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isSuperAdmin() || hasPermission('users.manage');
+      allow get: if isOwner(userId) || (isSuperAdmin() ? true : hasPermission('users.manage'));
       allow create: if (isOwner(userId) && isValidUserCreate()) || isSuperAdmin();
-      allow update: if (isOwner(userId) && isValidUserUpdate()) || isSuperAdmin() || hasPermission('users.manage');
-      allow list, delete: if isSuperAdmin() || hasPermission('users.manage');
+      allow update: if (isOwner(userId) && isValidUserUpdate()) || (isSuperAdmin() ? true : hasPermission('users.manage'));
+      allow list, delete: if isSuperAdmin() ? true : hasPermission('users.manage');
 
       match /transactions/{transactionId} {
-        allow read, list: if isOwner(userId) || isSuperAdmin() || hasPermission('finance.view');
-        allow create: if isOwner(userId) || isSuperAdmin() || hasPermission('finance.manage');
+        allow read, list: if isOwner(userId) || (isSuperAdmin() ? true : hasPermission('finance.view'));
+        allow create: if isOwner(userId) || (isSuperAdmin() ? true : hasPermission('finance.manage'));
         allow update, delete: if false;
       }
     }
@@ -92,42 +92,42 @@ service cloud.firestore {
     match /drivers/{driverId} {
       allow get: if isSignedIn();
       allow create: if isOwner(driverId);
-      allow update: if (isOwner(driverId) && isFieldImmutable('id')) || isSuperAdmin() || hasPermission('drivers.manage');
-      allow list, delete: if isSuperAdmin() || hasPermission('drivers.manage');
+      allow update: if (isOwner(driverId) && isFieldImmutable('id')) || (isSuperAdmin() ? true : hasPermission('drivers.manage'));
+      allow list, delete: if isSuperAdmin() ? true : hasPermission('drivers.manage');
     }
 
     match /rides/{rideId} {
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isSuperAdmin() || hasPermission('rides.monitor'));
-      allow list: if isSuperAdmin() || hasPermission('rides.monitor') || hasPermission('support.access');
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || (isSuperAdmin() ? true : hasPermission('rides.monitor')));
+      allow list: if isSuperAdmin() ? true : (hasPermission('rides.monitor') || hasPermission('support.access'));
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && (
                       (isOwner(resource.data.userId) && isFieldImmutable('userId')) ||
                       (resource.data.driverId == null && request.resource.data.driverId == request.auth.uid) ||
                       (isOwner(resource.data.driverId) && isFieldImmutable('userId') && isFieldImmutable('driverId')) ||
-                      isSuperAdmin() || hasPermission('rides.monitor')
+                      (isSuperAdmin() ? true : hasPermission('rides.monitor'))
                     );
-      allow delete: if isOwner(resource.data.userId) || isSuperAdmin() || hasPermission('rides.monitor');
+      allow delete: if isOwner(resource.data.userId) || (isSuperAdmin() ? true : hasPermission('rides.monitor'));
     }
     
     match /incentives/{incentiveId} {
       allow read, list: if isSignedIn();
-      allow write: if isSuperAdmin() || hasPermission('finance.manage');
+      allow write: if isSuperAdmin() ? true : hasPermission('finance.manage');
     }
 
     match /settings/{settingId} {
       allow read: if isSignedIn();
-      allow write: if isSuperAdmin() || hasPermission('settings.manage');
+      allow write: if isSuperAdmin() ? true : hasPermission('settings.manage');
     }
 
     match /roles/{roleId} {
-      allow read, list: if isSuperAdmin() || hasPermission('users.manage');
+      allow read, list: if isSuperAdmin() ? true : hasPermission('users.manage');
       allow write: if isSuperAdmin();
     }
     
     match /refunds/{refundId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperAdmin() || hasPermission('support.access'));
-      allow list, update: if isSuperAdmin() || hasPermission('support.access');
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || (isSuperAdmin() ? true : hasPermission('support.access')));
+      allow list, update: if isSuperAdmin() ? true : hasPermission('support.access');
       allow delete: if isSuperAdmin();
     }
   }
