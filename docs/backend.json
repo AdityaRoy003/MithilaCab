@@ -533,6 +533,26 @@
         "name",
         "permissions"
       ]
+    },
+    "Refund": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Refund",
+      "type": "object",
+      "description": "Represents a refund request for a completed ride.",
+      "properties": {
+          "id": { "type": "string", "description": "Unique identifier for the refund request." },
+          "rideId": { "type": "string", "description": "The ID of the ride being refunded." },
+          "userId": { "type": "string", "description": "The ID of the user requesting the refund." },
+          "userName": { "type": "string", "description": "Denormalized name of the user." },
+          "fareAmount": { "type": "number", "description": "The fare amount of the ride in question." },
+          "rideDate": { "type": "string", "format": "date-time", "description": "The date of the ride." },
+          "reason": { "type": "string", "description": "The user's detailed reason for requesting the refund." },
+          "issueType": { "type": "string", "description": "The category of the issue." },
+          "status": { "type": "string", "enum": ["pending", "approved", "denied"], "description": "The current status of the refund request." },
+          "requestedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the request was made." },
+          "processedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the request was processed." }
+      },
+      "required": ["id", "rideId", "userId", "userName", "fareAmount", "rideDate", "reason", "issueType", "status", "requestedAt"]
     }
   },
   "auth": {
@@ -656,6 +676,20 @@
               "description": "The unique identifier for the role."
             }
           ]
+        }
+      },
+      {
+        "path": "/refunds/{refundId}",
+        "definition": {
+            "entityName": "Refund",
+            "schema": { "$ref": "#/backend/entities/Refund" },
+            "description": "Stores all refund requests made by users. Admins can process these requests.",
+            "params": [
+                {
+                    "name": "refundId",
+                    "description": "The unique identifier for the refund request."
+                }
+            ]
         }
       }
     ],

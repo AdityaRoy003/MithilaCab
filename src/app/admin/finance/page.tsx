@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
+import { collection, query, where, doc, serverTimestamp, increment, updateDoc } from 'firebase/firestore';
 import { format, subDays, startOfDay, eachDayOfInterval, isSameDay, getDay } from 'date-fns';
 
 import {
@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { IndianRupee, Clock, Zap, Plus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Ride, Incentive } from '@/lib/data';
+import type { Ride, Incentive, Refund } from '@/lib/data';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -35,6 +35,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -70,6 +71,117 @@ interface PlatformSettings {
     currency: string;
 }
 
+function RefundRequests() {
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const refundsQuery = useMemoFirebase(() => query(collection(firestore, 'refunds'), where('status', '==', 'pending')), [firestore]);
+    const { data: refunds, isLoading } = useCollection<Refund>(refundsQuery);
+
+    const handleProcessRefund = async (refund: Refund, decision: 'approved' | 'denied') => {
+        const refundRef = doc(firestore, 'refunds', refund.id);
+        const updatePayload = {
+            status: decision,
+            processedAt: serverTimestamp(),
+        };
+
+        updateDocumentNonBlocking(refundRef, updatePayload);
+
+        if (decision === 'approved') {
+            const userRef = doc(firestore, 'users', refund.userId);
+            updateDocumentNonBlocking(userRef, {
+                walletBalance: increment(refund.fareAmount)
+            });
+
+            const transactionRef = collection(firestore, 'users', refund.userId, 'transactions');
+            addDocumentNonBlocking(transactionRef, {
+                type: 'Refund',
+                date: serverTimestamp(),
+                amount: refund.fareAmount,
+                status: 'Success',
+            });
+        }
+        
+        toast({
+            title: `Refund ${decision.charAt(0).toUpperCase() + decision.slice(1)}`,
+            description: `The refund request for ${refund.userName} has been processed.`,
+        });
+    };
+
+    if (isLoading) {
+        return <Skeleton className="h-48 w-full" />;
+    }
+
+    if (!refunds || refunds.length === 0) {
+        return (
+            <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                <p>No pending refund requests.</p>
+            </div>
+        );
+    }
+    
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Passenger</TableHead>
+                    <TableHead>Reason</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {refunds.map(refund => (
+                    <TableRow key={refund.id}>
+                        <TableCell>
+                            <div className="font-medium">{refund.userName}</div>
+                            <div className="text-xs text-muted-foreground">{refund.rideDate ? format(refund.rideDate.toDate(), "PPP") : 'N/A'}</div>
+                        </TableCell>
+                        <TableCell>
+                            <Badge variant="outline">{refund.issueType}</Badge>
+                            <p className="text-sm text-muted-foreground mt-1 max-w-xs truncate">{refund.reason}</p>
+                        </TableCell>
+                        <TableCell className="text-right font-mono flex items-center justify-end"><IndianRupee size={14}/>{refund.fareAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right space-x-2">
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button size="sm" variant="destructive">Deny</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Deny Refund?</AlertDialogTitle>
+                                        <AlertDialogDescription>Are you sure you want to deny this refund request?</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleProcessRefund(refund, 'denied')} variant="destructive">Confirm Denial</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button size="sm">Approve</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Approve Refund?</AlertDialogTitle>
+                                        <AlertDialogDescription>This will credit ₹{refund.fareAmount.toFixed(2)} to {refund.userName}'s wallet. This cannot be undone.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleProcessRefund(refund, 'approved')}>Confirm Approval</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    );
+}
+
+
 export default function FinancePage() {
   const firestore = useFirestore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -93,7 +205,7 @@ export default function FinancePage() {
     defaultValues: {
       title: "",
       description: "",
-      bonusAmount: '',
+      bonusAmount: '' as any,
       bonusType: 'fixed',
     },
   });
@@ -444,9 +556,7 @@ export default function FinancePage() {
                 <CardDescription>Approve or deny refund requests from passengers.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-                    <p>Refund processing panel coming soon.</p>
-                </div>
+                <RefundRequests />
             </CardContent>
         </Card>
       </motion.div>

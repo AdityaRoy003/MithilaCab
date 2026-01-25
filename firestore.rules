@@ -77,7 +77,7 @@ service cloud.firestore {
         allow read, list: if isOwner(userId) || isAdmin();
         
         // A user can create a transaction for themselves (e.g., top-up).
-        allow create: if isOwner(userId);
+        allow create: if isOwner(userId) || isAdmin(); // Admin can create refunds
         
         // Transactions are immutable once created to maintain financial integrity.
         allow update, delete: if false;
@@ -146,6 +146,21 @@ service cloud.firestore {
       allow read, list: if isSignedIn();
       // Only admins can create, update, or delete roles.
       allow write: if isAdmin();
+    }
+    
+    match /refunds/{refundId} {
+      // A user can create a refund request for themselves.
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      // A user can read their own refund requests. Admins/Support can read any.
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || isSupport());
+      allow list: if isAdmin() || isSupport();
+
+      // Only Admins or Support can update (approve/deny) a refund request.
+      allow update: if isAdmin() || isSupport();
+
+      // Only Admins can delete.
+      allow delete: if isAdmin();
     }
   }
 }

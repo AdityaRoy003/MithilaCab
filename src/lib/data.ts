@@ -43,6 +43,20 @@ export interface Incentive {
   isActive: boolean;
 }
 
+export interface Refund {
+  id: string;
+  rideId: string;
+  userId: string;
+  userName: string;
+  fareAmount: number;
+  rideDate: any; // Timestamp
+  reason: string;
+  issueType: string;
+  status: 'pending' | 'approved' | 'denied';
+  requestedAt: any; // Timestamp
+  processedAt?: any; // Timestamp
+}
+
 const getDriverImage = (id: string): ImagePlaceholder => {
     const placeholder = PlaceHolderImages.find(img => img.id === id);
     if (!placeholder) {

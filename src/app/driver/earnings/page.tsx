@@ -8,6 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { IndianRupee, Zap, ArrowLeft, Calendar, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { Incentive } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -46,6 +50,11 @@ const recentRides = [
 
 export default function DriverEarningsPage() {
   const router = useRouter();
+  const firestore = useFirestore();
+
+  const incentivesQuery = useMemoFirebase(() => query(collection(firestore, 'incentives'), where('isActive', '==', true)), [firestore]);
+  const { data: incentives, isLoading: incentivesLoading } = useCollection<Incentive>(incentivesQuery);
+
 
   return (
     <AppLayout>
@@ -103,10 +112,14 @@ export default function DriverEarningsPage() {
                     <Zap className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                    <div className="text-2xl font-bold">3 Programs</div>
-                    <p className="text-xs text-muted-foreground">
-                        e.g., Peak hour bonus
-                    </p>
+                        {incentivesLoading ? <Skeleton className="h-8 w-20" /> : (
+                            <>
+                                <div className="text-2xl font-bold">{incentives?.length || 0} Programs</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Live incentive programs for drivers
+                                </p>
+                            </>
+                        )}
                     </CardContent>
                 </Card>
                 </motion.div>
@@ -190,36 +203,24 @@ export default function DriverEarningsPage() {
                         </div>
                     </CardHeader>
                     <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <Card className="bg-muted/30">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Weekend Warrior</CardTitle>
-                                <CardDescription>Complete 20 rides on Sat/Sun</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xl font-bold text-primary">Bonus: ₹500</p>
-                                <p className="text-sm text-muted-foreground mt-2">12/20 rides completed.</p>
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-muted/30">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Night Owl</CardTitle>
-                                <CardDescription>Drive 5 rides after 11 PM</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xl font-bold text-primary">Bonus: ₹250</p>
-                                <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1"><CheckCircle className="h-4 w-4 text-green-500" /> Completed!</p>
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-muted/30">
-                            <CardHeader>
-                                <CardTitle className="text-lg">High Rated</CardTitle>
-                                <CardDescription>Maintain 4.9+ rating for a week</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xl font-bold text-primary">Bonus: 1% of earnings</p>
-                                <p className="text-sm text-muted-foreground mt-2">Your current rating: 4.92</p>
-                            </CardContent>
-                        </Card>
+                        {incentivesLoading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-36" />)}
+                         {!incentivesLoading && incentives && incentives.map(incentive => (
+                            <Card key={incentive.id} className="bg-muted/30">
+                                <CardHeader>
+                                    <CardTitle className="text-lg">{incentive.title}</CardTitle>
+                                    <CardDescription>{incentive.description}</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                     <p className="text-xl font-bold text-primary">
+                                        Bonus: {incentive.bonusType === 'fixed' ? `₹${incentive.bonusAmount}` : `${incentive.bonusAmount}%`}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground mt-2">Complete the goal to earn.</p>
+                                </CardContent>
+                            </Card>
+                         ))}
+                         {!incentivesLoading && (!incentives || incentives.length === 0) && (
+                            <p className="text-muted-foreground col-span-3 text-center py-8">No active incentives right now.</p>
+                         )}
                     </CardContent>
                 </Card>
             </motion.div>

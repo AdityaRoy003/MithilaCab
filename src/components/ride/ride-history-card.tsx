@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
 import { IndianRupee, Star, RefreshCw, Download, Flag, Eye } from "lucide-react";
-import { Timestamp } from "firebase/firestore";
+import { Timestamp, collection, serverTimestamp } from "firebase/firestore";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import { Badge } from "../ui/badge";
@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RideReceipt } from "./ride-receipt";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 
 interface RideHistoryCardProps {
   ride: Ride;
@@ -41,6 +42,8 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
 
 export function RideHistoryCard({ ride }: RideHistoryCardProps) {
   const { toast } = useToast();
+  const { user } = useUser();
+  const firestore = useFirestore();
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -119,17 +122,33 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
   };
 
   const handleReportSubmit = () => {
-    // In a real app, you'd submit this to your backend
-    console.log({
+    if (!user || !ride) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "You must be logged in to report an issue.",
+        });
+        return;
+    }
+    const newRefund = {
         rideId: ride.id,
-        issueType,
-        issueDescription,
-    });
+        userId: user.uid,
+        userName: user.displayName || 'Unknown User',
+        fareAmount: ride.fareAmount,
+        rideDate: ride.startTime,
+        issueType: issueType,
+        reason: issueDescription,
+        status: 'pending',
+        requestedAt: serverTimestamp(),
+    };
+    
+    addDocumentNonBlocking(collection(firestore, 'refunds'), newRefund);
+
     toast({
         title: "Report Submitted",
-        description: "Thank you for your feedback. Our support team will review your report shortly.",
+        description: "Thank you. Our support team will review your report shortly.",
     });
-    setIsReportDialogOpen(false); // Close dialog
+    setIsReportDialogOpen(false);
     setIssueType('');
     setIssueDescription('');
   };
