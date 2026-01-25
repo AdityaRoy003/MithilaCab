@@ -11,43 +11,43 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Use exists() for safety. An admin must have a user document with role == 'admin'.
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
-             && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Safely check if the user is an admin.
+      // 1. Ensure a user is signed in.
+      // 2. Check for the existence of their user profile document.
+      // 3. Safely get the 'role' field and check if it is 'admin'.
+      let userDocPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return isSignedIn() && exists(userDocPath) && get(userDocPath).data.get('role', '') == 'admin';
     }
 
-    // Checks if the user making the request is the owner of the document.
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    // Generic permission checker for non-admin staff roles.
     function hasPermission(permission) {
+      // This function is for non-admin staff with document-based roles.
       if (!isSignedIn()) {
         return false;
       }
-
+      
       let userDocPath = /databases/$(database)/documents/users/$(request.auth.uid);
       if (!exists(userDocPath)) {
         return false;
       }
 
-      let userData = get(userDocPath).data;
-      let userRole = userData.get('role', null);
+      let userRole = get(userDocPath).data.get('role', null);
 
-      if (userRole == null || userRole == 'admin' || userRole == 'passenger' || userRole == 'driver') {
-        // 'admin' is handled by isAdmin(). Other basic roles have no special permissions.
+      // Only proceed if userRole is a string that could be a document ID.
+      // Ignore simple roles like 'passenger', 'driver', or 'admin' (which is handled by isAdmin()).
+      if (userRole == null || userRole in ['passenger', 'driver', 'admin']) {
         return false;
       }
       
-      // If userRole is a string, it must be an ID for a document in the 'roles' collection.
       if (userRole is string) {
         let roleDocPath = /databases/$(database)/documents/roles/$(userRole);
         if (exists(roleDocPath)) {
           let roleData = get(roleDocPath).data;
           let permissionsList = roleData.get('permissions', []);
           if (permissionsList is list) {
-            // Check if the required permission OR full access is in the list.
             return permission in permissionsList || 'admin.full_access' in permissionsList;
           }
         }
@@ -56,12 +56,10 @@ service cloud.firestore {
       return false;
     }
 
-    // Ensures a field is not changed during an update.
     function isFieldImmutable(fieldName) {
       return request.resource.data[fieldName] == resource.data[fieldName];
     }
     
-    // Validates that the incoming user data for creation is correct.
     function isValidUserCreate() {
         let data = request.resource.data;
         return data.id == request.auth.uid &&
@@ -69,7 +67,6 @@ service cloud.firestore {
                data.role in ['passenger', 'driver'];
     }
     
-    // Validates that a user is only updating non-critical fields.
     function isValidUserUpdate() {
         let data = request.resource.data;
         return isFieldImmutable('id') &&
@@ -83,101 +80,62 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     match /users/{userId} {
-      // A user can read their own profile. Admins and staff with user management perms can read any.
       allow get: if isOwner(userId) || isAdmin() || hasPermission('users.manage');
-
-      // Allow creating own user document (passenger/driver) or if an admin is creating any other user.
-      allow create: if (isOwner(userId) && isValidUserCreate()) || isAdmin() || hasPermission('admin.full_access');
-      
-      // A user can update their own profile. Admins and staff can update any.
+      allow create: if (isOwner(userId) && isValidUserCreate()) || isAdmin();
       allow update: if (isOwner(userId) && isValidUserUpdate()) || isAdmin() || hasPermission('users.manage');
-      
-      // Admins and staff with 'users.manage' permission can list and delete users.
-      allow list: if isAdmin() || hasPermission('users.manage');
-      allow delete: if isAdmin() || hasPermission('users.manage');
+      allow list, delete: if isAdmin() || hasPermission('users.manage');
 
       match /transactions/{transactionId} {
-        // A user can read their own transactions. Admins and staff with finance perms can read any.
         allow read, list: if isOwner(userId) || isAdmin() || hasPermission('finance.view');
-        
-        // A user can create a transaction for themselves. Admins and staff can create transactions.
         allow create: if isOwner(userId) || isAdmin() || hasPermission('finance.manage');
-        
-        // Transactions are immutable once created.
         allow update, delete: if false;
       }
     }
 
     match /drivers/{driverId} {
-      // Anyone signed in can view a driver's profile.
       allow get: if isSignedIn();
-      
-      // Drivers create their own profile.
       allow create: if isOwner(driverId);
-      
-      // Drivers can update their own profile. Admins and staff can also update driver profiles.
       allow update: if (isOwner(driverId) && isFieldImmutable('id')) || isAdmin() || hasPermission('drivers.manage');
-      
-      // Admins and staff can list and delete drivers.
       allow list, delete: if isAdmin() || hasPermission('drivers.manage');
     }
 
     match /rides/{rideId} {
-      // A user can read a single ride if they are the passenger, the driver, or authorized staff.
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.driverId == request.auth.uid || isAdmin() || hasPermission('rides.monitor'));
       
-      // Only Admins or staff with the 'rides.monitor' permission can list rides.
+      // Corrected 'list' rule
       allow list: if isAdmin() || hasPermission('rides.monitor');
 
-      // A user can create a ride request for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
-      // A ride can be updated by passengers, drivers under certain conditions, or by authorized staff.
       allow update: if isSignedIn() && (
                       (isOwner(resource.data.userId) && isFieldImmutable('userId')) ||
                       (resource.data.driverId == null && request.resource.data.driverId == request.auth.uid) ||
                       (isOwner(resource.data.driverId) && isFieldImmutable('userId') && isFieldImmutable('driverId')) ||
                       isAdmin() || hasPermission('rides.monitor')
                     );
-
-      // The passenger can delete their ride, or authorized staff can.
       allow delete: if isOwner(resource.data.userId) || isAdmin() || hasPermission('rides.monitor');
     }
     
     match /incentives/{incentiveId} {
-      // Admins and staff with finance perms can write incentives.
       allow write: if isAdmin() || hasPermission('finance.manage');
-      
-      // All signed-in users can read and list incentives.
       allow get, list: if isSignedIn();
     }
 
     match /settings/{settingId} {
-      // All signed-in users can read platform settings.
       allow read: if isSignedIn();
-      // Only Admins or staff with settings perms can write settings.
       allow write: if isAdmin() || hasPermission('settings.manage');
     }
 
     match /roles/{roleId} {
-      // Admins or staff with user management perms can read roles.
       allow read, list: if isAdmin() || hasPermission('users.manage');
-      // Only full admins can write roles.
       allow write: if isAdmin() || hasPermission('admin.full_access');
     }
     
     match /refunds/{refundId} {
-      // A user can create a refund request for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // A user can read their own refund requests. Admins and support staff can read any.
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || hasPermission('support.access'));
       allow list: if isAdmin() || hasPermission('support.access');
-
-      // Only Admins and support staff can update (approve/deny) a refund request.
       allow update: if isAdmin() || hasPermission('support.access');
-
-      // Only Admins or full access staff can delete.
       allow delete: if isAdmin() || hasPermission('admin.full_access');
     }
   }
