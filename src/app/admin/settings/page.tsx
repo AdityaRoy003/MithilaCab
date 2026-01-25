@@ -19,11 +19,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Percent, IndianRupee, Car, CarFront, Truck, Zap, Smartphone, FileWarning, Send } from 'lucide-react';
+import { Percent, IndianRupee, Car, CarFront, Truck, Zap, Smartphone, FileWarning, Send, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { format, subHours, subMinutes } from 'date-fns';
 
 const settingsSchema = z.object({
   commissionRate: z.coerce.number().min(0).max(100, { message: 'Commission must be between 0 and 100.' }),
@@ -48,12 +51,30 @@ interface PlatformSettings {
     };
 }
 
+const mockUserVersions = [
+  { id: 'uv1', name: 'Ramesh Kumar', version: '1.0.0', platform: 'Android' },
+  { id: 'uv2', name: 'Sita Devi', version: '0.9.8', platform: 'iOS' },
+  { id: 'uv3', name: 'Madhavi Jha', version: '1.0.0', platform: 'iOS' },
+  { id: 'uv4', name: 'Amit Singh', version: '1.0.0', platform: 'Android' },
+];
+
+const mockErrorLogs = [
+  { id: 'el1', timestamp: subMinutes(new Date(), 5), message: "FirebaseError: Missing or insufficient permissions.", code: 'permission-denied', level: 'error' as const },
+  { id: 'el2', timestamp: subMinutes(new Date(), 15), message: "Failed to fetch driver location: Timeout", code: 'deadline-exceeded', level: 'warning' as const },
+  { id: 'el3', timestamp: subHours(new Date(), 1), message: "Ride booking conflict for user X.", code: 'aborted', level: 'info' as const },
+  { id: 'el4', timestamp: subHours(new Date(), 2), message: "Payment gateway timeout for transaction Y.", code: 'unavailable', level: 'error' as const },
+];
+
 export default function AdminSettingsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
 
     const settingsDocRef = useMemoFirebase(() => doc(firestore, 'settings', 'platform'), [firestore]);
     const { data: settings, isLoading } = useDoc<PlatformSettings>(settingsDocRef);
+    
+    const [notificationTitle, setNotificationTitle] = useState('');
+    const [notificationMessage, setNotificationMessage] = useState('');
+    const [isSending, setIsSending] = useState(false);
     
     const form = useForm<z.infer<typeof settingsSchema>>({
         resolver: zodResolver(settingsSchema),
@@ -110,11 +131,26 @@ export default function AdminSettingsPage() {
         toast({ title: 'Settings Saved', description: 'Platform settings have been updated.' });
     }
 
-    const handleNotImplemented = () => {
-        toast({
-            title: "Feature Coming Soon",
-            description: "This functionality will be available in a future update.",
-        });
+    const handleSendNotification = () => {
+        if (!notificationTitle || !notificationMessage) {
+            toast({
+                variant: 'destructive',
+                title: "Missing fields",
+                description: "Please provide a title and a message for the notification.",
+            });
+            return;
+        }
+        setIsSending(true);
+        // Simulate API call
+        setTimeout(() => {
+            toast({
+                title: "Notification Sent",
+                description: "Your notification has been broadcast to all users.",
+            });
+            setNotificationTitle('');
+            setNotificationMessage('');
+            setIsSending(false);
+        }, 1500);
     };
 
     if (isLoading) {
@@ -239,16 +275,18 @@ export default function AdminSettingsPage() {
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="notification-title">Title</Label>
-                            <Input id="notification-title" placeholder="e.g., Service Maintenance" />
+                            <Input id="notification-title" placeholder="e.g., Service Maintenance" value={notificationTitle} onChange={(e) => setNotificationTitle(e.target.value)} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="notification-message">Message</Label>
-                            <Textarea id="notification-message" placeholder="Enter your system-wide message here..." />
+                            <Textarea id="notification-message" placeholder="Enter your system-wide message here..." value={notificationMessage} onChange={(e) => setNotificationMessage(e.target.value)} />
                         </div>
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button onClick={handleNotImplemented}>Send Notification</Button>
+                    <Button onClick={handleSendNotification} disabled={isSending}>
+                        {isSending ? 'Sending...' : 'Send Notification'}
+                    </Button>
                 </CardFooter>
             </Card>
 
@@ -259,19 +297,50 @@ export default function AdminSettingsPage() {
                         <CardDescription>Track which users are on outdated app versions.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-                            <p>App version monitor coming soon.</p>
-                        </div>
+                         <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>User</TableHead>
+                                    <TableHead>Version</TableHead>
+                                    <TableHead>Platform</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {mockUserVersions.map(user => (
+                                    <TableRow key={user.id}>
+                                        <TableCell className="font-medium">{user.name}</TableCell>
+                                        <TableCell><Badge variant={user.version === '1.0.0' ? 'default' : 'secondary'}>{user.version}</Badge></TableCell>
+                                        <TableCell>{user.platform}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                         </Table>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><FileWarning />Error Logs Viewer</CardTitle>
-                        <CardDescription>See backend/API failures and debug info.</CardDescription>
+                    <CardHeader className="flex justify-between items-center">
+                        <div >
+                            <CardTitle className="flex items-center gap-2"><FileWarning />Error Logs Viewer</CardTitle>
+                            <CardDescription>See backend/API failures and debug info.</CardDescription>
+                        </div>
+                        <Button variant="ghost" size="icon"><RefreshCw className="h-4 w-4" /></Button>
                     </CardHeader>
-                    <CardContent>
-                        <div className="h-48 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-                            <p>Error log viewer coming soon.</p>
+                    <CardContent className="h-72 overflow-y-auto">
+                        <div className="space-y-4">
+                            {mockErrorLogs.map(log => (
+                                <div key={log.id} className="flex items-start gap-3">
+                                    <div className="flex-shrink-0">
+                                         <Badge variant={log.level === 'error' ? 'destructive' : log.level === 'warning' ? 'secondary' : 'outline'}>
+                                            {log.level}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex-1 text-sm">
+                                        <p className="font-mono text-xs text-muted-foreground">{log.code}</p>
+                                        <p>{log.message}</p>
+                                        <p className="text-xs text-muted-foreground">{format(log.timestamp, 'PPpp')}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
