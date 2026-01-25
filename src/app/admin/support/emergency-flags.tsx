@@ -1,7 +1,8 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where, Timestamp } from 'firebase/firestore';
 import {
   Card,
   CardContent,
@@ -24,11 +25,24 @@ import { Flag } from 'lucide-react';
 
 export function EmergencyFlagsList() {
   const firestore = useFirestore();
+
+  // Remove orderBy from the query to avoid needing a composite index
   const ridesQuery = useMemoFirebase(
-    () => query(collection(firestore, 'rides'), where('isFlagged', '==', true), orderBy('startTime', 'desc')),
+    () => query(collection(firestore, 'rides'), where('isFlagged', '==', true)),
     [firestore]
   );
-  const { data: rides, isLoading } = useCollection<Ride>(ridesQuery);
+  const { data: unsortedRides, isLoading } = useCollection<Ride>(ridesQuery);
+
+  // Sort the rides on the client-side
+  const rides = useMemo(() => {
+    if (!unsortedRides) return null;
+    return [...unsortedRides].sort((a, b) => {
+        const timeA = a.startTime instanceof Timestamp ? a.startTime.toDate().getTime() : 0;
+        const timeB = b.startTime instanceof Timestamp ? b.startTime.toDate().getTime() : 0;
+        return timeB - timeA; // Descending order
+    });
+  }, [unsortedRides]);
+
 
   return (
     <Card>
