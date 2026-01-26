@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, animate, useInView } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
@@ -37,6 +37,22 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
   </Link>
 );
 
+function AnimatedCounter({ to, suffix, from = 0, duration = 2 }: { to: number; from?: number; duration?: number, suffix?: string }) {
+    const count = useMotionValue(from);
+    const rounded = useTransform(count, (latest) => `${Math.round(latest)}${suffix || ''}`);
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true, amount: 0.5 });
+  
+    useEffect(() => {
+      if (isInView) {
+        const controls = animate(count, to, { duration });
+        return controls.stop;
+      }
+    }, [isInView, count, to, duration]);
+  
+    return <motion.h3 ref={ref} className="text-4xl font-bold mt-2">{rounded}</motion.h3>;
+}
+
 
 export default function LandingPage() {
   const heroImage = PlaceHolderImages.find(img => img.id === 'mithila-hero');
@@ -60,6 +76,13 @@ export default function LandingPage() {
 
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "200%"]);
+
+  const artStripRef = useRef(null);
+  const { scrollYProgress: scrollYProgressArt } = useScroll({
+      target: artStripRef,
+      offset: ["start end", "end start"]
+  });
+  const artX = useTransform(scrollYProgressArt, [0, 1], ["-10%", "10%"]);
 
 
   // Animation variants for the hero section content
@@ -395,17 +418,19 @@ export default function LandingPage() {
         </section>
 
         {/* Decorative Art Strip */}
-        <div className="relative h-24 my-20 md:my-32 overflow-hidden">
+        <div ref={artStripRef} className="relative h-24 my-20 md:my-32 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background z-10"></div>
             {madhubaniImages[0] && (
-              <Image
-                src={madhubaniImages[0].imageUrl}
-                alt="Madhubani art pattern"
-                fill
-                objectFit="cover"
-                className="opacity-10 dark:opacity-5"
-                data-ai-hint={madhubaniImages[0].imageHint}
-              />
+              <motion.div style={{ x: artX, width: '120%', left: '-10%' }} className="absolute inset-0">
+                  <Image
+                    src={madhubaniImages[0].imageUrl}
+                    alt="Madhubani art pattern"
+                    fill
+                    objectFit="cover"
+                    className="opacity-10 dark:opacity-5"
+                    data-ai-hint={madhubaniImages[0].imageHint}
+                  />
+              </motion.div>
             )}
         </div>
         
@@ -765,17 +790,17 @@ export default function LandingPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mt-16 max-w-5xl mx-auto text-center">
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.1}}>
                     <Users className="h-10 w-10 mx-auto text-chart-1" />
-                    <h3 className="text-4xl font-bold mt-2">120+</h3>
+                    <AnimatedCounter to={120} suffix="+" />
                     <p className="text-muted-foreground mt-1">Active Drivers</p>
                 </motion.div>
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.2}}>
                     <Award className="h-10 w-10 mx-auto text-chart-2" />
-                    <h3 className="text-4xl font-bold mt-2">95%</h3>
+                    <AnimatedCounter to={95} suffix="%" />
                     <p className="text-muted-foreground mt-1">5-Star Ratings</p>
                 </motion.div>
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.3}}>
                     <IndianRupee className="h-10 w-10 mx-auto text-chart-3" />
-                    <h3 className="text-4xl font-bold mt-2">15%</h3>
+                    <AnimatedCounter to={15} suffix="%" />
                     <p className="text-muted-foreground mt-1">Higher Earnings</p>
                 </motion.div>
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{duration: 0.5, delay: 0.4}}>
@@ -896,7 +921,13 @@ export default function LandingPage() {
         </Link>
       </main>
 
-      <footer className="bg-muted/30 border-t">
+      <motion.footer 
+        className="bg-muted/30 border-t"
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.8 }}
+      >
         <div className="container mx-auto px-4 pt-16 pb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
                 
@@ -1006,7 +1037,7 @@ export default function LandingPage() {
                 </div>
             </div>
         </div>
-      </footer>
+      </motion.footer>
     </div>
   );
 }
