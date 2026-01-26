@@ -7,7 +7,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle, ArrowRight, LifeBuoy } from 'lucide-react';
+import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle, ArrowRight, LifeBuoy, Phone, Mail, Twitter, Linkedin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose, SheetTrigger } from '@/components/ui/sheet';
@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Separator } from '@/components/ui/separator';
 
 
 // Reusable NavLink component for animated underline effect
@@ -834,104 +835,114 @@ export default function LandingPage() {
 
       </main>
 
-      <footer className="bg-muted/40 border-t">
-        <div className="container mx-auto px-4 py-16">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-                {/* Column 1: Logo & Socials */}
-                <motion.div 
-                    className="space-y-6"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5 }}
-                >
+      <footer className="bg-muted/30 border-t">
+        <div className="container mx-auto px-4 pt-16 pb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                
+                {/* Column 1: Company Info */}
+                <div className="lg:col-span-1 space-y-6">
                     <Logo />
-                    <p className="text-sm text-muted-foreground">Connecting Mithila, one ride at a time. Safe, reliable, and culturally aware transportation.</p>
+                    <p className="text-sm text-muted-foreground">Your trusted ride in Mithilanchal. Safe, reliable, and culturally aware transportation.</p>
                     <div className="flex gap-4">
-                        <motion.a href="#" initial={{ opacity: 0}} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }}><Facebook className="text-muted-foreground hover:text-primary"/></motion.a>
-                        <motion.a href="#" initial={{ opacity: 0}} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.3 }}><Instagram className="text-muted-foreground hover:text-primary"/></motion.a>
-                        <motion.a href="#" initial={{ opacity: 0}} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }}><MessageSquare className="text-muted-foreground hover:text-primary"/></motion.a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Facebook /></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Instagram /></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Twitter /></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Linkedin /></a>
                     </div>
-                </motion.div>
-
+                </div>
+                
                 {/* Column 2: Quick Links */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                >
+                <div>
                     <h4 className="font-semibold mb-4">Quick Links</h4>
                     <ul className="space-y-3 text-sm">
                         <li><Link href="#features" className="text-muted-foreground hover:text-primary">Features</Link></li>
-                        <li><Link href="#how-it-works" className="text-muted-foreground hover:text-primary">How It Works</Link></li>
+                        <li><Link href="#safety" className="text-muted-foreground hover:text-primary">Safety</Link></li>
                         <li><Link href="#drive" className="text-muted-foreground hover:text-primary">Drive with Us</Link></li>
-                        <li><Link href="/login" className="text-muted-foreground hover:text-primary">Login</Link></li>
+                        <li><Link href="/profile/safety" className="text-muted-foreground hover:text-primary">Support</Link></li>
+                        <li><Link href="#faq" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
                     </ul>
-                </motion.div>
+                </div>
 
-                {/* Column 3: Newsletter & Language */}
-                <motion.div 
-                    className="md:col-span-2 space-y-4"
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                >
-                    <h4 className="font-semibold">Stay Updated</h4>
-                    <p className="text-sm text-muted-foreground">Subscribe to our newsletter for the latest news and offers.</p>
-                    <div className="overflow-hidden">
-                        <AnimatePresence mode="wait">
-                            {newsletterStatus !== 'success' ? (
-                                <motion.form 
-                                    key="form"
-                                    onSubmit={handleNewsletterSubmit} 
-                                    className="flex gap-2"
-                                    exit={{ opacity: 0, y: -20 }}
-                                >
-                                    <Input 
-                                        type="email" 
-                                        placeholder="Enter your email" 
-                                        value={newsletterEmail}
-                                        onChange={(e) => setNewsletterEmail(e.target.value)}
-                                        required 
-                                    />
-                                    <Button type="submit" disabled={newsletterStatus === 'submitting'}>
-                                        {newsletterStatus === 'submitting' ? 'Submitting...' : <Send />}
-                                    </Button>
-                                </motion.form>
-                            ) : (
-                                <motion.div 
-                                    key="success"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="flex items-center gap-2 text-green-600 font-medium p-2 rounded-md bg-green-500/10 border border-green-500/20"
-                                >
-                                    <CheckCircle /> Thank you for subscribing!
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                {/* Column 3: Contact Info */}
+                <div>
+                    <h4 className="font-semibold mb-4">Contact Us</h4>
+                    <ul className="space-y-4 text-sm">
+                        <li className="flex items-start gap-3"><Phone className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="tel:+911234567890" className="text-muted-foreground hover:text-primary">+91 12345 67890</a></li>
+                        <li className="flex items-start gap-3"><Mail className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="mailto:contact@mithilacab.com" className="text-muted-foreground hover:text-primary">contact@mithilacab.com</a></li>
+                        <li className="flex items-start gap-3"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><span className="text-muted-foreground">Darbhanga, Bihar, India</span></li>
+                        <li className="flex items-start gap-3"><MessageSquare className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="#" className="text-muted-foreground hover:text-primary">WhatsApp Us</a></li>
+                    </ul>
+                </div>
+                
+                {/* Column 4: App Download & Newsletter */}
+                <div className="space-y-8">
+                    <div>
+                        <h4 className="font-semibold mb-4">Get the App</h4>
+                        <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-4">
+                            <a href="#" className="inline-block" aria-label="Get it on Google Play">
+                                <svg width="135" height="40" viewBox="0 0 135 40" fill="currentColor" className="text-foreground"><rect width="135" height="40" rx="6" fill="black"></rect><path d="M11.23 9.45H10.15L12.94 12.18L15.35 14.54L15.36 14.53L12.95 16.89L10.12 19.65H11.2L13.88 17.02L16.48 14.53L13.89 12.02L11.23 9.45Z M26.96 14.47L16.59 4.31C16.14 3.87 15.39 3.86 14.93 4.3L9.58 9.53L12.94 12.82L23.47 12.44L26.96 14.47ZM9.58 19.52L14.93 24.75C15.39 25.19 16.14 25.18 16.59 24.74L26.98 14.58L23.49 12.55L12.94 16.23L9.58 19.52Z M4.2 8.65C3.34 9.46 2.76 10.57 2.53 11.83L11.75 20.84L14.62 18.03L4.2 8.65Z M4.2 20.4L14.62 11.02L11.75 8.21L2.53 17.22C2.76 18.48 3.34 19.59 4.2 20.4Z" fill="white"></path><g><text x="36" y="15" fill="white" fontSize="12" fontFamily="Arial, sans-serif">GET IT ON</text><text x="36" y="30" fill="white" fontSize="16" fontWeight="bold" fontFamily="Arial, sans-serif">Google Play</text></g></svg>
+                            </a>
+                            <a href="#" className="inline-block" aria-label="Download on the App Store">
+                               <svg width="120" height="40" viewBox="0 0 120 40" fill="currentColor" className="text-foreground"><rect width="120" height="40" rx="6" fill="black"></rect><path d="M10.13,25.42a4,4,0,0,1,1.93-3.3,4.42,4.42,0,0,0-3.3-1.52c-2.09,0-3.81,1.48-4.83,1.48s-2.82-1.48-4.87-1.48-3.88,1.4-5,1.4a4.4,4.4,0,0,0-3.2,1.69,8.23,8.23,0,0,0-1.63,5.2,7.12,7.12,0,0,0,2.4,5.49,4,4,0,0,1-1.8,3.25,4.55,4.55,0,0,0,3.31,1.52c2.09,0,3.81-1.48,4.83-1.48s2.82,1.48,4.87,1.48,3.88-1.4,5-1.4,4.19,1.48,5.93,1.48a4.4,4.4,0,0,0,3.2-1.69,8.23,8.23,0,0,0,1.63-5.2A7.12,7.12,0,0,0,22.28,27.11ZM17.4,6.75a7.66,7.66,0,0,1-2.09,5.23,7.1,7.1,0,0,1,1.88-5.3,4.4,4.4,0,0,0,3.2-1.69,8.23,8.23,0,0,0,1.63-5.2,7.12,7.12,0,0,0-2.4-5.49A4,4,0,0,1,17.82.08a4.55,4.55,0,0,0-3.31,1.52c-2.09,0-3.81-1.48-4.83-1.48s-2.82,1.48-4.87-1.48S.93,1.56.93.08a4.4,4.4,0,0,0-3.2,1.69,8.23,8.23,0,0,0-1.63,5.2,7.12,7.12,0,0,0,2.4,5.49,4,4,0,0,1-1.8,3.25,4.55,4.55,0,0,0,3.31,1.52c2.09,0,3.81-1.48,4.83-1.48s2.82,1.48,4.87,1.48,3.88-1.4,5-1.4A4.24,4.24,0,0,0,17.4,6.75Z" transform="translate(15.5 2.5) scale(0.6)" fill="white"></path><g><text x="44" y="15" fill="white" fontSize="10" fontFamily="Arial, sans-serif">Download on the</text><text x="44" y="30" fill="white" fontSize="16" fontWeight="600" fontFamily="Arial, sans-serif">App Store</text></g></svg>
+                            </a>
+                        </div>
                     </div>
-                    <div className="pt-4">
-                        <Label className="font-semibold">Language</Label>
-                        <Select defaultValue="en" onValueChange={handleLanguageChange}>
-                            <SelectTrigger className="w-[180px] mt-2">
-                            <div className="flex items-center gap-2">
-                                <Globe className="h-4 w-4 text-muted-foreground" />
-                                <SelectValue placeholder="Language" />
-                            </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="en">English</SelectItem>
-                                <SelectItem value="hi">हिन्दी (Hindi)</SelectItem>
-                                <SelectItem value="mai">मैथिली (Maithili)</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <div>
+                        <h4 className="font-semibold mb-4">Stay Updated</h4>
+                        <div className="overflow-hidden">
+                            <AnimatePresence mode="wait">
+                                {newsletterStatus !== 'success' ? (
+                                    <motion.form 
+                                        key="form"
+                                        onSubmit={handleNewsletterSubmit} 
+                                        className="flex gap-2"
+                                        exit={{ opacity: 0, y: -20 }}
+                                    >
+                                        <Input 
+                                            type="email" 
+                                            placeholder="Enter your email" 
+                                            value={newsletterEmail}
+                                            onChange={(e) => setNewsletterEmail(e.target.value)}
+                                            required 
+                                        />
+                                        <Button type="submit" disabled={newsletterStatus === 'submitting'}>
+                                            {newsletterStatus === 'submitting' ? '...' : <Send />}
+                                        </Button>
+                                    </motion.form>
+                                ) : (
+                                    <motion.div 
+                                        key="success"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex items-center gap-2 text-green-600 font-medium p-2 rounded-md bg-green-500/10 border border-green-500/20"
+                                    >
+                                        <CheckCircle /> Thank you for subscribing!
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
-                </motion.div>
+                </div>
             </div>
-            <div className="mt-16 border-t pt-8 text-center text-sm text-muted-foreground">
+            
+            <Separator className="my-12" />
+            
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-muted-foreground">
                 <p>&copy; {new Date().getFullYear()} MithilaCab. All rights reserved.</p>
+                <div className="flex items-center gap-4">
+                    <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
+                    <Link href="/terms" className="hover:text-primary">Terms of Service</Link>
+                    <Select defaultValue="en" onValueChange={handleLanguageChange}>
+                      <SelectTrigger className="w-[140px] h-8 text-xs">
+                          <div className="flex items-center gap-2"><Globe className="h-3 w-3" /><SelectValue placeholder="Language" /></div>
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="hi">हिन्दी (Hindi)</SelectItem>
+                          <SelectItem value="mai">मैथिली (Maithili)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                </div>
             </div>
         </div>
       </footer>

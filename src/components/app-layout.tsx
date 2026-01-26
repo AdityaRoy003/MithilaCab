@@ -15,7 +15,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LogOut, Shield, Bell, Facebook, Instagram, MessageSquare } from "lucide-react";
+import { User, LogOut, Shield, Bell, Facebook, Instagram, MessageSquare, Twitter, Linkedin, Phone, Mail, MapPin } from "lucide-react";
 import { useUser, useAuth, useDriver, useAdmin } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -201,51 +201,57 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
         </header>
         {children}
-        <footer className="bg-muted/40 border-t">
-            <div className="container mx-auto px-4 py-16">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-                    {/* Column 1: Logo & Socials */}
-                    <div className="space-y-6">
+        <footer className="bg-muted/30 border-t">
+            <div className="container mx-auto px-4 pt-16 pb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                    {/* Column 1: Company Info */}
+                    <div className="lg:col-span-1 space-y-6">
                         <Logo />
-                        <p className="text-sm text-muted-foreground">Connecting Mithila, one ride at a time. Safe, reliable, and culturally aware transportation.</p>
+                        <p className="text-sm text-muted-foreground">Your trusted ride in Mithilanchal. Safe, reliable, and culturally aware transportation.</p>
                         <div className="flex gap-4">
-                            <a href="#"><Facebook className="text-muted-foreground hover:text-primary"/></a>
-                            <a href="#"><Instagram className="text-muted-foreground hover:text-primary"/></a>
-                            <a href="#"><MessageSquare className="text-muted-foreground hover:text-primary"/></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Facebook /></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Instagram /></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Twitter /></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Linkedin /></a>
                         </div>
                     </div>
-
+                    
                     {/* Column 2: Quick Links */}
                     <div>
                         <h4 className="font-semibold mb-4">Quick Links</h4>
                         <ul className="space-y-3 text-sm">
-                            <li><Link href="/home" className="text-muted-foreground hover:text-primary">Home</Link></li>
+                            <li><Link href="/home" className="text-muted-foreground hover:text-primary">Book a Ride</Link></li>
                             <li><Link href="/history" className="text-muted-foreground hover:text-primary">My Rides</Link></li>
                             <li><Link href="/profile" className="text-muted-foreground hover:text-primary">Profile</Link></li>
-                            <li><Link href="/signup?role=driver" className="text-muted-foreground hover:text-primary">Become a Driver</Link></li>
+                            <li><Link href="/signup?role=driver" className="text-muted-foreground hover:text-primary">Drive with Us</Link></li>
                         </ul>
                     </div>
 
-                    {/* Column 3: Support */}
+                    {/* Column 3: Contact Info */}
                     <div>
-                        <h4 className="font-semibold mb-4">Support</h4>
+                        <h4 className="font-semibold mb-4">Contact Us</h4>
+                        <ul className="space-y-4 text-sm">
+                            <li className="flex items-start gap-3"><Phone className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="tel:+911234567890" className="text-muted-foreground hover:text-primary">+91 12345 67890</a></li>
+                            <li className="flex items-start gap-3"><Mail className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="mailto:contact@mithilacab.com" className="text-muted-foreground hover:text-primary">contact@mithilacab.com</a></li>
+                            <li className="flex items-start gap-3"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><span className="text-muted-foreground">Darbhanga, Bihar, India</span></li>
+                        </ul>
+                    </div>
+                    
+                    {/* Column 4: Legal & Support */}
+                    <div>
+                        <h4 className="font-semibold mb-4">Resources</h4>
                         <ul className="space-y-3 text-sm">
-                            <li><Link href="/profile/safety" className="text-muted-foreground hover:text-primary">Help Center</Link></li>
+                            <li><Link href="/profile/safety" className="text-muted-foreground hover:text-primary">Support Center</Link></li>
                             <li><Link href="/profile/faq" className="text-muted-foreground hover:text-primary">FAQs</Link></li>
-                            <li><Link href="/profile/safety" className="text-muted-foreground hover:text-primary">Contact Support</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Column 4: Legal */}
-                    <div>
-                        <h4 className="font-semibold mb-4">Legal</h4>
-                        <ul className="space-y-3 text-sm">
                             <li><Link href="/terms" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
                             <li><Link href="/privacy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
                         </ul>
                     </div>
                 </div>
-                <div className="mt-16 border-t pt-8 text-center text-sm text-muted-foreground">
+                
+                <Separator className="my-12" />
+                
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-muted-foreground">
                     <p>&copy; {year} MithilaCab. All rights reserved.</p>
                 </div>
             </div>
