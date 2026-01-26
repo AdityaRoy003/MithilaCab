@@ -7,7 +7,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle, ArrowRight, LifeBuoy, Phone, Mail, Twitter, Linkedin } from 'lucide-react';
+import { ChevronDown, MapPin, Menu, Quote, Car, Smartphone, Star, Wallet, X, Upload, Users, Award, IndianRupee, Clock, UserPlus, UploadCloud, ShieldCheck, Navigation, Facebook, Instagram, MessageSquare, Globe, Send, CheckCircle, ArrowRight, LifeBuoy, Phone, Mail, Twitter, Linkedin, CreditCard } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose, SheetTrigger } from '@/components/ui/sheet';
@@ -393,6 +393,21 @@ export default function LandingPage() {
                 </motion.div>
             </div>
         </section>
+
+        {/* Decorative Art Strip */}
+        <div className="relative h-24 my-20 md:my-32 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background z-10"></div>
+            {madhubaniImages[0] && (
+              <Image
+                src={madhubaniImages[0].imageUrl}
+                alt="Madhubani art pattern"
+                fill
+                objectFit="cover"
+                className="opacity-10 dark:opacity-5"
+                data-ai-hint={madhubaniImages[0].imageHint}
+              />
+            )}
+        </div>
         
         {/* How It Works Section */}
         <section id="how-it-works" className="container mx-auto px-4 py-20 md:py-32 bg-muted/30 rounded-2xl">
@@ -504,6 +519,48 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </section>
+
+        {/* Trust Badges Section */}
+        <section id="trust" className="bg-muted/30 py-20 md:py-32">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <h2 className="font-headline text-4xl font-bold">Built on Trust</h2>
+              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                Your peace of mind is our priority, from start to finish.
+              </p>
+            </motion.div>
+            <div className="grid md:grid-cols-3 gap-8 mt-16 max-w-5xl mx-auto">
+              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
+                <Card className="text-center p-8 h-full bg-card">
+                  <ShieldCheck className="h-12 w-12 mx-auto text-chart-5"/>
+                  <h3 className="mt-4 font-semibold text-xl">Verified Drivers</h3>
+                  <p className="mt-2 text-muted-foreground">Every driver is background-checked and trained to ensure a safe and professional ride.</p>
+                </Card>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
+                <Card className="text-center p-8 h-full bg-card">
+                  <CreditCard className="h-12 w-12 mx-auto text-chart-4"/>
+                  <h3 className="mt-4 font-semibold text-xl">Secure Payments</h3>
+                  <p className="mt-2 text-muted-foreground">Pay with confidence through our secure, encrypted payment system. Cash and UPI also accepted.</p>
+                </Card>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.5 }}>
+                <Card className="text-center p-8 h-full bg-card">
+                  <LifeBuoy className="h-12 w-12 mx-auto text-chart-1"/>
+                  <h3 className="mt-4 font-semibold text-xl">24/7 Support</h3>
+                  <p className="mt-2 text-muted-foreground">Our dedicated support team is always available to help you with any questions or concerns.</p>
+                </Card>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
 
         {/* Fare Calculator Section */}
         <section id="fare-calculator" className="container mx-auto px-4 py-20 md:py-32">
@@ -832,7 +889,11 @@ export default function LandingPage() {
                 </Accordion>
             </motion.div>
         </section>
-
+        
+        {/* Live Chat Widget */}
+        <Link href="#faq" className="fixed bottom-6 right-6 z-40 bg-primary text-primary-foreground p-4 rounded-full shadow-lg hover:bg-primary/90 transition-transform hover:scale-110" aria-label="Open chat support">
+            <MessageSquare className="h-6 w-6" />
+        </Link>
       </main>
 
       <footer className="bg-muted/30 border-t">
