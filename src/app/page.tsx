@@ -119,6 +119,7 @@ export default function LandingPage() {
   const [destinationCalc, setDestinationCalc] = useState('');
   const [estimatedFare, setEstimatedFare] = useState<number | null>(null);
   const [flippedStep, setFlippedStep] = useState<number | null>(null);
+  const [flippedTrust, setFlippedTrust] = useState<number | null>(null);
   const { toast } = useToast();
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
@@ -174,6 +175,30 @@ export default function LandingPage() {
     { icon: UploadCloud, title: "Upload Documents", description: "Submit your driver's license, vehicle registration, and insurance for verification.", step: "02" },
     { icon: ShieldCheck, title: "Get Verified", description: "Our team will review your documents. Once approved, you're ready to hit the road.", step: "03" },
     { icon: Car, title: "Start Driving", description: "Go online, accept your first ride, and start earning on your own schedule.", step: "04" },
+  ];
+
+  const trustBadges = [
+    {
+        icon: ShieldCheck,
+        title: "Verified Drivers",
+        description: "Every driver is background-checked and trained for a safe, professional ride.",
+        details: "Our rigorous vetting process includes identity verification, criminal background checks, and vehicle inspections to ensure your safety and peace of mind.",
+        color: "text-chart-5"
+    },
+    {
+        icon: CreditCard,
+        title: "Secure Payments",
+        description: "Pay with confidence through our secure, encrypted payment system.",
+        details: "We use industry-standard encryption to protect your financial data. Your payment information is never stored on our servers and all transactions are processed through a PCI-compliant gateway.",
+        color: "text-chart-4"
+    },
+    {
+        icon: LifeBuoy,
+        title: "24/7 Support",
+        description: "Our dedicated support team is always available to help you with any questions.",
+        details: "Whether you have a question about a ride, need help with the app, or have a safety concern, our support team is available 24/7 via live chat, email, or phone.",
+        color: "text-chart-1"
+    }
   ];
 
   const handleFlip = (index: number) => {
@@ -547,43 +572,58 @@ export default function LandingPage() {
 
         {/* Trust Badges Section */}
         <section id="trust" className="bg-muted/30 py-20 md:py-32">
-          <div className="container mx-auto px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.6 }}
-              className="text-center"
-            >
-              <h2 className="font-headline text-4xl font-bold">Built on Trust</h2>
-              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                Your peace of mind is our priority, from start to finish.
-              </p>
-            </motion.div>
-            <div className="grid md:grid-cols-3 gap-8 mt-16 max-w-5xl mx-auto">
-              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
-                <Card className="text-center p-8 h-full bg-card">
-                  <ShieldCheck className="h-12 w-12 mx-auto text-chart-5"/>
-                  <h3 className="mt-4 font-semibold text-xl">Verified Drivers</h3>
-                  <p className="mt-2 text-muted-foreground">Every driver is background-checked and trained to ensure a safe and professional ride.</p>
-                </Card>
-              </motion.div>
-              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
-                <Card className="text-center p-8 h-full bg-card">
-                  <CreditCard className="h-12 w-12 mx-auto text-chart-4"/>
-                  <h3 className="mt-4 font-semibold text-xl">Secure Payments</h3>
-                  <p className="mt-2 text-muted-foreground">Pay with confidence through our secure, encrypted payment system. Cash and UPI also accepted.</p>
-                </Card>
-              </motion.div>
-              <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.5 }}>
-                <Card className="text-center p-8 h-full bg-card">
-                  <LifeBuoy className="h-12 w-12 mx-auto text-chart-1"/>
-                  <h3 className="mt-4 font-semibold text-xl">24/7 Support</h3>
-                  <p className="mt-2 text-muted-foreground">Our dedicated support team is always available to help you with any questions or concerns.</p>
-                </Card>
-              </motion.div>
+            <div className="container mx-auto px-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.6 }}
+                    className="text-center"
+                >
+                    <h2 className="font-headline text-4xl font-bold">Built on Trust</h2>
+                    <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                        Your peace of mind is our priority, from start to finish.
+                    </p>
+                </motion.div>
+                <div className="grid md:grid-cols-3 gap-8 mt-16 max-w-5xl mx-auto [perspective:1000px]">
+                    {trustBadges.map((badge, index) => (
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, amount: 0.3 }}
+                            transition={{ duration: 0.6, delay: index * 0.15 }}
+                        >
+                            <div
+                                className="relative w-full h-72 [transform-style:preserve-3d] cursor-pointer"
+                                onClick={() => setFlippedTrust(flippedTrust === index ? null : index)}
+                            >
+                                {/* Front of the card */}
+                                <motion.div
+                                    className="absolute w-full h-full [backface-visibility:hidden] p-8 bg-card border rounded-lg flex flex-col items-center justify-center text-center"
+                                    animate={{ rotateY: flippedTrust === index ? 180 : 0 }}
+                                    transition={{ duration: 0.6 }}
+                                >
+                                    <badge.icon className={cn("h-12 w-12 mx-auto", badge.color)} />
+                                    <h3 className="mt-4 font-semibold text-xl">{badge.title}</h3>
+                                    <p className="mt-2 text-muted-foreground">{badge.description}</p>
+                                    <p className="absolute bottom-4 text-xs text-muted-foreground/50 font-semibold">Click to learn more</p>
+                                </motion.div>
+                                
+                                {/* Back of the card */}
+                                <motion.div
+                                    className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] p-8 bg-card border rounded-lg flex flex-col items-center justify-center text-center"
+                                    animate={{ rotateY: flippedTrust === index ? 0 : -180 }}
+                                    transition={{ duration: 0.6 }}
+                                >
+                                    <h4 className="font-semibold text-lg mb-2">{badge.title}</h4>
+                                    <p className="text-sm text-muted-foreground">{badge.details}</p>
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
             </div>
-          </div>
         </section>
 
 
@@ -715,18 +755,18 @@ export default function LandingPage() {
                   />
                 )}
                 {/* Pulsing Dots */}
-                <div className="absolute top-[35%] left-[40%]">
+                <a href="#" className="absolute top-[35%] left-[40%] group">
                   <span className="absolute inline-flex h-3 w-3 rounded-full bg-primary opacity-75 animate-ping"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                </div>
-                <div className="absolute top-[50%] left-[60%]">
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary transition-transform group-hover:scale-150"></span>
+                </a>
+                <a href="#" className="absolute top-[50%] left-[60%] group">
                   <span className="absolute inline-flex h-3 w-3 rounded-full bg-primary opacity-75 animate-ping [animation-delay:0.5s]"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                </div>
-                 <div className="absolute top-[25%] left-[75%]">
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary transition-transform group-hover:scale-150"></span>
+                </a>
+                 <a href="#" className="absolute top-[25%] left-[75%] group">
                   <span className="absolute inline-flex h-3 w-3 rounded-full bg-primary opacity-75 animate-ping [animation-delay:0.2s]"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                </div>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-primary transition-transform group-hover:scale-150"></span>
+                </a>
               </div>
             </motion.div>
 
@@ -975,7 +1015,7 @@ export default function LandingPage() {
                                 <svg width="135" height="40" viewBox="0 0 135 40" fill="currentColor" className="text-foreground"><rect width="135" height="40" rx="6" fill="black"></rect><path d="M11.23 9.45H10.15L12.94 12.18L15.35 14.54L15.36 14.53L12.95 16.89L10.12 19.65H11.2L13.88 17.02L16.48 14.53L13.89 12.02L11.23 9.45Z M26.96 14.47L16.59 4.31C16.14 3.87 15.39 3.86 14.93 4.3L9.58 9.53L12.94 12.82L23.47 12.44L26.96 14.47ZM9.58 19.52L14.93 24.75C15.39 25.19 16.14 25.18 16.59 24.74L26.98 14.58L23.49 12.55L12.94 16.23L9.58 19.52Z M4.2 8.65C3.34 9.46 2.76 10.57 2.53 11.83L11.75 20.84L14.62 18.03L4.2 8.65Z M4.2 20.4L14.62 11.02L11.75 8.21L2.53 17.22C2.76 18.48 3.34 19.59 4.2 20.4Z" fill="white"></path><g><text x="36" y="15" fill="white" fontSize="12" fontFamily="Arial, sans-serif">GET IT ON</text><text x="36" y="30" fill="white" fontSize="16" fontWeight="bold" fontFamily="Arial, sans-serif">Google Play</text></g></svg>
                             </a>
                             <a href="#" className="inline-block transition-transform hover:scale-105" aria-label="Download on the App Store">
-                               <svg width="120" height="40" viewBox="0 0 120 40" fill="currentColor" className="text-foreground"><rect width="120" height="40" rx="6" fill="black"></rect><path d="M10.13,25.42a4,4,0,0,1,1.93-3.3,4.42,4.42,0,0,0-3.3-1.52c-2.09,0-3.81,1.48-4.83,1.48s-2.82-1.48-4.87-1.48-3.88,1.4-5,1.4a4.4,4.4,0,0,0-3.2,1.69,8.23,8.23,0,0,0-1.63,5.2,7.12,7.12,0,0,0,2.4,5.49,4,4,0,0,1-1.8,3.25,4.55,4.55,0,0,0,3.31,1.52c2.09,0,3.81-1.48,4.83-1.48s2.82,1.48,4.87,1.48,3.88-1.4,5-1.4,4.19,1.48,5.93,1.48a4.4,4.4,0,0,0,3.2-1.69,8.23,8.23,0,0,0,1.63-5.2A7.12,7.12,0,0,0,22.28,27.11ZM17.4,6.75a7.66,7.66,0,0,1-2.09,5.23,7.1,7.1,0,0,1,1.88-5.3,4.4,4.4,0,0,0,3.2-1.69,8.23,8.23,0,0,0,1.63-5.2,7.12,7.12,0,0,0-2.4-5.49A4,4,0,0,1,17.82.08a4.55,4.55,0,0,0-3.31,1.52c-2.09,0-3.81-1.48-4.83-1.48s-2.82,1.48-4.87-1.48S.93,1.56.93.08a4.4,4.4,0,0,0-3.2,1.69,8.23,8.23,0,0,0-1.63,5.2,7.12,7.12,0,0,0,2.4,5.49,4,4,0,0,1-1.8,3.25,4.55,4.55,0,0,0,3.31,1.52c2.09,0,3.81-1.48,4.83-1.48s2.82,1.48,4.87,1.48,3.88-1.4,5-1.4A4.24,4.24,0,0,0,17.4,6.75Z" transform="translate(15.5 2.5) scale(0.6)" fill="white"></path><g><text x="44" y="15" fill="white" fontSize="10" fontFamily="Arial, sans-serif">Download on the</text><text x="44" y="30" fill="white" fontSize="16" fontWeight="600" fontFamily="Arial, sans-serif">App Store</text></g></svg>
+                               <svg width="120" height="40" viewBox="0 0 120 40" fill="currentColor" className="text-foreground"><rect width="120" height="40" rx="6" fill="black"></rect><path d="M10.13,25.42a4,4,0,0,1,1.93-3.3,4.42,4.42,0,0,0-3.3-1.52c-2.09,0-3.81,1.48-4.83,1.48s-2.82-1.48-4.87-1.48-3.88,1.4-5,1.4a4.4,4.4,0,0,0-3.2,1.69,8.23,8.23,0,0,0-1.63,5.2,7.12,7.12,0,0,0,2.4,5.49,4,4,0,0,1-1.8,3.25,4.55,4.55,0,0,0,3.31,1.52c2.09,0,3.81-1.48,4.83-1.48s2.82,1.48,4.87,1.48,3.88-1.4,5-1.4A4.24,4.24,0,0,0,17.4,6.75Z" transform="translate(15.5 2.5) scale(0.6)" fill="white"></path><g><text x="44" y="15" fill="white" fontSize="10" fontFamily="Arial, sans-serif">Download on the</text><text x="44" y="30" fill="white" fontSize="16" fontWeight="600" fontFamily="Arial, sans-serif">App Store</text></g></svg>
                             </a>
                         </div>
                     </div>
