@@ -867,10 +867,10 @@ export default function LandingPage() {
                 <div>
                     <h4 className="font-semibold mb-4">Contact Us</h4>
                     <ul className="space-y-4 text-sm">
-                        <li className="flex items-start gap-3"><Phone className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="tel:+911234567890" className="text-muted-foreground hover:text-primary">+91 12345 67890</a></li>
-                        <li className="flex items-start gap-3"><Mail className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="mailto:contact@mithilacab.com" className="text-muted-foreground hover:text-primary">contact@mithilacab.com</a></li>
+                        <li className="flex items-start gap-3"><Phone className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="tel:+919142277483" className="text-muted-foreground hover:text-primary">+91 9142277483</a></li>
+                        <li className="flex items-start gap-3"><Mail className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="mailto:royadityaa003@gmail.com" className="text-muted-foreground hover:text-primary">royadityaa003@gmail.com</a></li>
                         <li className="flex items-start gap-3"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><span className="text-muted-foreground">Darbhanga, Bihar, India</span></li>
-                        <li className="flex items-start gap-3"><MessageSquare className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="#" className="text-muted-foreground hover:text-primary">WhatsApp Us</a></li>
+                        <li className="flex items-start gap-3"><MessageSquare className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="https://wa.me/919142277483" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">WhatsApp Us</a></li>
                     </ul>
                 </div>
                 
