@@ -905,10 +905,10 @@ export default function LandingPage() {
                     <Logo />
                     <p className="text-sm text-muted-foreground">Your trusted ride in Mithilanchal. Safe, reliable, and culturally aware transportation.</p>
                     <div className="flex gap-4">
-                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Facebook /></a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Instagram /></a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Twitter /></a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Linkedin /></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-transform hover:scale-125"><Facebook /></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-transform hover:scale-125"><Instagram /></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-transform hover:scale-125"><Twitter /></a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-transform hover:scale-125"><Linkedin /></a>
                     </div>
                 </div>
                 
@@ -928,7 +928,7 @@ export default function LandingPage() {
                 <div>
                     <h4 className="font-semibold mb-4">Contact Us</h4>
                     <ul className="space-y-4 text-sm">
-                        <li className="flex items-start gap-3"><Phone className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="tel:+919142277483" className="text-muted-foreground hover:text-primary">+91 9142277483</a></li>
+                        <li className="flex items-start gap-3"><Phone className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="tel:+919142277483" className="text-muted-foreground hover:text-primary">9142277483</a></li>
                         <li className="flex items-start gap-3"><Mail className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="mailto:royadityaa003@gmail.com" className="text-muted-foreground hover:text-primary">royadityaa003@gmail.com</a></li>
                         <li className="flex items-start gap-3"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><span className="text-muted-foreground">Darbhanga, Bihar, India</span></li>
                         <li className="flex items-start gap-3"><MessageSquare className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="https://wa.me/919142277483" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">WhatsApp Us</a></li>
@@ -940,10 +940,10 @@ export default function LandingPage() {
                     <div>
                         <h4 className="font-semibold mb-4">Get the App</h4>
                         <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-4">
-                            <a href="#" className="inline-block" aria-label="Get it on Google Play">
+                            <a href="#" className="inline-block transition-transform hover:scale-105" aria-label="Get it on Google Play">
                                 <svg width="135" height="40" viewBox="0 0 135 40" fill="currentColor" className="text-foreground"><rect width="135" height="40" rx="6" fill="black"></rect><path d="M11.23 9.45H10.15L12.94 12.18L15.35 14.54L15.36 14.53L12.95 16.89L10.12 19.65H11.2L13.88 17.02L16.48 14.53L13.89 12.02L11.23 9.45Z M26.96 14.47L16.59 4.31C16.14 3.87 15.39 3.86 14.93 4.3L9.58 9.53L12.94 12.82L23.47 12.44L26.96 14.47ZM9.58 19.52L14.93 24.75C15.39 25.19 16.14 25.18 16.59 24.74L26.98 14.58L23.49 12.55L12.94 16.23L9.58 19.52Z M4.2 8.65C3.34 9.46 2.76 10.57 2.53 11.83L11.75 20.84L14.62 18.03L4.2 8.65Z M4.2 20.4L14.62 11.02L11.75 8.21L2.53 17.22C2.76 18.48 3.34 19.59 4.2 20.4Z" fill="white"></path><g><text x="36" y="15" fill="white" fontSize="12" fontFamily="Arial, sans-serif">GET IT ON</text><text x="36" y="30" fill="white" fontSize="16" fontWeight="bold" fontFamily="Arial, sans-serif">Google Play</text></g></svg>
                             </a>
-                            <a href="#" className="inline-block" aria-label="Download on the App Store">
+                            <a href="#" className="inline-block transition-transform hover:scale-105" aria-label="Download on the App Store">
                                <svg width="120" height="40" viewBox="0 0 120 40" fill="currentColor" className="text-foreground"><rect width="120" height="40" rx="6" fill="black"></rect><path d="M10.13,25.42a4,4,0,0,1,1.93-3.3,4.42,4.42,0,0,0-3.3-1.52c-2.09,0-3.81,1.48-4.83,1.48s-2.82-1.48-4.87-1.48-3.88,1.4-5,1.4a4.4,4.4,0,0,0-3.2,1.69,8.23,8.23,0,0,0-1.63,5.2,7.12,7.12,0,0,0,2.4,5.49,4,4,0,0,1-1.8,3.25,4.55,4.55,0,0,0,3.31,1.52c2.09,0,3.81-1.48,4.83-1.48s2.82,1.48,4.87,1.48,3.88-1.4,5-1.4,4.19,1.48,5.93,1.48a4.4,4.4,0,0,0,3.2-1.69,8.23,8.23,0,0,0,1.63-5.2A7.12,7.12,0,0,0,22.28,27.11ZM17.4,6.75a7.66,7.66,0,0,1-2.09,5.23,7.1,7.1,0,0,1,1.88-5.3,4.4,4.4,0,0,0,3.2-1.69,8.23,8.23,0,0,0,1.63-5.2,7.12,7.12,0,0,0-2.4-5.49A4,4,0,0,1,17.82.08a4.55,4.55,0,0,0-3.31,1.52c-2.09,0-3.81-1.48-4.83-1.48s-2.82,1.48-4.87-1.48S.93,1.56.93.08a4.4,4.4,0,0,0-3.2,1.69,8.23,8.23,0,0,0-1.63,5.2,7.12,7.12,0,0,0,2.4,5.49,4,4,0,0,1-1.8,3.25,4.55,4.55,0,0,0,3.31,1.52c2.09,0,3.81-1.48,4.83-1.48s2.82,1.48,4.87,1.48,3.88-1.4,5-1.4A4.24,4.24,0,0,0,17.4,6.75Z" transform="translate(15.5 2.5) scale(0.6)" fill="white"></path><g><text x="44" y="15" fill="white" fontSize="10" fontFamily="Arial, sans-serif">Download on the</text><text x="44" y="30" fill="white" fontSize="16" fontWeight="600" fontFamily="Arial, sans-serif">App Store</text></g></svg>
                             </a>
                         </div>
