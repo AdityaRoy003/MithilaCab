@@ -22,6 +22,7 @@ interface BookingFormProps {
 }
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const JIO_API_KEY = process.env.NEXT_PUBLIC_JIO_API_KEY || '';
 const LIBRARIES = ["geocoding", "directions"] as ("geocoding" | "directions")[];
 
 
@@ -157,28 +158,45 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
       toast({ variant: 'destructive', title: 'Geolocation not supported', description: 'Your browser does not support location services.'});
       return;
     }
-    if (!isLoaded) {
-      toast({ variant: 'destructive', title: 'Map not ready', description: 'Please wait a moment for the map to load.'});
-      return;
+
+    if (!JIO_API_KEY) {
+        toast({
+            variant: "destructive",
+            title: "Jio API Key Missing",
+            description: "Please add your Jio/MapmyIndia API key to a .env.local file as NEXT_PUBLIC_JIO_API_KEY."
+        });
+        return;
     }
+
     setIsDetectingLocation(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const coords = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
         onPickupSelect(coords);
 
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode({ location: coords }, (results, status) => {
-          setIsDetectingLocation(false);
-          if (status === 'OK' && results && results[0]) {
-            setPickup(results[0].formatted_address);
-          } else {
-            toast({ variant: 'destructive', title: 'Could not get address', description: 'Unable to reverse geocode your location.'});
-          }
-        });
+        try {
+            // Using MapmyIndia API, which powers Jio Maps
+            const response = await fetch(`https://apis.mapmyindia.com/advancedmaps/v1/${JIO_API_KEY}/rev_geocode?lat=${coords.lat}&lng=${coords.lng}`);
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+                setPickup(data.results[0].formatted_address);
+                 toast({ title: 'Location Detected', description: 'Your pickup location has been set.' });
+            } else {
+                throw new Error("No address found for these coordinates.");
+            }
+        } catch (error) {
+             console.error("Jio Reverse Geocoding Error:", error);
+             toast({ variant: "destructive", title: "Could not get address", description: "Unable to determine address from your location."});
+        } finally {
+            setIsDetectingLocation(false);
+        }
       },
       () => {
         setIsDetectingLocation(false);
@@ -234,7 +252,7 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
                   className="pl-10 pr-10"
                   autoComplete="off"
                 />
-                 <Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={handleDetectLocation} disabled={isDetectingLocation || !isLoaded}>
+                 <Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={handleDetectLocation} disabled={isDetectingLocation}>
                     {isDetectingLocation ? <Loader2 className="animate-spin" /> : <Target />}
                  </Button>
               </div>
