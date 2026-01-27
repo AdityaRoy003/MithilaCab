@@ -31,9 +31,11 @@ type BookingState =
 interface BookingFlowProps {
   initialPickup?: string | null;
   initialDestination?: string | null;
+  onPickupSelect: (coords: google.maps.LatLngLiteral | null) => void;
+  onDestinationSelect: (coords: google.maps.LatLngLiteral | null) => void;
 }
 
-export function BookingFlow({ initialPickup, initialDestination }: BookingFlowProps) {
+export function BookingFlow({ initialPickup, initialDestination, onPickupSelect, onDestinationSelect }: BookingFlowProps) {
   const [bookingState, setBookingState] = useState<BookingState>('booking');
   const [rideDetails, setRideDetails] = useState<Partial<Ride>>({});
   const { user } = useUser();
@@ -142,7 +144,15 @@ export function BookingFlow({ initialPickup, initialDestination }: BookingFlowPr
 
   switch (bookingState) {
     case 'booking':
-      return <BookingForm onBookingRequest={handleBookingRequest} initialPickup={initialPickup} initialDestination={initialDestination} />;
+      return (
+        <BookingForm
+          onBookingRequest={handleBookingRequest}
+          initialPickup={initialPickup}
+          initialDestination={initialDestination}
+          onPickupSelect={onPickupSelect}
+          onDestinationSelect={onDestinationSelect}
+        />
+      );
     case 'estimating':
       return (
         <FareEstimate
@@ -175,6 +185,12 @@ export function BookingFlow({ initialPickup, initialDestination }: BookingFlowPr
         />
       );
     default:
-      return <BookingForm onBookingRequest={handleBookingRequest} />;
+      return (
+        <BookingForm
+          onBookingRequest={handleBookingRequest}
+          onPickupSelect={onPickupSelect}
+          onDestinationSelect={onDestinationSelect}
+        />
+      );
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, Suspense, useEffect } from 'react';
+import { useMemo, Suspense, useEffect, useState } from 'react';
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin, useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -13,6 +13,7 @@ import { collection, query, where, limit } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
 import { RideHistoryItem } from '@/components/ride/ride-history-item';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { BookingMap } from '@/components/ride/booking-map';
 
 function PassengerDashboard() {
     const { user } = useUser();
@@ -20,6 +21,8 @@ function PassengerDashboard() {
     const searchParams = useSearchParams();
     const initialPickup = searchParams.get('pickup');
     const initialDestination = searchParams.get('destination');
+    const [pickupCoords, setPickupCoords] = useState<google.maps.LatLngLiteral | null>(null);
+    const [destinationCoords, setDestinationCoords] = useState<google.maps.LatLngLiteral | null>(null);
 
 
     const ridesQuery = useMemoFirebase(() => {
@@ -43,41 +46,57 @@ function PassengerDashboard() {
     }, [recentRides]);
     
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="font-headline text-3xl font-bold">Welcome, {user?.displayName?.split(' ')[0]}!</h1>
-                <p className="text-muted-foreground">Let's get you where you need to go.</p>
-            </div>
-            
-            <BookingFlow initialPickup={initialPickup} initialDestination={initialDestination} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-1 space-y-8">
+                <div>
+                    <h1 className="font-headline text-3xl font-bold">Welcome, {user?.displayName?.split(' ')[0]}!</h1>
+                    <p className="text-muted-foreground">Let's get you where you need to go.</p>
+                </div>
+                
+                <BookingFlow 
+                    initialPickup={initialPickup} 
+                    initialDestination={initialDestination}
+                    onPickupSelect={setPickupCoords}
+                    onDestinationSelect={setDestinationCoords}
+                />
 
-            <div>
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="font-headline text-2xl font-bold">Recent Rides</h2>
-                    <Button variant="ghost" asChild>
-                        <Link href="/history">View All <ArrowRight className="ml-2" /></Link>
-                    </Button>
+                <div>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="font-headline text-2xl font-bold">Recent Rides</h2>
+                        <Button variant="ghost" asChild>
+                            <Link href="/history">View All <ArrowRight className="ml-2" /></Link>
+                        </Button>
+                    </div>
+                     <div className="space-y-4">
+                        {areRidesLoading && (
+                            <>
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                            </>
+                        )}
+                        {!areRidesLoading && sortedRecentRides && sortedRecentRides.length > 0 && (
+                            sortedRecentRides.map((ride) => (
+                                <RideHistoryItem key={ride.id} ride={ride} />
+                            ))
+                        )}
+                        {!areRidesLoading && (!sortedRecentRides || sortedRecentRides.length === 0) && (
+                            <Card>
+                                <CardContent className="p-6 text-center text-muted-foreground">
+                                    You have no recent rides.
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
                 </div>
-                 <div className="space-y-4">
-                    {areRidesLoading && (
-                        <>
-                            <Skeleton className="h-24 w-full" />
-                            <Skeleton className="h-24 w-full" />
-                        </>
-                    )}
-                    {!areRidesLoading && sortedRecentRides && sortedRecentRides.length > 0 && (
-                        sortedRecentRides.map((ride) => (
-                            <RideHistoryItem key={ride.id} ride={ride} />
-                        ))
-                    )}
-                    {!areRidesLoading && (!sortedRecentRides || sortedRecentRides.length === 0) && (
-                        <Card>
-                            <CardContent className="p-6 text-center text-muted-foreground">
-                                You have no recent rides.
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
+            </div>
+             <div className="lg:col-span-2 relative lg:sticky lg:top-20">
+                <Card>
+                    <CardContent className="p-0">
+                        <div className="h-[75vh] rounded-lg overflow-hidden">
+                            <BookingMap pickup={pickupCoords} destination={destinationCoords} />
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     )
