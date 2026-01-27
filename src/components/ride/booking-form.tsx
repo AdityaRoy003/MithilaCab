@@ -59,6 +59,7 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
   const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([]);
   const [activeSuggestionBox, setActiveSuggestionBox] = useState<'pickup' | 'destination' | null>(null);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { toast } = useToast();
   const { isLoaded } = useJsApiLoader({
@@ -208,6 +209,7 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (pickup && destination) {
+      setIsSubmitting(true);
       onBookingRequest(pickup, destination, rideType);
     }
   };
@@ -310,8 +312,12 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
             </div>
 
 
-            <Button type="submit" className="w-full font-bold text-lg" size="lg" disabled={!pickup || !destination}>
-              Request Ride
+            <Button type="submit" className="w-full font-bold text-lg" size="lg" disabled={!pickup || !destination || isSubmitting}>
+              {isSubmitting ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait...</>
+              ) : (
+                'Request Ride'
+              )}
             </Button>
           </form>
         </CardContent>
