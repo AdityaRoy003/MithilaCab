@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Create a file named .env.local in the root of your project and add:
 // NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="YOUR_API_KEY"
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const LIBRARIES = ["geocoding", "directions"] as ("geocoding" | "directions")[];
+
 
 const containerStyle = {
   width: '100%',
@@ -72,6 +74,7 @@ export function RealtimeMap() {
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: API_KEY,
+        libraries: LIBRARIES,
     });
 
     const driversQuery = useMemoFirebase(
