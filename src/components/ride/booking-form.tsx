@@ -22,6 +22,8 @@ interface BookingFormProps {
 }
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const LIBRARIES = ["geocoding", "directions"] as ("geocoding" | "directions")[];
+
 
 // Mock locations in Mithila region
 const mithilaLocations = [
@@ -60,9 +62,9 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
   
   const { toast } = useToast();
   const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script-booking',
+    id: 'google-map-script',
     googleMapsApiKey: API_KEY,
-    libraries: ['geocoding'],
+    libraries: LIBRARIES,
   });
 
   const pickupRef = useRef<HTMLDivElement>(null);

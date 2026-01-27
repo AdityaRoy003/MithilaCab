@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Skeleton } from '../ui/skeleton';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const LIBRARIES = ["geocoding", "directions"] as ("geocoding" | "directions")[];
 
 const containerStyle = {
   width: '100%',
@@ -45,8 +46,9 @@ interface BookingMapProps {
 
 export function BookingMap({ pickup, destination }: BookingMapProps) {
     const { isLoaded, loadError } = useJsApiLoader({
-        id: 'booking-map-script',
+        id: 'google-map-script',
         googleMapsApiKey: API_KEY,
+        libraries: LIBRARIES,
     });
 
     const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
