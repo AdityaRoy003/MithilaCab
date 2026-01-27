@@ -7,7 +7,7 @@ import { useAdmin, useUser, useFirestore, useCollection, useMemoFirebase } from 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
-import { Shield, ArrowRight, Car } from 'lucide-react';
+import { Shield, ArrowRight, Wallet, LifeBuoy, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
@@ -15,6 +15,8 @@ import { RideHistoryItem } from '@/components/ride/ride-history-item';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { BookingMap } from '@/components/ride/booking-map';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function PassengerDashboard() {
     const { user } = useUser();
@@ -25,8 +27,37 @@ function PassengerDashboard() {
     const [pickupCoords, setPickupCoords] = useState<google.maps.LatLngLiteral | null>(null);
     const [destinationCoords, setDestinationCoords] = useState<google.maps.LatLngLiteral | null>(null);
 
+    // Query for ALL rides for this user for stats
+    const allRidesQuery = useMemoFirebase(() => {
+        if (!user) return null;
+        return query(
+            collection(firestore, 'rides'),
+            where('userId', '==', user.uid)
+        );
+    }, [firestore, user]);
+    const { data: allRides, isLoading: areAllRidesLoading } = useCollection<Ride>(allRidesQuery);
 
-    const ridesQuery = useMemoFirebase(() => {
+    // Calculate ride stats
+    const rideStats = useMemo(() => {
+        if (!allRides) return { thisMonth: 0, total: 0 };
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        const thisMonthRides = allRides.filter(ride => {
+            if (!ride.startTime) return false;
+            // Ensure startTime is a Date object
+            const rideDate = ride.startTime.toDate ? ride.startTime.toDate() : new Date(ride.startTime);
+            return rideDate >= startOfMonth;
+        });
+
+        return {
+            thisMonth: thisMonthRides.length,
+            total: allRides.length
+        };
+    }, [allRides]);
+
+    // Query for only RECENT rides for the list
+    const recentRidesQuery = useMemoFirebase(() => {
         if (!user) return null;
         return query(
             collection(firestore, 'rides'),
@@ -36,16 +67,59 @@ function PassengerDashboard() {
         );
     }, [firestore, user]);
 
-    const { data: recentRides, isLoading: areRidesLoading } = useCollection<Ride>(ridesQuery);
+    const { data: recentRides, isLoading: areRecentRidesLoading } = useCollection<Ride>(recentRidesQuery);
     
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-1 space-y-8">
                 <div>
-                    <h1 className="font-headline text-3xl font-bold">Welcome, {user?.displayName?.split(' ')[0]}!</h1>
-                    <p className="text-muted-foreground">Let's get you where you need to go.</p>
+                    <h1 className="font-headline text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0]}!</h1>
+                    <p className="text-muted-foreground">Ready for your next journey?</p>
                 </div>
                 
+                 <Card>
+                    <CardContent className="p-4 flex justify-around items-center">
+                        {areAllRidesLoading ? (
+                            <>
+                                <Skeleton className="h-10 w-20" />
+                                <Skeleton className="h-10 w-20" />
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-center">
+                                    <p className="text-2xl font-bold">{rideStats.thisMonth}</p>
+                                    <p className="text-xs text-muted-foreground">Rides this month</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-2xl font-bold">{rideStats.total}</p>
+                                    <p className="text-xs text-muted-foreground">Total rides</p>
+                                </div>
+                            </>
+                        )}
+                        <Separator orientation="vertical" className="h-10"/>
+                         <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" asChild><Link href="/profile/payment"><Wallet/></Link></Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Wallet</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" asChild><Link href="/profile/safety"><LifeBuoy/></Link></Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Support</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" asChild><Link href="/profile"><Settings/></Link></Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Profile</p></TooltipContent>
+                            </Tooltip>
+                         </TooltipProvider>
+                    </CardContent>
+                </Card>
+
                 <BookingFlow 
                     initialPickup={initialPickup} 
                     initialDestination={initialDestination}
@@ -62,14 +136,14 @@ function PassengerDashboard() {
                     </div>
                      <Carousel opts={{ align: "start" }} className="w-full">
                         <CarouselContent className="-ml-2">
-                            {areRidesLoading && Array.from({ length: 2 }).map((_, index) => (
+                            {areRecentRidesLoading && Array.from({ length: 2 }).map((_, index) => (
                                 <CarouselItem key={index} className="pl-2 basis-full sm:basis-1/2">
                                     <div className="p-1 h-full">
                                         <Skeleton className="h-48 w-full" />
                                     </div>
                                 </CarouselItem>
                             ))}
-                            {!areRidesLoading && recentRides && recentRides.length > 0 && (
+                            {!areRecentRidesLoading && recentRides && recentRides.length > 0 && (
                                 recentRides.map((ride) => (
                                     <CarouselItem key={ride.id} className="pl-2 basis-full sm:basis-1/2">
                                         <div className="p-1 h-full">
@@ -80,7 +154,7 @@ function PassengerDashboard() {
                             )}
                         </CarouselContent>
                     </Carousel>
-                    {!areRidesLoading && (!recentRides || recentRides.length === 0) && (
+                    {!areRecentRidesLoading && (!recentRides || recentRides.length === 0) && (
                         <Card>
                             <CardContent className="p-6 text-center text-muted-foreground">
                                 You have no recent rides.
