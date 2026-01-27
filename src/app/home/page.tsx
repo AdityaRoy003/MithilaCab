@@ -9,11 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
 import { Shield, ArrowRight, Car } from 'lucide-react';
 import Link from 'next/link';
-import { collection, query, where, limit } from 'firebase/firestore';
+import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
 import { RideHistoryItem } from '@/components/ride/ride-history-item';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { BookingMap } from '@/components/ride/booking-map';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 
 function PassengerDashboard() {
     const { user } = useUser();
@@ -30,20 +31,12 @@ function PassengerDashboard() {
         return query(
             collection(firestore, 'rides'),
             where('userId', '==', user.uid),
+            orderBy('startTime', 'desc'),
             limit(3)
         );
     }, [firestore, user]);
 
     const { data: recentRides, isLoading: areRidesLoading } = useCollection<Ride>(ridesQuery);
-
-    const sortedRecentRides = useMemo(() => {
-        if (!recentRides) return [];
-        return [...recentRides].sort((a, b) => {
-            const timeA = a.startTime?.toDate ? a.startTime.toDate().getTime() : 0;
-            const timeB = b.startTime?.toDate ? b.startTime.toDate().getTime() : 0;
-            return timeB - timeA;
-        });
-    }, [recentRides]);
     
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -67,26 +60,33 @@ function PassengerDashboard() {
                             <Link href="/history">View All <ArrowRight className="ml-2" /></Link>
                         </Button>
                     </div>
-                     <div className="space-y-4">
-                        {areRidesLoading && (
-                            <>
-                                <Skeleton className="h-24 w-full" />
-                                <Skeleton className="h-24 w-full" />
-                            </>
-                        )}
-                        {!areRidesLoading && sortedRecentRides && sortedRecentRides.length > 0 && (
-                            sortedRecentRides.map((ride) => (
-                                <RideHistoryItem key={ride.id} ride={ride} />
-                            ))
-                        )}
-                        {!areRidesLoading && (!sortedRecentRides || sortedRecentRides.length === 0) && (
-                            <Card>
-                                <CardContent className="p-6 text-center text-muted-foreground">
-                                    You have no recent rides.
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
+                     <Carousel opts={{ align: "start" }} className="w-full">
+                        <CarouselContent className="-ml-2">
+                            {areRidesLoading && Array.from({ length: 2 }).map((_, index) => (
+                                <CarouselItem key={index} className="pl-2 basis-full sm:basis-1/2">
+                                    <div className="p-1 h-full">
+                                        <Skeleton className="h-48 w-full" />
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                            {!areRidesLoading && recentRides && recentRides.length > 0 && (
+                                recentRides.map((ride) => (
+                                    <CarouselItem key={ride.id} className="pl-2 basis-full sm:basis-1/2">
+                                        <div className="p-1 h-full">
+                                            <RideHistoryItem ride={ride} variant="compact" />
+                                        </div>
+                                    </CarouselItem>
+                                ))
+                            )}
+                        </CarouselContent>
+                    </Carousel>
+                    {!areRidesLoading && (!recentRides || recentRides.length === 0) && (
+                        <Card>
+                            <CardContent className="p-6 text-center text-muted-foreground">
+                                You have no recent rides.
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
              <div className="lg:col-span-2 relative lg:sticky lg:top-20">

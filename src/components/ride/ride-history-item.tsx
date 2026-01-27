@@ -7,9 +7,10 @@ import { Skeleton } from '../ui/skeleton';
 
 interface RideHistoryItemProps {
     ride: Omit<Ride, 'driver'>;
+    variant?: 'full' | 'compact';
 }
 
-export function RideHistoryItem({ ride }: RideHistoryItemProps) {
+export function RideHistoryItem({ ride, variant }: RideHistoryItemProps) {
     const firestore = useFirestore();
     
     const driverRef = useMemoFirebase(() => ride.driverId ? doc(firestore, 'drivers', ride.driverId) : null, [firestore, ride.driverId]);
@@ -33,10 +34,10 @@ export function RideHistoryItem({ ride }: RideHistoryItemProps) {
             image: { id: 'user-profile', description: 'Default user', imageUrl: '', imageHint: 'person' }
         };
         const rideWithPlaceholderDriver: Ride = { ...ride, driver: placeholderDriver };
-        return <RideHistoryCard ride={rideWithPlaceholderDriver} />;
+        return <RideHistoryCard ride={rideWithPlaceholderDriver} variant={variant} />;
     }
     
     const fullRideData: Ride = { ...ride, driver };
 
-    return <RideHistoryCard ride={fullRideData} />;
+    return <RideHistoryCard ride={fullRideData} variant={variant} />;
 }

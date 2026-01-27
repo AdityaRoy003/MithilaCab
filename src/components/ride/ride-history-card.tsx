@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Ride } from "@/lib/data";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
 import { IndianRupee, Star, RefreshCw, Download, Flag, Eye } from "lucide-react";
@@ -30,6 +30,7 @@ import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 
 interface RideHistoryCardProps {
   ride: Ride;
+  variant?: 'full' | 'compact';
 }
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
@@ -40,7 +41,7 @@ const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | 
   'in-progress': 'outline',
 }
 
-export function RideHistoryCard({ ride }: RideHistoryCardProps) {
+export function RideHistoryCard({ ride, variant = 'full' }: RideHistoryCardProps) {
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -54,10 +55,10 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
     if (!date) return 'N/A';
     try {
         if (date instanceof Timestamp) {
-            return format(date.toDate(), "PPP p");
+            return format(date.toDate(), "PP p");
         }
         const d = new Date(date);
-        if(!isNaN(d.getTime())) return format(d, "PPP p");
+        if(!isNaN(d.getTime())) return format(d, "PP p");
         return 'Invalid Date';
     } catch (e) {
         return 'Invalid Date';
@@ -154,6 +155,38 @@ export function RideHistoryCard({ ride }: RideHistoryCardProps) {
   };
 
   const isPastRide = ride.status === 'completed' || ride.status === 'cancelled';
+  
+  if (variant === 'compact') {
+    return (
+        <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                    <CardTitle className="text-base font-semibold leading-tight">{ride.destinationLocation}</CardTitle>
+                    <p className="font-bold text-lg flex items-center shrink-0"><IndianRupee size={16} />{ride.fareAmount?.toFixed(2) ?? '0.00'}</p>
+                </div>
+                <CardDescription className="text-xs">from {ride.pickupLocation}</CardDescription>
+            </CardHeader>
+            <CardContent className="py-2 flex-1">
+                <div className="text-xs text-muted-foreground">{getFormattedDate(ride.startTime)}</div>
+            </CardContent>
+            <CardFooter className="flex items-center justify-between p-4 pt-2">
+                <div className="flex items-center gap-2 overflow-hidden">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={ride.driver?.image?.imageUrl} alt={ride.driver?.name} />
+                        <AvatarFallback>{ride.driver?.name?.charAt(0) || 'D'}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium truncate">{ride.driver?.name}</span>
+                </div>
+                <Button asChild variant="secondary" size="sm" className="group">
+                    <Link href={`/home?pickup=${encodeURIComponent(ride.pickupLocation)}&destination=${encodeURIComponent(ride.destinationLocation)}`}>
+                        <RefreshCw className="mr-2 h-4 w-4 transition-transform group-hover:rotate-180" />
+                        Rebook
+                    </Link>
+                </Button>
+            </CardFooter>
+        </Card>
+    )
+  }
 
   return (
     <>
