@@ -17,6 +17,8 @@ import { BookingMap } from '@/components/ride/booking-map';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useJsApiLoader } from '@react-google-maps/api';
+import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
 
 function PassengerDashboard() {
     const { user } = useUser();
@@ -26,6 +28,12 @@ function PassengerDashboard() {
     const initialDestination = searchParams.get('destination');
     const [pickupCoords, setPickupCoords] = useState<google.maps.LatLngLiteral | null>(null);
     const [destinationCoords, setDestinationCoords] = useState<google.maps.LatLngLiteral | null>(null);
+
+    const { isLoaded, loadError } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: API_KEY,
+        libraries: LIBRARIES,
+    });
 
     // Query for ALL rides for this user for stats
     const allRidesQuery = useMemoFirebase(() => {
@@ -121,6 +129,7 @@ function PassengerDashboard() {
                 </Card>
 
                 <BookingFlow 
+                    isLoaded={isLoaded}
                     initialPickup={initialPickup} 
                     initialDestination={initialDestination}
                     onPickupSelect={setPickupCoords}
@@ -167,7 +176,12 @@ function PassengerDashboard() {
                 <Card>
                     <CardContent className="p-0">
                         <div className="h-[75vh] rounded-lg overflow-hidden">
-                            <BookingMap pickup={pickupCoords} destination={destinationCoords} />
+                            <BookingMap 
+                                isLoaded={isLoaded}
+                                loadError={loadError}
+                                pickup={pickupCoords} 
+                                destination={destinationCoords}
+                            />
                         </div>
                     </CardContent>
                 </Card>

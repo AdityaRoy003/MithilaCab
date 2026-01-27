@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleMap, useJsApiLoader, MarkerF, DirectionsRenderer } from '@react-google-maps/api';
-import { motion } from 'framer-motion';
+import { GoogleMap, MarkerF, DirectionsRenderer } from '@react-google-maps/api';
 import { Skeleton } from '../ui/skeleton';
-import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
+import { API_KEY } from '@/app/lib/google-maps';
 
 const containerStyle = {
   width: '100%',
@@ -38,22 +37,18 @@ const mapOptions = {
 };
 
 interface BookingMapProps {
+    isLoaded: boolean;
+    loadError: Error | null;
     pickup: google.maps.LatLngLiteral | null;
     destination: google.maps.LatLngLiteral | null;
 }
 
-export function BookingMap({ pickup, destination }: BookingMapProps) {
-    const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: API_KEY,
-        libraries: LIBRARIES,
-    });
-
+export function BookingMap({ isLoaded, loadError, pickup, destination }: BookingMapProps) {
     const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
     const mapRef = useRef<google.maps.Map | null>(null);
 
     useEffect(() => {
-        if (pickup && destination && window.google) {
+        if (isLoaded && pickup && destination && window.google) {
             const directionsService = new window.google.maps.DirectionsService();
             directionsService.route(
                 {
@@ -90,7 +85,7 @@ export function BookingMap({ pickup, destination }: BookingMapProps) {
                 }
             }
         }
-    }, [pickup, destination]);
+    }, [pickup, destination, isLoaded]);
     
     const onLoad = (map: google.maps.Map) => {
         mapRef.current = map;

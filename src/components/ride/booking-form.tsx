@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Car, CarFront, Loader2, MapPin, Target, Truck } from 'lucide-react';
 import type { RideType } from '@/lib/data';
-import { useJsApiLoader } from '@react-google-maps/api';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
 
 interface BookingFormProps {
+  isLoaded: boolean;
   onBookingRequest: (pickup: string, destination: string, rideType: RideType) => void;
   initialPickup?: string | null;
   initialDestination?: string | null;
@@ -50,7 +50,7 @@ const mithilaLocations = [
 ];
 
 
-export function BookingForm({ onBookingRequest, initialPickup, initialDestination, onPickupSelect, onDestinationSelect }: BookingFormProps) {
+export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initialDestination, onPickupSelect, onDestinationSelect }: BookingFormProps) {
   const [pickup, setPickup] = useState(initialPickup || '');
   const [destination, setDestination] = useState(initialDestination || '');
   const [rideType, setRideType] = useState<RideType>('Standard');
@@ -62,11 +62,6 @@ export function BookingForm({ onBookingRequest, initialPickup, initialDestinatio
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { toast } = useToast();
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: API_KEY,
-    libraries: LIBRARIES,
-  });
 
   const pickupRef = useRef<HTMLDivElement>(null);
   const destinationRef = useRef<HTMLDivElement>(null);
