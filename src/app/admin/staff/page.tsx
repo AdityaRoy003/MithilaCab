@@ -5,10 +5,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, collection, query, where, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword, updateProfile, type User } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp, collection, query, where, updateDoc, deleteDoc, addDoc, type DocumentReference } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
@@ -93,24 +93,25 @@ function RoleFormDialog({ role, onFinished }: { role?: Role; onFinished: () => v
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof roleFormSchema>) => {
-    try {
-      if (role) {
-        // Update existing role
-        const roleRef = doc(firestore, 'roles', role.id);
-        await updateDoc(roleRef, values);
-        toast({ title: "Role Updated", description: `${values.name} has been updated.` });
-      } else {
-        // Create new role
-        const rolesCol = collection(firestore, 'roles');
-        await addDoc(rolesCol, values);
-        toast({ title: "Role Created", description: `${values.name} has been added.` });
-      }
-      onFinished();
-    } catch (error) {
-      console.error("Error saving role:", error);
-      toast({ variant: 'destructive', title: "Save Failed", description: "Could not save the role." });
+  const onSubmit = (values: z.infer<typeof roleFormSchema>) => {
+    if (role) {
+      // Update existing role
+      const roleRef = doc(firestore, 'roles', role.id);
+      updateDoc(roleRef, values).catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({ path: roleRef.path, operation: 'update', requestResourceData: values });
+          errorEmitter.emit('permission-error', permissionError);
+      });
+      toast({ title: "Role Updated", description: `${values.name} has been updated.` });
+    } else {
+      // Create new role
+      const rolesCol = collection(firestore, 'roles');
+      addDoc(rolesCol, values).catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({ path: rolesCol.path, operation: 'create', requestResourceData: values });
+          errorEmitter.emit('permission-error', permissionError);
+      });
+      toast({ title: "Role Created", description: `${values.name} has been added.` });
     }
+    onFinished();
   };
 
   return (
@@ -218,12 +219,16 @@ function RolesAndPermissions({ roles, isLoading }: { roles: Role[] | null, isLoa
         setIsDialogOpen(false);
     };
 
-    const handleDeleteRole = async (role: Role) => {
+    const handleDeleteRole = (role: Role) => {
         if (['admin', 'support', 'driver', 'passenger'].includes(role.id)) {
             toast({ variant: 'destructive', title: "Deletion Failed", description: "Cannot delete a default system role."});
             return;
         }
-        await deleteDoc(doc(firestore, 'roles', role.id));
+        const roleRef = doc(firestore, 'roles', role.id);
+        deleteDoc(roleRef).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({ path: roleRef.path, operation: 'delete' });
+            errorEmitter.emit('permission-error', permissionError);
+        });
         toast({ title: "Role Deleted", description: `${role.name} has been deleted.`});
     };
 
@@ -332,10 +337,14 @@ function StaffList({ roles }: { roles: Role[] | null }) {
         setIsRoleDialogOpen(true);
     };
 
-    const handleRoleChange = async () => {
+    const handleRoleChange = () => {
         if (!selectedUser || !newRole) return;
         const userDocRef = doc(firestore, 'users', selectedUser.id);
-        await updateDoc(userDocRef, { role: newRole });
+        const updateData = { role: newRole };
+        updateDoc(userDocRef, updateData).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({ path: userDocRef.path, operation: 'update', requestResourceData: updateData });
+            errorEmitter.emit('permission-error', permissionError);
+        });
         toast({
             title: 'Role Updated',
             description: `${selectedUser.name}'s role has been changed to ${roles?.find(r => r.id === newRole)?.name}.`
@@ -454,53 +463,79 @@ export default function ManageStaffPage() {
   });
 
   async function handleCreateStaff(values: z.infer<typeof staffFormSchema>) {
+    // This function involves multiple dependent async operations.
+    // Awaiting is necessary here to get the new role's ID.
+    // The error handling is updated to emit contextual errors.
+    form.formState.isSubmitting = true;
+    
+    // 1. Create Auth user first as it's the primary entity
+    let user: User;
     try {
-      // 1. Create the new role definition
-      const newRole = {
+        const appName = `admin-creation-${Date.now()}`;
+        const secondaryApp = initializeApp(firebaseConfig, appName);
+        const secondaryAuth = getAuth(secondaryApp);
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, values.email, values.password);
+        user = userCredential.user;
+        await updateProfile(user, { displayName: values.name });
+    } catch (error: any) {
+        console.error("Staff Auth Creation Error:", error);
+        toast({
+            variant: "destructive",
+            title: "Auth Creation Failed",
+            description: error.code === 'auth/email-already-in-use' 
+                ? 'An account with this email already exists.' 
+                : error.message || "Could not create staff auth account.",
+        });
+        form.formState.isSubmitting = false;
+        return;
+    }
+    
+    // 2. Create the new role definition
+    const newRole = {
         name: values.roleName,
         permissions: values.permissions,
         description: `Custom role for ${values.name}`,
-      };
-      const roleDocRef = await addDoc(collection(firestore, 'roles'), newRole);
+    };
+    const rolesCol = collection(firestore, 'roles');
+    let roleDocRef: DocumentReference;
+    try {
+        roleDocRef = await addDoc(rolesCol, newRole);
+    } catch (error) {
+        const permissionError = new FirestorePermissionError({ path: rolesCol.path, operation: 'create', requestResourceData: newRole });
+        errorEmitter.emit('permission-error', permissionError);
+        // Here we should ideally clean up the created Auth user.
+        form.formState.isSubmitting = false;
+        return;
+    }
 
-      // 2. Create the Auth user
-      const appName = `admin-creation-${Date.now()}`;
-      const secondaryApp = initializeApp(firebaseConfig, appName);
-      const secondaryAuth = getAuth(secondaryApp);
-      const userCredential = await createUserWithEmailAndPassword(secondaryAuth, values.email, values.password);
-      const user = userCredential.user;
-      await updateProfile(user, { displayName: values.name });
-
-      // 3. Create the user document with the new role
-      const userProfile = {
+    // 3. Create the user document with the new role
+    const userProfile = {
         id: user.uid,
         name: values.name,
         email: values.email,
-        phone: "",
+        phone: values.phone,
         dateJoined: serverTimestamp(),
-        role: roleDocRef.id, // Use the new role's ID
+        role: roleDocRef.id,
         isSuspended: false,
-      };
-      const userDocRef = doc(firestore, "users", user.uid);
-      await setDoc(userDocRef, userProfile);
-
-
-      toast({
+    };
+    const userDocRef = doc(firestore, "users", user.uid);
+    try {
+        await setDoc(userDocRef, userProfile);
+    } catch (error) {
+        const permissionError = new FirestorePermissionError({ path: userDocRef.path, operation: 'create', requestResourceData: userProfile });
+        errorEmitter.emit('permission-error', permissionError);
+        // Here we should ideally clean up the Auth user and role doc.
+        form.formState.isSubmitting = false;
+        return;
+    }
+    
+    toast({
         title: "Staff Created",
         description: `Account for ${values.email} has been created with the role: ${values.roleName}.`,
-      });
-      setIsCreateStaffOpen(false);
-      form.reset();
-    } catch (error: any) {
-      console.error("Staff Creation Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Creation Failed",
-        description: error.code === 'auth/email-already-in-use' 
-            ? 'An account with this email already exists.' 
-            : error.message || "Could not create staff account.",
-      });
-    }
+    });
+    setIsCreateStaffOpen(false);
+    form.reset();
+    form.formState.isSubmitting = false;
   }
 
   return (

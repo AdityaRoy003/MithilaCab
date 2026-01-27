@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import {
   Card,
@@ -123,7 +123,7 @@ export function DriverList() {
     }
   }
 
-  const handleSuspendDriver = async (driverId: string, currentStatus: boolean, reason: string) => {
+  const handleSuspendDriver = (driverId: string, currentStatus: boolean, reason: string) => {
       if (!currentStatus && !reason) {
           toast({
               variant: "destructive",
@@ -134,42 +134,43 @@ export function DriverList() {
       }
       
       const driverRef = doc(firestore, 'drivers', driverId);
-      try {
-          await updateDoc(driverRef, { 
-              isSuspended: !currentStatus,
-              suspensionReason: !currentStatus ? reason : null,
+      const updateData = { 
+          isSuspended: !currentStatus,
+          suspensionReason: !currentStatus ? reason : null,
+      };
+
+      updateDoc(driverRef, updateData)
+          .catch(async (serverError) => {
+              const permissionError = new FirestorePermissionError({
+                  path: driverRef.path,
+                  operation: 'update',
+                  requestResourceData: updateData,
+              });
+              errorEmitter.emit('permission-error', permissionError);
           });
-          toast({
-              title: `Driver ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
-              description: `The driver account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
-          });
-          setSuspensionReason('');
-      } catch (error) {
-          console.error("RAW FIREBASE ERROR in handleSuspendDriver:", error);
-          toast({
-              variant: "destructive",
-              title: "Update Failed",
-              description: "Could not update the driver's status.",
-          });
-      }
+      
+      toast({
+          title: `Driver ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
+          description: `The driver account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
+      });
+      setSuspensionReason('');
   };
 
-  const handleDeleteDriver = async (driverId: string) => {
+  const handleDeleteDriver = (driverId: string) => {
     const driverRef = doc(firestore, 'drivers', driverId);
-    try {
-        await deleteDoc(driverRef);
-        toast({
-            title: "Driver Deleted",
-            description: "The driver account has been permanently removed.",
+    deleteDoc(driverRef)
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: driverRef.path,
+          operation: 'delete',
         });
-    } catch (error) {
-        console.error("RAW FIREBASE ERROR in handleDeleteDriver:", error);
-        toast({
-            variant: "destructive",
-            title: "Deletion Failed",
-            description: "Could not delete the driver's account.",
-        });
-    }
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
+    toast({
+        title: "Driver Deleted",
+        description: "The driver account has been permanently removed.",
+    });
   };
 
   const handleOpenMessageDialog = (driver: Driver) => {
@@ -193,22 +194,23 @@ export function DriverList() {
     setMessagingDriver(null);
   };
   
-  const handleVerifyDriver = async (driverId: string, currentStatus: boolean) => {
+  const handleVerifyDriver = (driverId: string, currentStatus: boolean) => {
     const driverRef = doc(firestore, 'drivers', driverId);
-    try {
-        await updateDoc(driverRef, { isVerified: !currentStatus });
-        toast({
-            title: `Driver ${!currentStatus ? 'Verified' : 'Un-verified'}`,
-            description: `The driver has been successfully ${!currentStatus ? 'verified' : 'marked as unverified'}.`,
+    const updateData = { isVerified: !currentStatus };
+    updateDoc(driverRef, updateData)
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: driverRef.path,
+          operation: 'update',
+          requestResourceData: updateData,
         });
-    } catch (error) {
-        console.error("RAW FIREBASE ERROR in handleVerifyDriver:", error);
-        toast({
-            variant: "destructive",
-            title: "Update Failed",
-            description: "Could not update the driver's verification status.",
-        });
-    }
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
+    toast({
+        title: `Driver ${!currentStatus ? 'Verified' : 'Un-verified'}`,
+        description: `The driver has been successfully ${!currentStatus ? 'verified' : 'marked as unverified'}.`,
+    });
   };
 
   return (

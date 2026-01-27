@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import {
   Card,
@@ -83,59 +83,62 @@ export function UserList() {
     }
   }
 
-    const handleSuspendUser = async (userId: string, currentStatus: boolean, reason: string) => {
-        if (!currentStatus && !reason) {
-          toast({
-              variant: "destructive",
-              title: "Reason Required",
-              description: "Please provide a reason for suspending the user.",
-          });
-          return;
-        }
+  const handleSuspendUser = (userId: string, currentStatus: boolean, reason: string) => {
+    if (!currentStatus && !reason) {
+      toast({
+          variant: "destructive",
+          title: "Reason Required",
+          description: "Please provide a reason for suspending the user.",
+      });
+      return;
+    }
 
-        const userRef = doc(firestore, 'users', userId);
-        try {
-            await updateDoc(userRef, { 
-              isSuspended: !currentStatus,
-              suspensionReason: !currentStatus ? reason : null,
-            });
-            toast({
-                title: `User ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
-                description: `The user account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
-            });
-            setSuspensionReason('');
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Update Failed",
-                description: "Could not update the user's status.",
-            });
-        }
+    const userRef = doc(firestore, 'users', userId);
+    const updateData = { 
+      isSuspended: !currentStatus,
+      suspensionReason: !currentStatus ? reason : null,
     };
 
-    const handleDeleteUser = async (userId: string) => {
-        const userRef = doc(firestore, 'users', userId);
-        try {
-            await deleteDoc(userRef);
-            toast({
-                title: "User Deleted",
-                description: "The user account has been permanently removed.",
-            });
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Deletion Failed",
-                description: "Could not delete the user's account.",
-            });
-        }
-    };
-
-    const handleSendMessage = () => {
-        toast({
-            title: "Feature Coming Soon",
-            description: "Direct messaging will be available in a future update.",
+    updateDoc(userRef, updateData)
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'update',
+          requestResourceData: updateData,
         });
-    };
+        errorEmitter.emit('permission-error', permissionError);
+      });
+      
+    toast({
+        title: `User ${!currentStatus ? 'Suspended' : 'Unsuspended'}`,
+        description: `The user account has been successfully ${!currentStatus ? 'suspended' : 're-activated'}.`,
+    });
+    setSuspensionReason('');
+  };
+
+  const handleDeleteUser = (userId: string) => {
+      const userRef = doc(firestore, 'users', userId);
+      deleteDoc(userRef)
+        .catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'delete',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+
+      toast({
+          title: "User Deleted",
+          description: "The user account has been permanently removed.",
+      });
+  };
+
+  const handleSendMessage = () => {
+      toast({
+          title: "Feature Coming Soon",
+          description: "Direct messaging will be available in a future update.",
+      });
+  };
 
   return (
     <Card>

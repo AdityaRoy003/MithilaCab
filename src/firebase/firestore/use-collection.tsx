@@ -9,6 +9,8 @@ import {
   CollectionReference,
   QuerySnapshot,
 } from 'firebase/firestore';
+import { errorEmitter } from '../error-emitter';
+import { FirestorePermissionError } from '../errors';
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -72,9 +74,13 @@ export function useCollection<T = any>(
         const results: WithId<T>[] = snapshot.docs.map(doc => ({ ...(doc.data() as T), id: doc.id }));
         setState({ data: results, isLoading: false, error: null });
       },
-      (err) => {
-        console.error("RAW FIREBASE ERROR in useCollection:", err);
-        setState({ data: null, isLoading: false, error: err as Error });
+      async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: (memoizedTargetRefOrQuery as InternalQuery)._query.path.canonicalString(),
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        setState({ data: null, isLoading: false, error: permissionError });
       }
     );
 

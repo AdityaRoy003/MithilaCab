@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import {
   Card,
@@ -82,40 +82,43 @@ export function VerificationQueue() {
   );
   const { data: drivers, isLoading } = useCollection<Driver>(driversQuery);
   
-  const handleApprove = async (driverId: string) => {
+  const handleApprove = (driverId: string) => {
     const driverRef = doc(firestore, 'drivers', driverId);
-    try {
-        await updateDoc(driverRef, { isVerified: true });
-        toast({
-            title: 'Driver Approved',
-            description: 'The driver has been verified and can now accept rides.'
+    const updateData = { isVerified: true };
+
+    updateDoc(driverRef, updateData)
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: driverRef.path,
+          operation: 'update',
+          requestResourceData: updateData,
         });
-        setSelectedDriver(null);
-    } catch (error) {
-         toast({
-            variant: "destructive",
-            title: "Approval Failed",
-            description: "Could not verify the driver.",
-        });
-    }
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
+    toast({
+        title: 'Driver Approved',
+        description: 'The driver has been verified and can now accept rides.'
+    });
+    setSelectedDriver(null);
   };
 
-  const handleReject = async (driverId: string) => {
+  const handleReject = (driverId: string) => {
     const driverRef = doc(firestore, 'drivers', driverId);
-    try {
-        await deleteDoc(driverRef);
-        toast({
-            title: 'Driver Rejected',
-            description: 'The driver account has been removed from the platform.'
+    deleteDoc(driverRef)
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: driverRef.path,
+          operation: 'delete',
         });
-        setSelectedDriver(null);
-    } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Rejection Failed",
-            description: "Could not remove the driver.",
-        });
-    }
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
+    toast({
+        title: 'Driver Rejected',
+        description: 'The driver account has been removed from the platform.'
+    });
+    setSelectedDriver(null);
   };
 
   return (

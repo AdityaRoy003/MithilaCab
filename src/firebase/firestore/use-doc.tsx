@@ -8,6 +8,9 @@ import {
   FirestoreError,
   DocumentSnapshot,
 } from 'firebase/firestore';
+import { errorEmitter } from '../error-emitter';
+import { FirestorePermissionError } from '../errors';
+
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -62,9 +65,13 @@ export function useDoc<T = any>(
           : null;
         setState({ data: docData, isLoading: false, error: null });
       },
-      (err: FirestoreError) => {
-        console.error("RAW FIREBASE ERROR in useDoc:", err);
-        setState({ data: null, isLoading: false, error: err });
+      async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: memoizedDocRef.path,
+          operation: 'get',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        setState({ data: null, isLoading: false, error: permissionError });
       }
     );
 
