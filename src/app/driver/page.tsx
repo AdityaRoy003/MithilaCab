@@ -10,7 +10,7 @@ import {
   useCollection,
   useMemoFirebase,
 } from '@/firebase';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AvailableRidesList } from './available-rides-list';
 import { AssignedRidesList } from './assigned-rides-list';
 import type { Ride } from '@/lib/data';
-import { MapPin } from 'lucide-react';
+import { MapPin, ShieldAlert } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function DriverPage() {
   const { driver, isDriverLoading } = useDriver();
@@ -41,8 +42,6 @@ export default function DriverPage() {
     updateDocumentNonBlocking(driverRef, { isAvailable });
   };
 
-  // First, handle the primary loading state for the driver's profile itself.
-  // This ensures we don't flash the "Access Denied" message for a real driver.
   if (isDriverLoading) {
     return (
       <AppLayout>
@@ -70,7 +69,6 @@ export default function DriverPage() {
     );
   }
   
-  // After we're done loading, if there's still no driver, they can't access this page.
   if (!driver) {
       return (
           <AppLayout>
@@ -94,7 +92,11 @@ export default function DriverPage() {
       );
   }
 
-  // If we reach here, we have a valid driver. Render the dashboard.
+  // Force driver offline if they are not verified but somehow are marked as available
+  if (!driver.isVerified && driver.isAvailable) {
+    handleAvailabilityChange(false);
+  }
+
   const hasAssignedRide = assignedRides && assignedRides.length > 0;
 
   return (
@@ -102,9 +104,18 @@ export default function DriverPage() {
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-8">
         <h1 className="font-headline text-3xl font-bold">Driver Dashboard</h1>
 
+        {!driver.isVerified && (
+            <Alert variant="destructive">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>Verification Pending</AlertTitle>
+                <AlertDescription>
+                    Your account is under review. You can upload or update your documents in your <Link href="/profile/driver" className="underline font-bold">profile</Link>. You cannot accept rides until your account is verified by an admin.
+                </AlertDescription>
+            </Alert>
+        )}
+
         <AssignedRidesList />
         
-        {/* Only show availability toggle and available rides if not currently on a ride */}
         {!hasAssignedRide && (
           <>
             <Card>
@@ -118,13 +129,14 @@ export default function DriverPage() {
                       Available for Rides
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Toggle this to go online, offline, or take a break.
+                      Toggle this to go online and receive ride requests.
                     </p>
                   </div>
                   <Switch
                     checked={driver.isAvailable}
                     onCheckedChange={handleAvailabilityChange}
                     aria-label="Toggle driver availability"
+                    disabled={!driver.isVerified}
                   />
                 </div>
                 <div className="flex items-center space-x-4 rounded-md border p-4">
@@ -142,7 +154,7 @@ export default function DriverPage() {
               </CardContent>
             </Card>
 
-            {driver.isAvailable && <AvailableRidesList />}
+            {driver.isAvailable && driver.isVerified && <AvailableRidesList />}
           </>
         )}
       </main>

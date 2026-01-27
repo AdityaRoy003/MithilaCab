@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { ArrowLeft, User, Car, FileText, Upload } from 'lucide-react';
+import { ArrowLeft, User, Car, FileText, Upload, Loader2, CheckCircle } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 
@@ -75,12 +75,36 @@ export default function DriverProfilePage() {
         }
     };
     
-    const handleNotImplemented = () => {
-        toast({
-            title: "Feature coming soon!",
-            description: "Document uploads are not yet available."
-        })
-    }
+    const handleUpload = async (docType: 'license' | 'rc' | 'insurance' | 'pollution') => {
+        if (!driver) return;
+
+        // Simulate upload delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        const driverDocRef = doc(firestore, 'drivers', driver.id);
+        const mockUrl = `https://picsum.photos/seed/${driver.id}-${docType}/800/500`;
+
+        const updateData = {
+            documents: {
+                ...driver.documents,
+                [docType]: mockUrl
+            },
+            isVerified: false // Ensure verification is pending after a new upload
+        };
+        
+        setDoc(driverDocRef, updateData, { merge: true })
+            .catch(async (serverError) => {
+                 const permissionError = new FirestorePermissionError({
+                    path: driverDocRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                 toast({ variant: 'destructive', title: "Upload Failed", description: 'You do not have permission to perform this action.'})
+            });
+        
+        toast({ title: "Upload Successful!", description: `${docType.charAt(0).toUpperCase() + docType.slice(1)} has been submitted for verification.` });
+    };
 
     if (isDriverLoading) {
         return (
@@ -169,10 +193,10 @@ export default function DriverProfilePage() {
                                 <h3 className="font-semibold text-lg flex items-center gap-2"><FileText /> Documents</h3>
                                 <CardDescription>Upload your documents for verification. Once verified, you'll be able to start accepting rides.</CardDescription>
                                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    <DocumentUploadCard title="Driving License" onUpload={handleNotImplemented} />
-                                    <DocumentUploadCard title="Vehicle RC" onUpload={handleNotImplemented} />
-                                    <DocumentUploadCard title="Insurance" onUpload={handleNotImplemented} />
-                                    <DocumentUploadCard title="Pollution Certificate" onUpload={handleNotImplemented} />
+                                    <DocumentUploadCard title="Driving License" onUpload={() => handleUpload('license')} uploadedUrl={driver.documents?.license} />
+                                    <DocumentUploadCard title="Vehicle RC" onUpload={() => handleUpload('rc')} uploadedUrl={driver.documents?.rc} />
+                                    <DocumentUploadCard title="Insurance" onUpload={() => handleUpload('insurance')} uploadedUrl={driver.documents?.insurance} />
+                                    <DocumentUploadCard title="Pollution Certificate" onUpload={() => handleUpload('pollution')} uploadedUrl={driver.documents?.pollution} />
                                 </div>
                              </div>
 
@@ -189,15 +213,30 @@ export default function DriverProfilePage() {
     );
 }
 
-function DocumentUploadCard({ title, onUpload }: { title: string, onUpload: () => void }) {
+function DocumentUploadCard({ title, onUpload, uploadedUrl }: { title: string, onUpload: () => void, uploadedUrl?: string }) {
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleUploadClick = async () => {
+        setIsUploading(true);
+        await onUpload();
+        setIsUploading(false);
+    }
+
     return (
         <div className="p-4 border rounded-lg flex flex-col items-center justify-center text-center gap-2">
             <FileText className="h-8 w-8 text-muted-foreground" />
             <p className="text-sm font-medium">{title}</p>
-            <Button variant="outline" size="sm" onClick={onUpload}>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload
-            </Button>
+            {uploadedUrl ? (
+                <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-xs font-semibold">Uploaded</span>
+                </div>
+            ) : (
+                <Button variant="outline" size="sm" onClick={handleUploadClick} disabled={isUploading}>
+                    {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                    {isUploading ? 'Uploading...' : 'Upload'}
+                </Button>
+            )}
         </div>
     )
 }
