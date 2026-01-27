@@ -9,7 +9,7 @@ import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -24,10 +24,10 @@ interface RideTrackingProps {
 }
 
 const rideStages = [
-  { status: 'Driver is on the way', duration: 5000, progress: 30 },
-  { status: 'Driver has arrived', duration: 2000, progress: 40 },
-  { status: 'Trip in progress', duration: 8000, progress: 90 },
-  { status: 'You are arriving at your destination', duration: 2000, progress: 100 },
+  { status: 'Driver is on the way', eta: 5, duration: 5000, progress: 30 },
+  { status: 'Driver has arrived', eta: 0, duration: 2000, progress: 40 },
+  { status: 'Trip in progress', eta: 8, duration: 8000, progress: 90 },
+  { status: 'Arriving at destination', eta: 1, duration: 2000, progress: 100 },
 ];
 
 export function RideTracking({ rideDetails, onComplete, onCancel }: RideTrackingProps) {
@@ -66,6 +66,7 @@ export function RideTracking({ rideDetails, onComplete, onCancel }: RideTracking
   };
 
   const { driver } = rideDetails;
+  const currentStage = rideStages[stageIndex];
 
   if (!driver) {
       return (
@@ -128,8 +129,13 @@ export function RideTracking({ rideDetails, onComplete, onCancel }: RideTracking
               className="text-center"
             >
               <CardTitle className="font-headline text-2xl">
-                {rideStages[stageIndex]?.status || 'Ride Completed'}
+                {currentStage?.status || 'Ride Completed'}
               </CardTitle>
+              {currentStage?.eta > 0 && (
+                 <CardDescription className="mt-1">
+                    Arriving in ~{currentStage.eta} minutes
+                 </CardDescription>
+              )}
             </motion.div>
           </AnimatePresence>
           <Progress value={progress} className="mt-2" />
