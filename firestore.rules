@@ -3,11 +3,59 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Global rule: Grant full access ONLY to the Super Admin.
-    // This is a temporary and broad rule to definitively solve the admin permission issue.
-    // All other users are denied access until security is re-layered.
-    match /{document=**} {
-      allow read, write: if request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
+    function isAdmin() {
+      // Super admin check
+      return request.auth != null && request.auth.token.email == 'mithila@cabadmingmail.com';
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      // Users can manage their own profile.
+      // Admins have full access.
+      allow read, update, delete: if isOwner(userId) || isAdmin();
+      // Any authenticated user can create their own user profile during signup.
+      allow create: if isOwner(userId);
+    }
+    
+    match /users/{userId}/transactions/{transactionId} {
+        // Users can manage their own transactions. Admins have full access.
+        allow read, list, create: if isOwner(userId) || isAdmin();
+    }
+
+    match /drivers/{driverId} {
+      // Drivers can manage their own profile.
+      // Admins have full access.
+      allow read, update, delete: if isOwner(driverId) || isAdmin();
+      // An authenticated user can create their own driver profile during signup.
+      allow create: if isOwner(driverId);
+    }
+    
+    match /rides/{rideId} {
+        allow create: if request.auth != null;
+        allow read: if request.auth != null && (isOwner(resource.data.userId) || isOwner(resource.data.driverId) || isAdmin());
+        allow update: if request.auth != null && (isOwner(resource.data.userId) || isOwner(resource.data.driverId) || isAdmin());
+        // Only admins can delete rides.
+        allow delete: if isAdmin();
+    }
+    
+    // Roles can be read by anyone (for client-side logic), but only managed by admins.
+    match /roles/{roleId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    // Settings, Incentives, and Refunds are admin-only.
+    match /settings/{settingId} {
+      allow read, write: if isAdmin();
+    }
+    match /incentives/{incentiveId} {
+      allow read, write: if isAdmin();
+    }
+    match /refunds/{refundId} {
+      allow read, write: if isAdmin();
     }
   }
 }
