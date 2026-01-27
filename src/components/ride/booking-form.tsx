@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
 
 interface BookingFormProps {
   onBookingRequest: (pickup: string, destination: string, rideType: RideType) => void;
@@ -21,9 +22,7 @@ interface BookingFormProps {
   onDestinationSelect: (coords: google.maps.LatLngLiteral | null) => void;
 }
 
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 const JIO_API_KEY = process.env.NEXT_PUBLIC_JIO_API_KEY || '';
-const LIBRARIES = ["geocoding", "directions"] as ("geocoding" | "directions")[];
 
 
 // Mock locations in Mithila region

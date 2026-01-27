@@ -8,12 +8,7 @@ import type { Driver, Ride } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// IMPORTANT: Replace with your own Google Maps API Key in a .env.local file
-// Create a file named .env.local in the root of your project and add:
-// NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="YOUR_API_KEY"
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-const LIBRARIES = ["geocoding", "directions"] as ("geocoding" | "directions")[];
+import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
 
 
 const containerStyle = {

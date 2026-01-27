@@ -4,9 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF, DirectionsRenderer } from '@react-google-maps/api';
 import { motion } from 'framer-motion';
 import { Skeleton } from '../ui/skeleton';
-
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-const LIBRARIES = ["geocoding", "directions"] as ("geocoding" | "directions")[];
+import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
 
 const containerStyle = {
   width: '100%',
