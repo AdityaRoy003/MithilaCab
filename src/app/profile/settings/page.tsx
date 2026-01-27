@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -43,7 +44,8 @@ export default function AppSettingsPage() {
 
     const handleLogout = () => {
         auth.signOut().then(() => {
-          router.push("/login");
+          // Force a full page reload to clear all state and prevent freezing issues.
+          window.location.assign("/login");
         });
     };
 

@@ -48,7 +48,8 @@ function UserMenu() {
 
     const handleLogout = () => {
         auth.signOut().then(() => {
-          router.push("/login");
+          // Force a full page reload to clear all state and prevent freezing issues.
+          window.location.assign("/login");
         });
     };
 
@@ -231,7 +232,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <div>
                         <h4 className="font-semibold mb-4">Contact Us</h4>
                         <ul className="space-y-4 text-sm">
-                            <li className="flex items-start gap-3"><Phone className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="tel:+919142277483" className="text-muted-foreground hover:text-primary">+91 9142277483</a></li>
+                            <li className="flex items-start gap-3"><Phone className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="tel:9142277483" className="text-muted-foreground hover:text-primary">9142277483</a></li>
                             <li className="flex items-start gap-3"><Mail className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><a href="mailto:royadityaa003@gmail.com" className="text-muted-foreground hover:text-primary">royadityaa003@gmail.com</a></li>
                             <li className="flex items-start gap-3"><MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" /><span className="text-muted-foreground">Darbhanga, Bihar, India</span></li>
                         </ul>
