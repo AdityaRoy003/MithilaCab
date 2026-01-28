@@ -69,6 +69,19 @@ export interface Offer {
   isActive: boolean;
 }
 
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  timestamp: any; // Firestore Timestamp
+  isRead: boolean;
+  type: 'ride_update' | 'promotion' | 'account_alert' | 'general';
+  icon?: 'ride_update' | 'promotion' | 'account_alert' | 'general' | 'ride_completed' | 'ride_cancelled';
+  link?: string;
+}
+
+
 const getDriverImage = (id: string): ImagePlaceholder => {
     const placeholder = PlaceHolderImages.find(img => img.id === id);
     if (!placeholder) {

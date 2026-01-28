@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { doc } from 'firebase/firestore';
-import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { doc, collection, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useUser, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import type { Ride } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,11 +25,27 @@ export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
   const [comment, setComment] = useState('');
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const handleSubmit = () => {
     if (rideDetails.id) {
         const rideRef = doc(firestore, 'rides', rideDetails.id);
         updateDocumentNonBlocking(rideRef, { rating, comment });
+    }
+
+    if (user) {
+        const notificationsColRef = collection(firestore, 'users', user.uid, 'notifications');
+        const notificationData = {
+            userId: user.uid,
+            title: "Ride Completed",
+            description: `Your ride to ${rideDetails.destinationLocation} is complete. Total fare: ₹${rideDetails.fareAmount?.toFixed(2)}`,
+            timestamp: serverTimestamp(),
+            isRead: false,
+            type: 'ride_update',
+            icon: 'ride_completed',
+            link: `/history`
+        };
+        addDocumentNonBlocking(notificationsColRef, notificationData);
     }
     
     toast({

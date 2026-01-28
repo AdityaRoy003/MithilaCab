@@ -5,8 +5,8 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Ride } from '@/lib/data';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
-import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useFirestore, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
+import { doc, collection, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -35,6 +35,7 @@ export function RideTracking({ rideDetails, onComplete, onCancel }: RideTracking
   const [progress, setProgress] = useState(0);
   const mapImage = PlaceHolderImages.find(img => img.id === 'map-background');
   const firestore = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,12 +43,28 @@ export function RideTracking({ rideDetails, onComplete, onCancel }: RideTracking
       const timer = setTimeout(() => {
         setStageIndex(prev => prev + 1);
       }, rideStages[stageIndex].duration);
+
+      // Create notification when driver arrives
+      if (rideStages[stageIndex].status === 'Driver has arrived' && user) {
+          const notificationsColRef = collection(firestore, 'users', user.uid, 'notifications');
+          const notificationData = {
+              userId: user.uid,
+              title: "Driver Has Arrived",
+              description: `${rideDetails.driver?.name} is at your pickup location.`,
+              timestamp: serverTimestamp(),
+              isRead: false,
+              type: 'ride_update',
+              icon: 'ride_update',
+          };
+          addDocumentNonBlocking(notificationsColRef, notificationData);
+      }
+
       return () => clearTimeout(timer);
     } else {
        const completionTimer = setTimeout(onComplete, 1000);
        return () => clearTimeout(completionTimer);
     }
-  }, [stageIndex, onComplete]);
+  }, [stageIndex, onComplete, firestore, rideDetails.driver?.name, user]);
 
   useEffect(() => {
     if (stageIndex < rideStages.length) {

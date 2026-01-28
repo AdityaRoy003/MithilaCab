@@ -632,6 +632,31 @@
         "isActive": { "type": "boolean", "description": "Whether the offer is currently active and visible to users." }
       },
       "required": ["id", "title", "description", "partnerName", "location", "category", "isActive"]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents a user-facing notification within the app.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "The ID of the user this notification is for." },
+        "title": { "type": "string", "description": "The title of the notification." },
+        "description": { "type": "string", "description": "The main content of the notification." },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "isRead": { "type": "boolean", "description": "Whether the user has read the notification." },
+        "type": {
+          "type": "string",
+          "enum": ["ride_update", "promotion", "account_alert", "general"],
+          "description": "The category of the notification."
+        },
+        "icon": {
+          "type": "string",
+          "description": "The name of the lucide-react icon to display."
+        },
+        "link": { "type": "string", "format": "uri", "description": "An optional link to navigate to when clicked." }
+      },
+      "required": ["id", "userId", "title", "description", "timestamp", "isRead", "type"]
     }
   },
   "auth": {
@@ -675,6 +700,18 @@
               "description": "The unique identifier for the transaction."
             }
           ]
+        }
+      },
+      {
+        "path": "/users/{userId}/notifications/{notificationId}",
+        "definition": {
+            "entityName": "Notification",
+            "schema": { "$ref": "#/backend/entities/Notification" },
+            "description": "Stores user-specific notifications.",
+            "params": [
+                { "name": "userId", "description": "The user's unique ID." },
+                { "name": "notificationId", "description": "The unique ID for the notification." }
+            ]
         }
       },
       {
