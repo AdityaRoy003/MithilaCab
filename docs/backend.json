@@ -615,6 +615,23 @@
         }
       },
       "required": ["id", "name", "destination", "isActive"]
+    },
+    "Offer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Offer",
+      "type": "object",
+      "description": "Represents a promotional offer from a local business partner.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the offer." },
+        "title": { "type": "string", "description": "The headline of the offer (e.g., '15% Off Your Stay')." },
+        "description": { "type": "string", "description": "A short description of the deal." },
+        "partnerName": { "type": "string", "description": "The name of the business partner (e.g., 'Hotel Mithila')." },
+        "location": { "type": "string", "description": "The address of the business, used for booking rides." },
+        "category": { "type": "string", "description": "The type of business.", "enum": ["Hotel", "Restaurant", "Shopping", "Activity"] },
+        "bannerImageUrl": { "type": "string", "description": "URL for the offer's promotional banner image." },
+        "isActive": { "type": "boolean", "description": "Whether the offer is currently active and visible to users." }
+      },
+      "required": ["id", "title", "description", "partnerName", "location", "category", "isActive"]
     }
   },
   "auth": {
@@ -764,6 +781,20 @@
                 {
                     "name": "eventId",
                     "description": "The unique identifier for the event."
+                }
+            ]
+        }
+      },
+      {
+        "path": "/offers/{offerId}",
+        "definition": {
+            "entityName": "Offer",
+            "schema": { "$ref": "#/backend/entities/Offer" },
+            "description": "Stores promotional offers from local business partners.",
+            "params": [
+                {
+                    "name": "offerId",
+                    "description": "The unique identifier for the offer."
                 }
             ]
         }

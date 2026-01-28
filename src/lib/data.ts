@@ -58,6 +58,17 @@ export interface Refund {
   processedAt?: any; // Timestamp
 }
 
+export interface Offer {
+  id: string;
+  title: string;
+  description: string;
+  partnerName: string;
+  location: string;
+  category: 'Hotel' | 'Restaurant' | 'Shopping' | 'Activity';
+  bannerImageUrl: string;
+  isActive: boolean;
+}
+
 const getDriverImage = (id: string): ImagePlaceholder => {
     const placeholder = PlaceHolderImages.find(img => img.id === id);
     if (!placeholder) {
@@ -121,5 +132,3 @@ export const mockUser = {
   phone: "+91 98765 43210",
   image: getDriverImage('user-profile'),
 }
-
-    

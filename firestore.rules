@@ -47,6 +47,13 @@ service cloud.firestore {
       // Only admins can create, update, or delete events.
       allow write: if isAdmin();
     }
+
+    match /offers/{offerId} {
+      // Public offers can be read by any authenticated user.
+      allow read: if request.auth != null;
+      // Only admins can create, update, or delete offers.
+      allow write: if isAdmin();
+    }
     
     // Roles can be read by anyone (for client-side logic), but only managed by admins.
     match /roles/{roleId} {

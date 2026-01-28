@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, Suspense, useEffect, useState, useRef } from 'react';
@@ -10,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Shield, ArrowRight, Wallet, LifeBuoy, Settings, PartyPopper, ShoppingBag, Building, Utensils } from 'lucide-react';
 import Link from 'next/link';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
-import type { Ride } from '@/lib/data';
+import type { Ride, Offer } from '@/lib/data';
 import { RideHistoryItem } from '@/components/ride/ride-history-item';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { BookingMap } from '@/components/ride/booking-map';
@@ -102,41 +103,24 @@ function EventPooling() {
 
 function LocalOffers() {
   const router = useRouter();
+  const firestore = useFirestore();
 
-  const mockOffers = [
-    {
-      id: "offer1",
-      category: "Hotel",
-      icon: Building,
-      title: "Hotel Mithila",
-      description: "Get 15% off your stay when you arrive with MithilaCab.",
-      location: "Near Darbhanga Station",
-      image: PlaceHolderImages.find(img => img.id === 'local-hotel-1'),
-    },
-    {
-      id: "offer2",
-      category: "Restaurant",
-      icon: Utensils,
-      title: "Maithil Bhoj",
-      description: "Show your ride receipt for a complimentary sweet dish.",
-      location: "Allalpatti, Darbhanga",
-      image: PlaceHolderImages.find(img => img.id === 'local-eatery-1'),
-    },
-    {
-      id: "offer3",
-      category: "Shopping",
-      icon: ShoppingBag,
-      title: "Mithila Handicrafts",
-      description: "10% off on all Madhubani paintings for MithilaCab riders.",
-      location: "Panda Sarai, Madhubani",
-      image: PlaceHolderImages.find(img => img.id === 'local-shop-1'),
-    },
-  ];
+  const offersQuery = useMemoFirebase(() => query(collection(firestore, 'offers'), where('isActive', '==', true)), [firestore]);
+  const { data: offers, isLoading } = useCollection<Offer>(offersQuery);
 
   const handleBookToOffer = (destination: string) => {
     router.push(`/home?destination=${encodeURIComponent(destination)}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  
+  const getIconForCategory = (category?: string) => {
+    switch(category) {
+        case 'Hotel': return Building;
+        case 'Restaurant': return Utensils;
+        case 'Shopping': return ShoppingBag;
+        default: return ShoppingBag;
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -145,44 +129,50 @@ function LocalOffers() {
         Local Offers & Deals
       </h2>
       <div className="grid md:grid-cols-2 gap-4">
-        {mockOffers.map((offer) => (
-          <motion.div
-            key={offer.id}
-            whileHover={{ scale: 1.03, y: -5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
-            <Card className="overflow-hidden h-full flex flex-col">
-              {offer.image && (
-                <Image
-                  src={offer.image.imageUrl}
-                  alt={offer.description}
-                  width={400}
-                  height={200}
-                  className="w-full h-32 object-cover"
-                  data-ai-hint={offer.image.imageHint}
-                />
-              )}
-              <CardHeader className="flex-row items-start gap-4 p-4">
-                <div className="p-2 bg-muted rounded-full">
-                    <offer.icon className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">{offer.title}</CardTitle>
-                  <CardDescription>{offer.description}</CardDescription>
-                </div>
-              </CardHeader>
-              <CardFooter className="p-4 pt-0 mt-auto">
-                <Button
-                  className="w-full font-bold"
-                  variant="secondary"
-                  onClick={() => handleBookToOffer(offer.location)}
-                >
-                  Book Ride & Redeem
-                </Button>
-              </CardFooter>
-            </Card>
-          </motion.div>
-        ))}
+        {isLoading && Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-56 w-full" />)}
+        {offers && offers.map((offer) => {
+            const Icon = getIconForCategory(offer.category);
+            return (
+              <motion.div
+                key={offer.id}
+                whileHover={{ scale: 1.03, y: -5 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
+                <Card className="overflow-hidden h-full flex flex-col">
+                  {offer.bannerImageUrl && (
+                    <Image
+                      src={offer.bannerImageUrl}
+                      alt={offer.description}
+                      width={400}
+                      height={200}
+                      className="w-full h-32 object-cover"
+                    />
+                  )}
+                  <CardHeader className="flex-row items-start gap-4 p-4">
+                    <div className="p-2 bg-muted rounded-full">
+                        <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{offer.partnerName}</CardTitle>
+                      <CardDescription>{offer.description}</CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardFooter className="p-4 pt-0 mt-auto">
+                    <Button
+                      className="w-full font-bold"
+                      variant="secondary"
+                      onClick={() => handleBookToOffer(offer.location)}
+                    >
+                      Book Ride & Redeem
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            )
+        })}
+         {!isLoading && (!offers || offers.length === 0) && (
+            <p className="text-muted-foreground text-sm md:col-span-2">No local offers available right now. Check back soon!</p>
+         )}
       </div>
     </div>
   );

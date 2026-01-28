@@ -112,5 +112,11 @@
     "description": "A shop selling local handicrafts",
     "imageUrl": "https://picsum.photos/seed/shop1/400/200.jpg",
     "imageHint": "handicraft shop"
+  },
+  {
+    "id": "offer-default",
+    "description": "A promotional offer banner",
+    "imageUrl": "https://picsum.photos/seed/offerdefault/400/200.jpg",
+    "imageHint": "sale offer"
   }
 ]
