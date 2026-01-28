@@ -22,6 +22,22 @@ const center = {
   lng: 85.900
 };
 
+const mapOptions = {
+    disableDefaultUI: true,
+    zoomControl: true,
+    styles: [
+        {
+            "featureType": "poi",
+            "stylers": [{ "visibility": "off" }]
+        },
+        {
+            "featureType": "transit",
+            "stylers": [{ "visibility": "off" }]
+        }
+    ]
+};
+
+
 // Function to create a stable but random position for a given ID
 const generateRandomPosition = (id: string) => {
     // Simple hash function to get a number from a string
@@ -67,7 +83,7 @@ const userIconSvg = `data:image/svg+xml,${encodeURIComponent(`
 export function RealtimeMap() {
     const firestore = useFirestore();
     const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-map-script',
+        id: 'google-map-script-admin',
         googleMapsApiKey: API_KEY,
         libraries: LIBRARIES,
     });
@@ -99,45 +115,28 @@ export function RealtimeMap() {
         }, {} as Record<string, { lat: number; lng: number }>) || {};
     }, [activeRides]);
 
-    const renderMap = () => {
-        if (loadError) {
-            return <div className="p-4 text-center text-destructive">Error loading maps. Please check your API key and network connection.</div>;
-        }
+    let mapContent;
 
-        if (!isLoaded || isLoading || ridesLoading) {
-            return <Skeleton className="h-full w-full" />;
-        }
-        
-        if (!API_KEY) {
-            return (
-                <div className="h-full w-full flex items-center justify-center bg-muted text-center p-4">
-                    <div>
-                        <h3 className="font-bold text-lg">Google Maps API Key is Missing</h3>
-                        <p className="text-sm text-muted-foreground">Please provide your API key in a `.env.local` file to display the map.</p>
-                    </div>
+    if (!API_KEY) {
+        mapContent = (
+            <div className="h-full w-full flex items-center justify-center bg-muted text-center p-4">
+                <div>
+                    <h3 className="font-bold text-lg">Google Maps API Key is Missing</h3>
+                    <p className="text-sm text-muted-foreground">Please provide your API key in a `.env.local` file to display the map.</p>
                 </div>
-            );
-        }
-
-        return (
+            </div>
+        );
+    } else if (loadError) {
+        mapContent = <div className="p-4 h-full w-full flex items-center justify-center text-center text-destructive">Error loading maps. Please check your API key and network connection.</div>;
+    } else if (!isLoaded || isLoading || ridesLoading) {
+        mapContent = <Skeleton className="h-full w-full" />;
+    } else {
+        mapContent = (
             <GoogleMap
                 mapContainerStyle={containerStyle}
                 center={center}
                 zoom={12}
-                options={{
-                    disableDefaultUI: true,
-                    zoomControl: true,
-                    styles: [
-                        {
-                            "featureType": "poi",
-                            "stylers": [{ "visibility": "off" }]
-                        },
-                        {
-                            "featureType": "transit",
-                            "stylers": [{ "visibility": "off" }]
-                        }
-                    ]
-                }}
+                options={mapOptions}
             >
                 <TooltipProvider>
                     {/* Plot drivers */}
@@ -185,7 +184,8 @@ export function RealtimeMap() {
                 </TooltipProvider>
             </GoogleMap>
         );
-    };
+    }
+
 
     return (
         <Card>
@@ -195,7 +195,7 @@ export function RealtimeMap() {
             </CardHeader>
             <CardContent>
                 <div className="h-96 w-full rounded-lg overflow-hidden border">
-                    {renderMap()}
+                    {mapContent}
                 </div>
             </CardContent>
         </Card>

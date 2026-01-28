@@ -48,7 +48,7 @@ export function BookingMap({ isLoaded, loadError, pickup, destination }: Booking
     const mapRef = useRef<google.maps.Map | null>(null);
 
     useEffect(() => {
-        if (isLoaded && pickup && destination && window.google) {
+        if (isLoaded && !loadError && pickup && destination && window.google) {
             const directionsService = new window.google.maps.DirectionsService();
             directionsService.route(
                 {
@@ -60,7 +60,7 @@ export function BookingMap({ isLoaded, loadError, pickup, destination }: Booking
                     if (status === window.google.maps.DirectionsStatus.OK) {
                         setDirections(result);
                         if (mapRef.current && result) {
-                            const bounds = new google.maps.LatLngBounds();
+                            const bounds = new window.google.maps.LatLngBounds();
                             result.routes[0].legs.forEach(leg => {
                                 leg.steps.forEach(step => {
                                     step.path.forEach(path => bounds.extend(path));
@@ -85,29 +85,29 @@ export function BookingMap({ isLoaded, loadError, pickup, destination }: Booking
                 }
             }
         }
-    }, [pickup, destination, isLoaded]);
+    }, [pickup, destination, isLoaded, loadError]);
     
     const onLoad = (map: google.maps.Map) => {
         mapRef.current = map;
     }
 
-    if (loadError) {
-        return <div className="p-4 text-center text-destructive">Error loading maps. Please check your API key.</div>;
-    }
-
-    if (!isLoaded || !API_KEY) {
+    if (!API_KEY) {
         return (
             <div className="h-full w-full flex items-center justify-center bg-muted text-center p-4">
-                 {API_KEY ? (
-                     <Skeleton className="h-full w-full" />
-                 ) : (
-                    <div>
-                        <h3 className="font-bold text-lg">Google Maps API Key is Missing</h3>
-                        <p className="text-sm text-muted-foreground">Add your API key in `.env.local` to see the map.</p>
-                    </div>
-                 )}
+                <div>
+                    <h3 className="font-bold text-lg">Google Maps API Key is Missing</h3>
+                    <p className="text-sm text-muted-foreground">Add your API key in `.env.local` to see the map.</p>
+                </div>
             </div>
         );
+    }
+
+    if (loadError) {
+        return <div className="p-4 h-full w-full flex items-center justify-center text-center text-destructive">Error loading maps. Please check your API key and network connection.</div>;
+    }
+
+    if (!isLoaded) {
+        return <Skeleton className="h-full w-full" />;
     }
     
     return (
@@ -121,13 +121,13 @@ export function BookingMap({ isLoaded, loadError, pickup, destination }: Booking
             {pickup && (
                 <MarkerF 
                     position={pickup}
-                    options={{ icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: 'hsl(var(--primary))', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 } }}
+                    options={{ icon: { path: window.google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: 'hsl(var(--primary))', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 } }}
                 />
             )}
             {destination && (
                 <MarkerF 
                     position={destination}
-                     options={{ icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: 'hsl(var(--accent))', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 } }}
+                     options={{ icon: { path: window.google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: 'hsl(var(--accent))', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 } }}
                 />
             )}
 
