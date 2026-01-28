@@ -185,7 +185,7 @@ export default function ProfilePage() {
                                  <SettingsListItem href="/driver/training" icon={BookOpen} title="Training Modules" subtitle="Improve your skills and earnings" />
                                  <SettingsListItem onClick={handleNotImplemented} icon={Wrench} title="Vehicle Log" subtitle="Track fuel and maintenance" />
                                  <SettingsListItem onClick={handleNotImplemented} icon={Users} title="Community Hub" subtitle="Connect with other drivers" />
-                                 <SettingsListItem onClick={handleNotImplemented} icon={Award} title="Achievements" subtitle="Your badges and milestones" />
+                                 <SettingsListItem href="/profile/rewards" icon={Award} title="Achievements" subtitle="Your badges and milestones" />
                               </div>
                           </div>
                           
@@ -249,7 +249,7 @@ export default function ProfilePage() {
                        <SettingsListItem href="/profile/parcel" icon={Package} title="Parcel - Send Items" />
                        <SettingsListItem href="/profile/payment" icon={CreditCard} title="Payment" />
                        <SettingsListItem href="/profile/refer" icon={Gift} title="Refer and Earn" subtitle="Get ₹50" />
-                       <SettingsListItem href="/profile/rewards" icon={Award} title="My Rewards" />
+                       <SettingsListItem href="/profile/rewards" icon={Award} title="Rewards & Achievements" />
                        <SettingsListItem href="/profile/power-pass" icon={Ticket} title="Power Pass" />
                     </div>
                 </div>

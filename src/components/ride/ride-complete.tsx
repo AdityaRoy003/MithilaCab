@@ -7,7 +7,7 @@ import type { Ride } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, IndianRupee } from 'lucide-react';
+import { Star, IndianRupee, Leaf } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '../ui/skeleton';
@@ -38,6 +38,8 @@ export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
     })
     onNewRide();
   };
+  
+  const co2Saved = rideDetails.rideType === 'Share' && rideDetails.distance ? rideDetails.distance * 0.12 : null;
 
   if (!rideDetails.driver) {
       return (
@@ -83,6 +85,14 @@ export function RideComplete({ rideDetails, onNewRide }: RideCompleteProps) {
               {rideDetails.fareAmount?.toFixed(2) ?? '0.00'}
             </p>
           </div>
+          
+          {co2Saved !== null && (
+            <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
+                <p className="font-bold text-green-600 text-lg flex items-center justify-center gap-2"><Leaf /> You saved ~{co2Saved.toFixed(2)} kg of CO₂!</p>
+                <p className="text-xs text-green-700/80">Thanks for choosing a shared ride.</p>
+            </div>
+           )}
+
           <div className='space-y-4'>
             <div>
               <Label className="font-semibold mb-2">Rate your driver</Label>

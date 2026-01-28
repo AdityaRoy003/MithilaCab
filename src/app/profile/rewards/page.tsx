@@ -5,7 +5,7 @@ import AppLayout from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Award, Ticket, IndianRupee } from 'lucide-react';
+import { ArrowLeft, Award, Ticket, Leaf, Star, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
@@ -13,6 +13,13 @@ const rewards = [
     { id: 'rw1', title: '50% Off First Ride', description: 'Get 50% off (up to ₹75) on your next ride.', expiry: 'Expires in 3 days', type: 'discount' },
     { id: 'rw2', title: '₹50 Cashback', description: 'Complete 3 rides this week to get ₹50 cashback in your wallet.', expiry: 'Expires on Sunday', type: 'cashback' },
     { id: 'rw3', title: 'Free Airport Drop', description: 'You have earned a free ride to the airport!', expiry: 'Expires in 25 days', type: 'free_ride' },
+];
+
+const achievements = [
+    { id: 'ach1', title: 'Eco Rider', description: 'Completed your first shared ride.', icon: Leaf, achieved: true },
+    { id: 'ach2', title: 'Green Miles', description: 'Travelled 50km in shared rides.', icon: Leaf, achieved: true },
+    { id: 'ach3', title: 'Community Star', description: 'Travelled 250km in shared rides.', icon: Star, achieved: false },
+    { id: 'ach4', title: 'Safety Pro', description: 'Enabled all safety features.', icon: Shield, achieved: true },
 ];
 
 export default function RewardsPage() {
@@ -29,11 +36,11 @@ export default function RewardsPage() {
                             Back to Profile
                         </Button>
                     </div>
-                    <h1 className="font-headline text-3xl font-bold mb-6">My Rewards</h1>
+                    <h1 className="font-headline text-3xl font-bold mb-6">Rewards & Achievements</h1>
                     <div className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><Award /> Available Coupons</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><Ticket /> Available Coupons</CardTitle>
                                 <CardDescription>Your collected rewards and ongoing offers.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -54,14 +61,25 @@ export default function RewardsPage() {
                                 {rewards.length === 0 && <p className="text-center text-muted-foreground py-8">No rewards available right now.</p>}
                             </CardContent>
                         </Card>
+                        
                         <Card>
                             <CardHeader>
-                                <CardTitle>Past Rewards</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><Award /> Achievements</CardTitle>
+                                <CardDescription>Your collected badges for various milestones.</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-center text-muted-foreground py-4">No past rewards to show.</p>
+                            <CardContent className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {achievements.map(achievement => (
+                                    <div key={achievement.id} className={`p-4 border rounded-lg flex flex-col items-center justify-center text-center gap-2 ${achievement.achieved ? 'opacity-100' : 'opacity-40'}`}>
+                                        <div className={`p-3 rounded-full ${achievement.achieved ? 'bg-green-500/10' : 'bg-muted'}`}>
+                                            <achievement.icon className={`h-8 w-8 ${achievement.achieved ? 'text-green-500' : 'text-muted-foreground'}`} />
+                                        </div>
+                                        <p className="text-sm font-semibold">{achievement.title}</p>
+                                        <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                                    </div>
+                                ))}
                             </CardContent>
                         </Card>
+
                     </div>
                 </div>
             </main>

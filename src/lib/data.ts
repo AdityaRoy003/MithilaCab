@@ -20,6 +20,7 @@ export interface Ride {
   destinationLocation: string;
   fareAmount: number;
   distance?: number;
+  co2Saved?: number;
   driver?: Driver;
   userId?: string;
   driverId?: string | null;

@@ -5,7 +5,7 @@ import type { Ride } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from 'date-fns';
-import { IndianRupee, Star, RefreshCw, Download, Flag, Eye } from "lucide-react";
+import { IndianRupee, Star, RefreshCw, Download, Flag, Eye, Leaf } from "lucide-react";
 import { Timestamp, collection, serverTimestamp } from "firebase/firestore";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -168,6 +168,12 @@ export function RideHistoryCard({ ride, variant = 'full' }: RideHistoryCardProps
             </CardHeader>
             <CardContent className="py-2 flex-1">
                 <div className="text-xs text-muted-foreground">{getFormattedDate(ride.startTime)}</div>
+                 {ride.rideType === 'Share' && ride.distance && (
+                    <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
+                        <Leaf className="h-3 w-3"/>
+                        <span>~{(ride.distance * 0.12).toFixed(2)} kg CO₂ saved</span>
+                    </div>
+                 )}
             </CardContent>
             <CardFooter className="flex items-center justify-between p-4 pt-2">
                 <div className="flex items-center gap-2 overflow-hidden">
@@ -203,6 +209,12 @@ export function RideHistoryCard({ ride, variant = 'full' }: RideHistoryCardProps
                       <p><span className="font-medium text-primary">From:</span> {ride.pickupLocation}</p>
                       <p><span className="font-medium text-accent">To:</span> {ride.destinationLocation}</p>
                   </div>
+                   {ride.rideType === 'Share' && ride.distance && (
+                     <div className="flex items-center gap-2 text-xs text-green-600 mt-2">
+                        <Leaf className="h-3 w-3"/>
+                        <span>~{(ride.distance * 0.12).toFixed(2)} kg CO₂ saved</span>
+                     </div>
+                  )}
               </div>
           </div>
 

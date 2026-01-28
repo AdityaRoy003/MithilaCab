@@ -5,7 +5,7 @@ import type { Ride, RideType } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Clock, Map, IndianRupee, Zap, Lightbulb } from 'lucide-react';
+import { ArrowRight, Clock, Map, IndianRupee, Zap, Lightbulb, Leaf } from 'lucide-react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Badge } from '../ui/badge';
@@ -14,6 +14,7 @@ import { predictFare } from '@/ai/flows/fare-prediction-flow';
 interface PlatformSettings {
     surgeMultiplier?: number;
     rideTypeSettings: {
+        Share: { baseFare: number; perKmRate: number };
         Standard: { baseFare: number; perKmRate: number };
         Premium: { baseFare: number; perKmRate: number };
         SUV: { baseFare: number; perKmRate: number };
@@ -32,6 +33,7 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
   const [breakdown, setBreakdown] = useState<{baseFare: number, distanceCharge: number} | null>(null);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(true);
+  const [co2Estimate, setCo2Estimate] = useState<number | null>(null);
 
   const firestore = useFirestore();
   const settingsDocRef = useMemoFirebase(() => doc(firestore, 'settings', 'platform'), [firestore]);
@@ -63,6 +65,12 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
       fare: finalFare,
       surgeMultiplier,
     });
+    
+    if (rideType === 'Share') {
+        setCo2Estimate(dist * 0.12);
+    } else {
+        setCo2Estimate(null);
+    }
 
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -180,6 +188,13 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
                   )
               )}
           </div>
+            
+            {co2Estimate !== null && (
+                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
+                    <p className="font-bold text-green-600 flex items-center justify-center gap-2"><Leaf /> Estimated ~{co2Estimate.toFixed(2)} kg CO₂ saved</p>
+                    <p className="text-xs text-green-700/80">by choosing a shared ride.</p>
+                </div>
+            )}
 
            {showSkeletons ? (
               <Skeleton className="h-[76px] w-full" />
