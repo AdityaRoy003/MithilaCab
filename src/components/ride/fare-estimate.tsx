@@ -5,10 +5,11 @@ import type { Ride, RideType } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Clock, Map, IndianRupee, Zap } from 'lucide-react';
+import { ArrowRight, Clock, Map, IndianRupee, Zap, Lightbulb } from 'lucide-react';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Badge } from '../ui/badge';
+import { predictFare } from '@/ai/flows/fare-prediction-flow';
 
 interface PlatformSettings {
     surgeMultiplier?: number;
@@ -29,6 +30,8 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
   const [isLoading, setIsLoading] = useState(true);
   const [estimate, setEstimate] = useState<{ distance: string; time: number; fare: number, surgeMultiplier: number; } | null>(null);
   const [breakdown, setBreakdown] = useState<{baseFare: number, distanceCharge: number} | null>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [isSuggestionLoading, setIsSuggestionLoading] = useState(true);
 
   const firestore = useFirestore();
   const settingsDocRef = useMemoFirebase(() => doc(firestore, 'settings', 'platform'), [firestore]);
@@ -36,13 +39,11 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
 
 
   useEffect(() => {
-    // Wait until settings are loaded before calculating
     if (!settings) {
         setIsLoading(true);
         return;
     };
     
-    // This effect runs only on the client, avoiding hydration mismatches from Math.random().
     const rideType = rideDetails.rideType || 'Standard';
     const rideSettings = settings.rideTypeSettings[rideType] || settings.rideTypeSettings.Standard;
     const surgeMultiplier = settings.surgeMultiplier ?? 1;
@@ -65,10 +66,34 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
 
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500); // Simulate calculation time
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [rideDetails.rideType, settings]);
+
+  useEffect(() => {
+    const getFarePrediction = async () => {
+        if (!rideDetails.pickupLocation || !rideDetails.destinationLocation) return;
+        
+        setIsSuggestionLoading(true);
+        try {
+            const prediction = await predictFare({
+                pickupLocation: rideDetails.pickupLocation,
+                destinationLocation: rideDetails.destinationLocation,
+                currentTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+            });
+            setAiSuggestion(prediction.suggestion);
+        } catch (error) {
+            console.error("Fare prediction error:", error);
+            setAiSuggestion(null);
+        } finally {
+            setIsSuggestionLoading(false);
+        }
+    };
+    
+    getFarePrediction();
+  }, [rideDetails.pickupLocation, rideDetails.destinationLocation]);
+
 
   const handleConfirm = () => {
     if (estimate) {
@@ -139,6 +164,22 @@ export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateP
               )}
             </div>
            )}
+          
+          <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+              {isSuggestionLoading ? (
+                  <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-5 rounded-full" />
+                      <Skeleton className="h-4 w-4/5" />
+                  </div>
+              ) : (
+                  aiSuggestion && (
+                      <div className="flex items-start gap-2 text-primary">
+                          <Lightbulb className="h-5 w-5 shrink-0 mt-0.5" />
+                          <p className="font-medium text-sm">{aiSuggestion}</p>
+                      </div>
+                  )
+              )}
+          </div>
 
            {showSkeletons ? (
               <Skeleton className="h-[76px] w-full" />
