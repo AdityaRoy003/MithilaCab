@@ -26,9 +26,9 @@ service cloud.firestore {
     }
     
     match /users/{userId}/notifications/{notificationId} {
-        // Users can read and delete their own notifications.
-        // Notifications are created by the backend (simulated on client for now).
-        allow read, write: if isOwner(userId);
+        // Users can manage their own notifications.
+        // Admins can create notifications for any user.
+        allow read, write: if isOwner(userId) || isAdmin();
     }
 
     match /drivers/{driverId} {
