@@ -2,7 +2,7 @@
 
 MithilaCab is a modern, feature-rich ride-hailing application built with Next.js and Firebase. It's designed to provide a seamless transportation experience for both passengers and drivers, with a special focus on the cultural context of the Mithila region.
 
-[![MithilaCab Screenshot](https://picsum.photos/seed/mithilahero/1200/600.jpg)](https://picsum.photos/seed/mithilahero/1200/600.jpg)
+[![MithilaCab Screenshot](![alt text](MithlaCab.jpg))](https://picsum.photos/seed/mithilahero/1200/600.jpg)
 
 ## ✨ Key Features
 
