@@ -4,10 +4,10 @@ import { useMemo, Suspense, useEffect, useState, useRef } from 'react';
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin, useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
-import { Shield, ArrowRight, Wallet, LifeBuoy, Settings, PartyPopper } from 'lucide-react';
+import { Shield, ArrowRight, Wallet, LifeBuoy, Settings, PartyPopper, ShoppingBag, Building, Utensils } from 'lucide-react';
 import Link from 'next/link';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
@@ -22,6 +22,7 @@ import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 import Autoplay from "embla-carousel-autoplay";
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 
 function EventPooling() {
   const router = useRouter();
@@ -95,6 +96,94 @@ function EventPooling() {
           ))}
         </CarouselContent>
       </Carousel>
+    </div>
+  );
+}
+
+function LocalOffers() {
+  const router = useRouter();
+
+  const mockOffers = [
+    {
+      id: "offer1",
+      category: "Hotel",
+      icon: Building,
+      title: "Hotel Mithila",
+      description: "Get 15% off your stay when you arrive with MithilaCab.",
+      location: "Near Darbhanga Station",
+      image: PlaceHolderImages.find(img => img.id === 'local-hotel-1'),
+    },
+    {
+      id: "offer2",
+      category: "Restaurant",
+      icon: Utensils,
+      title: "Maithil Bhoj",
+      description: "Show your ride receipt for a complimentary sweet dish.",
+      location: "Allalpatti, Darbhanga",
+      image: PlaceHolderImages.find(img => img.id === 'local-eatery-1'),
+    },
+    {
+      id: "offer3",
+      category: "Shopping",
+      icon: ShoppingBag,
+      title: "Mithila Handicrafts",
+      description: "10% off on all Madhubani paintings for MithilaCab riders.",
+      location: "Panda Sarai, Madhubani",
+      image: PlaceHolderImages.find(img => img.id === 'local-shop-1'),
+    },
+  ];
+
+  const handleBookToOffer = (destination: string) => {
+    router.push(`/home?destination=${encodeURIComponent(destination)}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="font-headline text-2xl font-bold flex items-center gap-2">
+        <ShoppingBag className="text-primary"/>
+        Local Offers & Deals
+      </h2>
+      <div className="grid md:grid-cols-2 gap-4">
+        {mockOffers.map((offer) => (
+          <motion.div
+            key={offer.id}
+            whileHover={{ scale: 1.03, y: -5 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+          >
+            <Card className="overflow-hidden h-full flex flex-col">
+              {offer.image && (
+                <Image
+                  src={offer.image.imageUrl}
+                  alt={offer.description}
+                  width={400}
+                  height={200}
+                  className="w-full h-32 object-cover"
+                  data-ai-hint={offer.image.imageHint}
+                />
+              )}
+              <CardHeader className="flex-row items-start gap-4 p-4">
+                <div className="p-2 bg-muted rounded-full">
+                    <offer.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">{offer.title}</CardTitle>
+                  <CardDescription>{offer.description}</CardDescription>
+                </div>
+              </CardHeader>
+              <CardFooter className="p-4 pt-0 mt-auto">
+                <Button
+                  className="w-full font-bold"
+                  variant="secondary"
+                  onClick={() => handleBookToOffer(offer.location)}
+                >
+                  Book Ride & Redeem
+                </Button>
+              </CardFooter>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -209,6 +298,12 @@ function PassengerDashboard() {
                 </Card>
 
                 <EventPooling />
+                
+                <Separator />
+                
+                <LocalOffers />
+
+                <Separator />
 
                 <BookingFlow 
                     isLoaded={isLoaded}

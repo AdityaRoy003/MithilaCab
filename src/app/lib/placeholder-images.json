@@ -94,5 +94,23 @@
     "description": "A sample UPI QR code for payment simulation.",
     "imageUrl": "https://picsum.photos/seed/qrcode/300/300.jpg",
     "imageHint": "qr code"
+  },
+  {
+    "id": "local-hotel-1",
+    "description": "A nice local hotel in Mithila",
+    "imageUrl": "https://picsum.photos/seed/hotel1/400/200.jpg",
+    "imageHint": "indian hotel"
+  },
+  {
+    "id": "local-eatery-1",
+    "description": "A local restaurant serving Maithil food",
+    "imageUrl": "https://picsum.photos/seed/eatery1/400/200.jpg",
+    "imageHint": "indian restaurant"
+  },
+  {
+    "id": "local-shop-1",
+    "description": "A shop selling local handicrafts",
+    "imageUrl": "https://picsum.photos/seed/shop1/400/200.jpg",
+    "imageHint": "handicraft shop"
   }
 ]
