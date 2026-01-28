@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { doc, collection, query, where } from 'firebase/firestore';
 import Link from 'next/link';
 import AppLayout from '@/components/app-layout';
@@ -20,10 +21,12 @@ import { AssignedRidesList } from './assigned-rides-list';
 import type { Ride } from '@/lib/data';
 import { MapPin, ShieldAlert } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { WellnessCheckDialog } from './wellness-check-dialog';
 
 export default function DriverPage() {
   const { driver, isDriverLoading } = useDriver();
   const firestore = useFirestore();
+  const [isWellnessCheckOpen, setIsWellnessCheckOpen] = useState(false);
 
   const assignedRidesQuery = useMemoFirebase(() => {
     if (!driver) return null;
@@ -38,9 +41,29 @@ export default function DriverPage() {
 
   const handleAvailabilityChange = (isAvailable: boolean) => {
     if (!driver) return;
-    const driverRef = doc(firestore, 'drivers', driver.id);
-    updateDocumentNonBlocking(driverRef, { isAvailable });
+    
+    if (isAvailable) {
+        // Instead of going online directly, open the wellness check
+        setIsWellnessCheckOpen(true);
+    } else {
+        // Go offline immediately
+        const driverRef = doc(firestore, 'drivers', driver.id);
+        updateDocumentNonBlocking(driverRef, { isAvailable: false });
+    }
   };
+
+  // New function to handle the result of the wellness check
+  const handleWellnessCheckComplete = (isWell: boolean) => {
+      setIsWellnessCheckOpen(false); // Close the dialog
+      if (isWell && driver) {
+          // If wellness check passed, set driver online
+          const driverRef = doc(firestore, 'drivers', driver.id);
+          updateDocumentNonBlocking(driverRef, { isAvailable: true });
+      }
+      // If not well, a toast is shown inside the dialog, and the driver remains offline.
+      // The switch will automatically revert to its 'off' state because the driver's `isAvailable` status in Firestore won't change.
+  };
+
 
   if (isDriverLoading) {
     return (
@@ -94,13 +117,19 @@ export default function DriverPage() {
 
   // Force driver offline if they are not verified but somehow are marked as available
   if (!driver.isVerified && driver.isAvailable) {
-    handleAvailabilityChange(false);
+    const driverRef = doc(firestore, 'drivers', driver.id);
+    updateDocumentNonBlocking(driverRef, { isAvailable: false });
   }
 
   const hasAssignedRide = assignedRides && assignedRides.length > 0;
 
   return (
     <AppLayout>
+       <WellnessCheckDialog 
+          isOpen={isWellnessCheckOpen}
+          onOpenChange={setIsWellnessCheckOpen}
+          onComplete={handleWellnessCheckComplete}
+      />
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-8">
         <h1 className="font-headline text-3xl font-bold">Driver Dashboard</h1>
 
