@@ -117,6 +117,3 @@ To access the admin dashboard, you can use the super admin email defined in the 
 
 You can also create new staff members with specific roles and permissions directly from the "Manage Staff" section in the admin dashboard.
 
-## ☁️ Deployment
-
-This application is configured for easy deployment with [Firebase App Hosting](https://firebase.google.com/docs/app-hosting). Connect your repository to a Firebase project to enable continuous deployment.
