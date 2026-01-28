@@ -14,12 +14,9 @@ import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import type { Ride, Offer } from '@/lib/data';
 import { RideHistoryItem } from '@/components/ride/ride-history-item';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { BookingMap } from '@/components/ride/booking-map';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useJsApiLoader } from '@react-google-maps/api';
-import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 import Autoplay from "embla-carousel-autoplay";
 import Image from 'next/image';
@@ -185,15 +182,7 @@ function PassengerDashboard() {
     const searchParams = useSearchParams();
     const initialPickup = searchParams.get('pickup');
     const initialDestination = searchParams.get('destination');
-    const [pickupCoords, setPickupCoords] = useState<google.maps.LatLngLiteral | null>(null);
-    const [destinationCoords, setDestinationCoords] = useState<google.maps.LatLngLiteral | null>(null);
-
-    const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: API_KEY,
-        libraries: LIBRARIES,
-    });
-
+    
     // Query for ALL rides for this user for stats
     const allRidesQuery = useMemoFirebase(() => {
         if (!user) return null;
@@ -237,7 +226,7 @@ function PassengerDashboard() {
     const { data: recentRides, isLoading: areRecentRidesLoading } = useCollection<Ride>(recentRidesQuery);
     
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             <div className="lg:col-span-1 space-y-8">
                 <div>
                     <h1 className="font-headline text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0]}!</h1>
@@ -287,20 +276,9 @@ function PassengerDashboard() {
                     </CardContent>
                 </Card>
 
-                <EventPooling />
-                
-                <Separator />
-                
-                <LocalOffers />
-
-                <Separator />
-
                 <BookingFlow 
-                    isLoaded={isLoaded}
                     initialPickup={initialPickup} 
                     initialDestination={initialDestination}
-                    onPickupSelect={setPickupCoords}
-                    onDestinationSelect={setDestinationCoords}
                 />
 
                 <div>
@@ -339,19 +317,10 @@ function PassengerDashboard() {
                     )}
                 </div>
             </div>
-             <div className="lg:col-span-2 relative lg:sticky lg:top-20">
-                <Card>
-                    <CardContent className="p-0">
-                        <div className="h-[75vh] rounded-lg overflow-hidden">
-                            <BookingMap 
-                                isLoaded={isLoaded}
-                                loadError={loadError}
-                                pickup={pickupCoords} 
-                                destination={destinationCoords}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
+             <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-20">
+                <EventPooling />
+                <Separator />
+                <LocalOffers />
             </div>
         </div>
     )

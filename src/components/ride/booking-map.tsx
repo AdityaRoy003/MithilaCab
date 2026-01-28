@@ -1,149 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { GoogleMap, MarkerF, DirectionsRenderer } from '@react-google-maps/api';
-import { Skeleton } from '../ui/skeleton';
-import { API_KEY } from '@/app/lib/google-maps';
+import { MapOff } from 'lucide-react';
 
-const containerStyle = {
-  width: '100%',
-  height: '100%'
-};
-
-// Center of Mithila region (Darbhanga)
-const center = {
-  lat: 26.170,
-  lng: 85.900
-};
-
-const mapOptions = {
-    disableDefaultUI: true,
-    zoomControl: true,
-    styles: [
-        {
-            "featureType": "poi",
-            "stylers": [{ "visibility": "off" }]
-        },
-        {
-            "featureType": "transit",
-            "stylers": [{ "visibility": "off" }]
-        },
-        {
-            "featureType": "road",
-            "elementType": "labels.icon",
-            "stylers": [{ "visibility": "off" }]
-        }
-    ]
-};
-
-interface BookingMapProps {
-    isLoaded: boolean;
-    loadError: Error | null;
-    pickup: google.maps.LatLngLiteral | null;
-    destination: google.maps.LatLngLiteral | null;
-}
-
-export function BookingMap({ isLoaded, loadError, pickup, destination }: BookingMapProps) {
-    const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
-    const mapRef = useRef<google.maps.Map | null>(null);
-
-    useEffect(() => {
-        if (isLoaded && !loadError && pickup && destination && window.google) {
-            const directionsService = new window.google.maps.DirectionsService();
-            directionsService.route(
-                {
-                    origin: pickup,
-                    destination: destination,
-                    travelMode: window.google.maps.TravelMode.DRIVING,
-                },
-                (result, status) => {
-                    if (status === window.google.maps.DirectionsStatus.OK) {
-                        setDirections(result);
-                        if (mapRef.current && result) {
-                            const bounds = new window.google.maps.LatLngBounds();
-                            result.routes[0].legs.forEach(leg => {
-                                leg.steps.forEach(step => {
-                                    step.path.forEach(path => bounds.extend(path));
-                                });
-                            });
-                            mapRef.current.fitBounds(bounds);
-                        }
-                    } else {
-                        console.error(`Error fetching directions: ${status}`);
-                    }
-                }
-            );
-        } else {
-            setDirections(null);
-            if(mapRef.current) {
-                if (pickup) {
-                    mapRef.current.panTo(pickup);
-                    mapRef.current.setZoom(14);
-                } else {
-                    mapRef.current.panTo(center);
-                    mapRef.current.setZoom(12);
-                }
-            }
-        }
-    }, [pickup, destination, isLoaded, loadError]);
-    
-    const onLoad = (map: google.maps.Map) => {
-        mapRef.current = map;
-    }
-
-    if (!API_KEY) {
-        return (
-            <div className="h-full w-full flex items-center justify-center bg-muted text-center p-4">
-                <div>
-                    <h3 className="font-bold text-lg">Google Maps API Key is Missing</h3>
-                    <p className="text-sm text-muted-foreground">Add your API key in `.env.local` to see the map.</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (loadError) {
-        return <div className="p-4 h-full w-full flex items-center justify-center text-center text-destructive">Error loading maps. Please check your API key and network connection.</div>;
-    }
-
-    if (!isLoaded) {
-        return <Skeleton className="h-full w-full" />;
-    }
-    
+export function BookingMap() {
     return (
-        <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={center}
-            zoom={12}
-            options={mapOptions}
-            onLoad={onLoad}
-        >
-            {pickup && (
-                <MarkerF 
-                    position={pickup}
-                    options={{ icon: { path: window.google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: 'hsl(var(--primary))', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 } }}
-                />
-            )}
-            {destination && (
-                <MarkerF 
-                    position={destination}
-                     options={{ icon: { path: window.google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: 'hsl(var(--accent))', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 } }}
-                />
-            )}
-
-            {directions && (
-                <DirectionsRenderer
-                    directions={directions}
-                    options={{
-                        suppressMarkers: true,
-                        polylineOptions: {
-                            strokeColor: 'hsl(var(--primary))',
-                            strokeOpacity: 0.8,
-                            strokeWeight: 6,
-                        },
-                    }}
-                />
-            )}
-        </GoogleMap>
+        <div className="h-full w-full flex items-center justify-center bg-muted text-center p-4">
+            <div>
+                <MapOff className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="font-bold text-lg">Map Disabled</h3>
+                <p className="text-sm text-muted-foreground">Please provide a Google Maps API key to enable this feature.</p>
+            </div>
+        </div>
     );
 }

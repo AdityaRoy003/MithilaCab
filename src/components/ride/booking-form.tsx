@@ -11,15 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
 
 interface BookingFormProps {
-  isLoaded: boolean;
   onBookingRequest: (pickup: string, destination: string, rideType: RideType) => void;
   initialPickup?: string | null;
   initialDestination?: string | null;
-  onPickupSelect: (coords: google.maps.LatLngLiteral | null) => void;
-  onDestinationSelect: (coords: google.maps.LatLngLiteral | null) => void;
 }
 
 const JIO_API_KEY = process.env.NEXT_PUBLIC_JIO_API_KEY || '';
@@ -50,7 +46,7 @@ const mithilaLocations = [
 ];
 
 
-export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initialDestination, onPickupSelect, onDestinationSelect }: BookingFormProps) {
+export function BookingForm({ onBookingRequest, initialPickup, initialDestination }: BookingFormProps) {
   const [pickup, setPickup] = useState(initialPickup || '');
   const [destination, setDestination] = useState(initialDestination || '');
   const [rideType, setRideType] = useState<RideType>('Standard');
@@ -87,28 +83,6 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
     };
   }, []);
 
-  const geocodeAddress = (address: string, type: 'pickup' | 'destination') => {
-    if (!isLoaded) return;
-    const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ address }, (results, status) => {
-      if (status === 'OK' && results && results[0]) {
-        const location = results[0].geometry.location;
-        const coords = { lat: location.lat(), lng: location.lng() };
-        if (type === 'pickup') {
-          onPickupSelect(coords);
-        } else {
-          onDestinationSelect(coords);
-        }
-      } else {
-        console.error(`Geocode was not successful for the following reason: ${status}`);
-        if (type === 'pickup') {
-          onPickupSelect(null);
-        } else {
-          onDestinationSelect(null);
-        }
-      }
-    });
-  };
 
   const handlePickupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -120,7 +94,6 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
     } else {
       setPickupSuggestions([]);
       setActiveSuggestionBox(null);
-      onPickupSelect(null);
     }
   };
 
@@ -134,7 +107,6 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
     } else {
       setDestinationSuggestions([]);
       setActiveSuggestionBox(null);
-      onDestinationSelect(null);
     }
   };
 
@@ -145,7 +117,6 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
       setDestination(location);
     }
     setActiveSuggestionBox(null);
-    geocodeAddress(location, type);
   };
   
   const handleDetectLocation = () => {
@@ -170,8 +141,7 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-        onPickupSelect(coords);
-
+        
         try {
             // Using MapmyIndia API, which powers Jio Maps
             const response = await fetch(`https://apis.mapmyindia.com/advancedmaps/v1/${JIO_API_KEY}/rev_geocode?lat=${coords.lat}&lng=${coords.lng}`);
@@ -196,7 +166,6 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
       () => {
         setIsDetectingLocation(false);
         toast({ variant: 'destructive', title: 'Location Access Denied', description: 'Please enable location permissions in your browser settings.'});
-        onPickupSelect(null);
       }
     );
   };
@@ -265,7 +234,6 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
                   placeholder="Enter destination"
                   value={destination}
                   onChange={handleDestinationChange}
-                  onBlur={() => geocodeAddress(destination, 'destination')}
                   onFocus={() => { if(destination) setActiveSuggestionBox('destination')}}
                   required
                   className="pl-10"

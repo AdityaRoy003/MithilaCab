@@ -148,12 +148,12 @@ export default function AdminDashboardPage() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3"
+        className="grid gap-4 md:gap-8 lg:grid-cols-2"
       >
-        <motion.div variants={itemVariants} className="xl:col-span-2">
+        <motion.div variants={itemVariants} className="lg:col-span-1">
             <RideList />
         </motion.div>
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants} className="lg:col-span-1">
             <RealtimeMap />
         </motion.div>
       </motion.div>
