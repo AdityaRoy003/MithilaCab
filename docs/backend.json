@@ -574,6 +574,47 @@
           "processedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the request was processed." }
       },
       "required": ["id", "rideId", "userId", "userName", "fareAmount", "rideDate", "reason", "issueType", "status", "requestedAt"]
+    },
+    "Event": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Event",
+      "type": "object",
+      "description": "Represents a special event for which ride pooling is available.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the event."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the event (e.g., 'Mithila Vivah Season')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description of the event."
+        },
+        "destination": {
+          "type": "string",
+          "description": "The primary destination address for the event."
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Whether the event pooling is currently active."
+        },
+        "bannerImageUrl": {
+            "type": "string",
+            "description": "URL for the event's promotional banner image."
+        }
+      },
+      "required": ["id", "name", "destination", "isActive"]
     }
   },
   "auth": {
@@ -712,10 +753,22 @@
                 }
             ]
         }
+      },
+      {
+        "path": "/events/{eventId}",
+        "definition": {
+            "entityName": "Event",
+            "schema": { "$ref": "#/backend/entities/Event" },
+            "description": "Stores information about special events for ride pooling.",
+            "params": [
+                {
+                    "name": "eventId",
+                    "description": "The unique identifier for the event."
+                }
+            ]
+        }
       }
     ],
     "reasoning": "The Firestore structure is designed to ensure security, scalability, and ease of debugging, following the principles of Authorization Independence, Clarity of Intent, and DBAC. It leverages denormalization and structural segregation to simplify security rules and enable secure list operations. The structure focuses on path-based ownership for user-specific data and avoids complex hierarchical authorization dependencies.\n\n*   **Authorization Independence:** User and Driver data are stored directly under their respective collection, eliminating the need to fetch parent documents for authorization. Ride data, while referencing User and Driver, does not inherit authorization contexts, preventing dependencies.  The `userId` and `driverId` are denormalized into the `Ride` documents, which allows for atomic creation of parent/child documents without compromising authorization.\n*   **Clarity of Intent:** Each collection serves a specific purpose, making the intent of each path clear. The naming conventions are semantic and consistent, aiding in debugging.\n*   **DBAC (No Custom Claims):** Authorization relies solely on `request.auth.uid`, using the existence of documents in dedicated collections (e.g., `/drivers/{driverId}`) to imply roles.\n*   **QAPs (Rules are not Filters):** The structure supports secure `list` operations by segregating data based on ownership (users, drivers) and access control (roles).\n\n"
   }
 }
-
-    

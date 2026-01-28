@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo, Suspense, useEffect, useState } from 'react';
+import { useMemo, Suspense, useEffect, useState, useRef } from 'react';
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
 import { useAdmin, useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
-import { Shield, ArrowRight, Wallet, LifeBuoy, Settings } from 'lucide-react';
+import { Shield, ArrowRight, Wallet, LifeBuoy, Settings, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import type { Ride } from '@/lib/data';
@@ -19,6 +19,86 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { API_KEY, LIBRARIES } from '@/app/lib/google-maps';
+import PlaceHolderImages from '@/app/lib/placeholder-images.json';
+import Autoplay from "embla-carousel-autoplay";
+import Image from 'next/image';
+
+function EventPooling() {
+  const router = useRouter();
+  const plugin = useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: false })
+  )
+
+  const mockEvents = [
+    {
+      id: "evt1",
+      title: "Mithila Vivah Season",
+      description: "Heading to a wedding? Share a ride with others and save.",
+      destination: "Vivah Bhawan, Darbhanga",
+      image: PlaceHolderImages.find(img => img.id === 'event-banner-1')
+    },
+    {
+      id: "evt2",
+      title: "Saurath Sabha Mela",
+      description: "Travel to the historic Saurath Sabha with ease. Join a pool.",
+      destination: "Saurath, Madhubani",
+      image: { ...PlaceHolderImages.find(img => img.id === 'event-banner-1'), imageUrl: 'https://picsum.photos/seed/eventbanner2/800/400.jpg', imageHint: 'festival' }
+    }
+  ];
+
+  const handleFindPool = (destination: string) => {
+    // This will reload the page with the destination pre-filled
+    router.push(`/home?destination=${encodeURIComponent(destination)}`);
+    // Scroll to top to make booking form visible
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="font-headline text-2xl font-bold flex items-center gap-2">
+        <PartyPopper className="text-primary"/>
+        Event Pooling
+      </h2>
+      <Carousel
+        plugins={[plugin.current]}
+        className="w-full"
+        onMouseEnter={plugin.current.stop}
+        onMouseLeave={plugin.current.play}
+      >
+        <CarouselContent>
+          {mockEvents.map((event) => (
+            <CarouselItem key={event.id}>
+                {event.image && (
+                    <Card className="overflow-hidden relative text-white">
+                        <Image
+                            src={event.image.imageUrl}
+                            alt={event.description}
+                            width={800}
+                            height={400}
+                            className="w-full h-48 object-cover brightness-50"
+                            data-ai-hint={event.image.imageHint}
+                        />
+                        <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent">
+                        <h3 className="font-bold text-xl">{event.title}</h3>
+                        <p className="text-sm text-white/80">{event.description}</p>
+                        <Button
+                            size="sm"
+                            className="mt-2 w-fit bg-white text-primary hover:bg-white/90"
+                            onClick={() => handleFindPool(event.destination)}
+                        >
+                            Find a Pool
+                        </Button>
+                        </div>
+                    </Card>
+                )}
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+    </div>
+  );
+}
+
 
 function PassengerDashboard() {
     const { user } = useUser();
@@ -127,6 +207,8 @@ function PassengerDashboard() {
                          </TooltipProvider>
                     </CardContent>
                 </Card>
+
+                <EventPooling />
 
                 <BookingFlow 
                     isLoaded={isLoaded}

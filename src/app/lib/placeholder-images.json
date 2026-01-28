@@ -84,6 +84,12 @@
     "imageHint": "Indian woman"
   },
   {
+    "id": "event-banner-1",
+    "description": "A festive Indian wedding celebration scene",
+    "imageUrl": "https://picsum.photos/seed/eventbanner1/800/400.jpg",
+    "imageHint": "Indian wedding"
+  },
+  {
     "id": "upi-qr-code",
     "description": "A sample UPI QR code for payment simulation.",
     "imageUrl": "https://picsum.photos/seed/qrcode/300/300.jpg",
