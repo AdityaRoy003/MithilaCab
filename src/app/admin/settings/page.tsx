@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { doc, collection, query } from 'firebase/firestore';
+import { doc, collection, query, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking, useCollection } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -145,7 +145,7 @@ export default function AdminSettingsPage() {
         toast({ title: 'Settings Saved', description: 'Platform settings have been updated.' });
     }
 
-    const handleSendNotification = () => {
+    const handleSendNotification = async () => {
         if (!notificationTitle || !notificationMessage) {
             toast({
                 variant: 'destructive',
@@ -154,17 +154,56 @@ export default function AdminSettingsPage() {
             });
             return;
         }
-        setIsSending(true);
-        // Simulate API call
-        setTimeout(() => {
+
+        if (usersLoading || !appUsers || appUsers.length === 0) {
             toast({
-                title: "Notification Sent",
-                description: "Your notification has been broadcast to all users.",
+                variant: 'destructive',
+                title: "No Users Found",
+                description: "There are no users to send notifications to, or users are still loading.",
+            });
+            return;
+        }
+
+        setIsSending(true);
+
+        try {
+            // Firestore batches are limited to 500 operations. 
+            // For this prototype, we'll assume a user base smaller than 500.
+            const batch = writeBatch(firestore);
+
+            appUsers.forEach(user => {
+                const notificationRef = doc(collection(firestore, 'users', user.id, 'notifications'));
+                const notificationData = {
+                    userId: user.id,
+                    title: notificationTitle,
+                    description: notificationMessage,
+                    timestamp: serverTimestamp(),
+                    isRead: false,
+                    type: 'general',
+                    icon: 'general',
+                };
+                batch.set(notificationRef, notificationData);
+            });
+            
+            await batch.commit();
+
+            toast({
+                title: "Notifications Sent",
+                description: `Your notification has been sent to ${appUsers.length} users.`,
             });
             setNotificationTitle('');
             setNotificationMessage('');
+
+        } catch (error: any) {
+            console.error("Error sending notifications:", error);
+            toast({
+                variant: "destructive",
+                title: "Sending Failed",
+                description: "An error occurred while sending notifications. Please check the console.",
+            });
+        } finally {
             setIsSending(false);
-        }, 1500);
+        }
     };
 
     if (isLoading) {
@@ -417,5 +456,3 @@ function RideTypePricing({ form, type, icon: Icon }: { form: any, type: "Share" 
         </div>
     )
 }
-
-    
