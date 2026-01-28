@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Car, CarFront, Loader2, MapPin, Target, Truck } from 'lucide-react';
+import { Car, CarFront, Loader2, MapPin, Target, Truck, Users } from 'lucide-react';
 import type { RideType } from '@/lib/data';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -279,8 +279,9 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
 
             <div className="space-y-3">
                 <Label>Ride Type</Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                     {[
+                        { type: 'Share', icon: Users, fare: '~ ₹80', eta: '8 min' },
                         { type: 'Standard', icon: Car, fare: '~ ₹120', eta: '5 min' },
                         { type: 'Premium', icon: CarFront, fare: '~ ₹180', eta: '7 min' },
                         { type: 'SUV', icon: Truck, fare: '~ ₹220', eta: '6 min' },
@@ -297,10 +298,9 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
                             whileHover={{ y: -3 }}
                             whileTap={{ scale: 0.98 }}
                         >
-                            <option.icon className={cn("mx-auto mb-2 h-7 w-7", rideType === option.type ? 'text-primary' : 'text-muted-foreground')} />
-                            <p className="font-semibold text-sm">{option.type}</p>
+                            <option.icon className={cn("mx-auto mb-1 h-6 w-6", rideType === option.type ? 'text-primary' : 'text-muted-foreground')} />
+                            <p className="font-semibold text-xs">{option.type}</p>
                             <p className="text-xs font-bold text-foreground mt-1">{option.fare}</p>
-                            <p className="text-xs text-muted-foreground">{option.eta}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -320,3 +320,5 @@ export function BookingForm({ isLoaded, onBookingRequest, initialPickup, initial
     </div>
   );
 }
+
+    

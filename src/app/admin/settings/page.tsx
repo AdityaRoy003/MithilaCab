@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Percent, IndianRupee, Car, CarFront, Truck, Zap, Smartphone, FileWarning, Send, RefreshCw } from 'lucide-react';
+import { Percent, IndianRupee, Car, CarFront, Truck, Zap, Smartphone, FileWarning, Send, RefreshCw, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,6 +32,8 @@ const settingsSchema = z.object({
   commissionRate: z.coerce.number().min(0).max(100, { message: 'Commission must be between 0 and 100.' }),
   currency: z.string().min(3, { message: 'Currency code must be 3 characters.' }).max(3),
   surgeMultiplier: z.coerce.number().min(1, { message: 'Surge multiplier must be at least 1.' }),
+  shareBaseFare: z.coerce.number().min(0),
+  sharePerKmRate: z.coerce.number().min(0),
   standardBaseFare: z.coerce.number().min(0),
   standardPerKmRate: z.coerce.number().min(0),
   premiumBaseFare: z.coerce.number().min(0),
@@ -45,6 +47,7 @@ interface PlatformSettings {
     currency: string;
     surgeMultiplier?: number;
     rideTypeSettings?: {
+        Share: { baseFare: number; perKmRate: number };
         Standard: { baseFare: number; perKmRate: number };
         Premium: { baseFare: number; perKmRate: number };
         SUV: { baseFare: number; perKmRate: number };
@@ -85,6 +88,8 @@ export default function AdminSettingsPage() {
             commissionRate: 0,
             currency: 'INR',
             surgeMultiplier: 1,
+            shareBaseFare: 30,
+            sharePerKmRate: 8,
             standardBaseFare: 40,
             standardPerKmRate: 12,
             premiumBaseFare: 60,
@@ -100,6 +105,8 @@ export default function AdminSettingsPage() {
                 commissionRate: settings.commissionRate * 100, // Display as percentage
                 currency: settings.currency,
                 surgeMultiplier: settings.surgeMultiplier ?? 1,
+                shareBaseFare: settings.rideTypeSettings?.Share.baseFare ?? 30,
+                sharePerKmRate: settings.rideTypeSettings?.Share.perKmRate ?? 8,
                 standardBaseFare: settings.rideTypeSettings?.Standard.baseFare ?? 40,
                 standardPerKmRate: settings.rideTypeSettings?.Standard.perKmRate ?? 12,
                 premiumBaseFare: settings.rideTypeSettings?.Premium.baseFare ?? 60,
@@ -116,6 +123,10 @@ export default function AdminSettingsPage() {
             currency: values.currency.toUpperCase(),
             surgeMultiplier: values.surgeMultiplier,
             rideTypeSettings: {
+                Share: {
+                    baseFare: values.shareBaseFare,
+                    perKmRate: values.sharePerKmRate,
+                },
                 Standard: {
                     baseFare: values.standardBaseFare,
                     perKmRate: values.standardPerKmRate,
@@ -256,6 +267,8 @@ export default function AdminSettingsPage() {
                                 <CardDescription>Configure default ride parameters and types.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
+                                <RideTypePricing form={form} type="Share" icon={Users} />
+                                <Separator />
                                 <RideTypePricing form={form} type="Standard" icon={Car} />
                                 <Separator />
                                 <RideTypePricing form={form} type="Premium" icon={CarFront} />
@@ -363,7 +376,7 @@ export default function AdminSettingsPage() {
     )
 }
 
-function RideTypePricing({ form, type, icon: Icon }: { form: any, type: "Standard" | "Premium" | "SUV", icon: React.ElementType }) {
+function RideTypePricing({ form, type, icon: Icon }: { form: any, type: "Share" | "Standard" | "Premium" | "SUV", icon: React.ElementType }) {
     const baseFareName = `${type.toLowerCase()}BaseFare` as const;
     const perKmRateName = `${type.toLowerCase()}PerKmRate` as const;
     
@@ -404,3 +417,5 @@ function RideTypePricing({ form, type, icon: Icon }: { form: any, type: "Standar
         </div>
     )
 }
+
+    

@@ -11,7 +11,7 @@ export interface Driver {
   isAvailable: boolean;
 }
 
-export type RideType = 'Standard' | 'Premium' | 'SUV';
+export type RideType = 'Share' | 'Standard' | 'Premium' | 'SUV';
 
 export interface Ride {
   id: string;
@@ -120,3 +120,5 @@ export const mockUser = {
   phone: "+91 98765 43210",
   image: getDriverImage('user-profile'),
 }
+
+    

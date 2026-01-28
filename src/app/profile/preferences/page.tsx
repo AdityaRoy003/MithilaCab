@@ -126,6 +126,7 @@ export default function PreferencesPage() {
                       <SelectValue placeholder="Select a ride type" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Share">Share</SelectItem>
                       <SelectItem value="Standard">Standard</SelectItem>
                       <SelectItem value="Premium">Premium</SelectItem>
                       <SelectItem value="SUV">SUV</SelectItem>
@@ -164,3 +165,5 @@ export default function PreferencesPage() {
     </AppLayout>
   );
 }
+
+    
