@@ -65,8 +65,8 @@ export default function LandingPage() {
   ].filter(Boolean);
 
 
-  const headline = "Discover Mithila";
-  const subHeadline = "One Ride at a Time";
+  const headline = "Mithila गाड़ी";
+  const subHeadline = "Bharat's Fastest Bike Taxi, Auto & Parcel App";
 
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -145,13 +145,13 @@ export default function LandingPage() {
 
   const testimonials = [
       {
-          quote: "MithilaCab makes it so easy to visit my family in the village. The drivers are always respectful and know all the local routes.",
+          quote: "Rapido makes it so easy and fast to travel across town. The Captains are polite, helmets are always provided, and fares are so low!",
           name: "Sanjay Kumar",
           role: "Frequent Rider, Darbhanga",
           image: testimonialImages[0]
       },
       {
-          quote: "As a student, I rely on MithilaCab for my daily commute. It's affordable, safe, and always on time. It has made my life so much easier!",
+          quote: "As a student, I rely on Rapido Bike Taxi for my daily college commute. It beats all traffic and costs under ₹35!",
           name: "Priya Singh",
           role: "Student, Madhubani",
           image: testimonialImages[1]
@@ -230,8 +230,8 @@ export default function LandingPage() {
   
     const faqs = [
     {
-        question: "How do I book a ride with MithilaCab?",
-        answer: "You can book a ride easily through our app. Just enter your destination in the 'Where to?' box on the home screen, choose your preferred ride type, and confirm your booking. We'll find a nearby driver for you instantly."
+        question: "How do I book a ride with Rapido?",
+        answer: "You can book a ride easily through our app. Just enter your destination in the 'Where to?' box, choose Bike Taxi, Auto, Cab, or Parcel, and confirm your booking. We'll match a nearby Captain in under 2 minutes with an OTP."
     },
     {
         question: "What are your service areas in Mithilanchal?",
@@ -293,6 +293,10 @@ export default function LandingPage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px]">
+                 <SheetHeader className="sr-only">
+                   <SheetTitle>Navigation Menu</SheetTitle>
+                   <SheetDescription>Mobile navigation links for Mithila Gaadi</SheetDescription>
+                 </SheetHeader>
                  <div className="p-6">
                     <Logo />
                     <nav className="flex flex-col gap-6 mt-10">
@@ -359,10 +363,10 @@ export default function LandingPage() {
               </span>
             </motion.h1>
             <motion.p
-              className="mt-4 max-w-xl mx-auto text-lg text-foreground/80"
+              className="mt-4 max-w-xl mx-auto text-lg text-foreground/80 font-medium"
               variants={itemVariants}
             >
-              Your trusted partner for exploring the landmarks and culture of Mithila. Reliable, safe, and always on time.
+              Beat city traffic with Mithila गाड़ी. Lowest fares from ₹20, clean helmets provided, doorstep autos, and instant 30-min parcel deliveries.
             </motion.p>
             <motion.div
               variants={itemVariants}
@@ -821,9 +825,9 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
               className="text-center"
             >
-              <h2 className="font-headline text-4xl font-bold">Drive with MithilaCab</h2>
+              <h2 className="font-headline text-4xl font-bold">Ride & Earn as a Rapido Captain</h2>
               <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-                  Join our growing community of drivers and earn on your own terms. We provide the tools and support you need to succeed.
+                  Turn your bike, auto, or car into daily earnings. Zero commission on your first 50 rides and instant daily payouts.
               </p>
             </motion.div>
             
@@ -932,7 +936,7 @@ export default function LandingPage() {
             >
                 <h2 className="font-headline text-4xl font-bold">Frequently Asked Questions</h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                    Everything you need to know about MithilaCab services.
+                    Everything you need to know about Rapido services.
                 </p>
             </motion.div>
             <motion.div
@@ -1060,7 +1064,7 @@ export default function LandingPage() {
             <Separator className="my-12" />
             
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-muted-foreground">
-                <p>&copy; {new Date().getFullYear()} MithilaCab. All rights reserved.</p>
+                <p>&copy; {new Date().getFullYear()} Rapido Mithila. All rights reserved.</p>
                 <div className="flex items-center gap-4">
                     <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
                     <Link href="/terms" className="hover:text-primary">Terms of Service</Link>

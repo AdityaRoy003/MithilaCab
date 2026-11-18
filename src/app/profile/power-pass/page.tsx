@@ -3,339 +3,138 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from "@/components/app-layout";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Zap, Check, Star, Loader2, Award, Calendar, IndianRupee, ScanQrCode, Banknote, CheckCircle } from 'lucide-react';
-import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { format } from 'date-fns';
-import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Zap, Check, Star, ShieldCheck, Ticket, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
-import PlaceHolderImages from '@/app/lib/placeholder-images.json';
-import { Skeleton } from '@/components/ui/skeleton';
-
-interface UserProfile {
-    powerPass?: {
-        isActive: boolean;
-        expiryDate: string | null;
-    };
-    displayName?: string;
-    email?: string;
-}
 
 export default function PowerPassPage() {
-    const router = useRouter();
-    const { user, isUserLoading } = useUser();
-    const firestore = useFirestore();
-    const { toast } = useToast();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isActive, setIsActive] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-    const userDocRef = useMemoFirebase(() => {
-        if (!user) return null;
-        return doc(firestore, 'users', user.uid);
-    }, [firestore, user]);
+  const handleActivate = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsActive(true);
+      setIsProcessing(false);
+      setIsDialogOpen(false);
+      toast({
+        title: 'Power Pass Activated! 🎉',
+        description: 'You now get 25% OFF on all Bike Taxi & Auto rides for 30 days.',
+      });
+    }, 1200);
+  };
 
-    const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
+  const handleCancel = () => {
+    setIsActive(false);
+    toast({
+      variant: 'destructive',
+      title: 'Power Pass Cancelled',
+      description: 'Your subscription has been cancelled.',
+    });
+  };
 
-    const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success'>('idle');
-    const [paymentStep, setPaymentStep] = useState<'confirm' | 'method' | 'pay_qr' | 'pay_upi' | 'processing'>('confirm');
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+  return (
+    <AppLayout>
+      <div className="max-w-xl mx-auto px-4 py-4 md:py-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/profile')} className="rounded-full">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
+              <span>Mithila Gaadi Power Pass</span>
+            </h1>
+            <p className="text-xs text-muted-foreground">Save up to ₹1,500 every month on daily commutes</p>
+          </div>
+        </div>
 
-    const qrCodeImage = PlaceHolderImages.find(img => img.id === 'upi-qr-code');
+        {/* Hero Pass Card */}
+        <Card className="border-2 border-amber-400 shadow-2xl rounded-2xl overflow-hidden bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 text-black">
+          <CardContent className="p-6 space-y-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <Badge className="bg-black text-amber-400 font-black text-xs uppercase px-2.5 py-0.5">
+                  EXCLUSIVE PASS
+                </Badge>
+                <h2 className="text-2xl font-black mt-2">Mithila Gold Pass</h2>
+                <p className="text-xs font-bold text-black/80">30 Days Unlimited Savings</p>
+              </div>
+              <div className="h-12 w-12 rounded-2xl bg-black text-amber-400 flex items-center justify-center shadow-lg">
+                <Sparkles className="h-6 w-6" />
+              </div>
+            </div>
 
-    const handlePurchase = () => {
-        setPaymentStep('processing');
-        setPaymentStatus('processing');
-        setTimeout(() => {
-            const expiryDate = new Date();
-            expiryDate.setMonth(expiryDate.getMonth() + 1);
+            <div className="space-y-2 pt-2 border-t border-black/15 text-xs font-bold">
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 bg-black text-amber-400 rounded-full p-0.5" />
+                <span>Flat 25% OFF on every Bike Taxi ride</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 bg-black text-amber-400 rounded-full p-0.5" />
+                <span>Zero Surge Pricing during peak festival hours</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 bg-black text-amber-400 rounded-full p-0.5" />
+                <span>Priority Captain matching within 60 seconds</span>
+              </div>
+            </div>
 
-            const powerPassData = {
-                powerPass: {
-                    isActive: true,
-                    expiryDate: expiryDate.toISOString(),
-                }
-            };
+            <div className="pt-2 flex justify-between items-center border-t border-black/15">
+              <div>
+                <span className="text-3xl font-black">₹99</span>
+                <span className="text-xs font-bold text-black/70"> / month</span>
+              </div>
+              {isActive ? (
+                <Button
+                  onClick={handleCancel}
+                  variant="outline"
+                  className="rounded-xl border-black text-black font-black hover:bg-black/10"
+                >
+                  Cancel Pass
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setIsDialogOpen(true)}
+                  className="bg-black hover:bg-black/90 text-amber-400 font-black rounded-xl text-sm px-5 h-10 shadow-lg"
+                >
+                  Buy Pass for ₹99
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-            if (userDocRef) {
-                updateDocumentNonBlocking(userDocRef, powerPassData);
-            }
-            
-            setPaymentStatus('success');
-            setIsDialogOpen(false);
-            toast({ title: 'Power Pass Activated!', description: 'Your monthly pass is now active.' });
-             setTimeout(() => {
-                setPaymentStep('confirm');
-                setPaymentStatus('idle');
-            }, 500);
-        }, 2000);
-    };
-
-    const handleCancelSubscription = () => {
-        if (!userDocRef) return;
-
-        const powerPassData = {
-            powerPass: {
-                isActive: false,
-                expiryDate: null,
-            }
-        };
-
-        updateDocumentNonBlocking(userDocRef, powerPassData);
-        
-        toast({
-            variant: 'destructive',
-            title: 'Subscription Cancelled',
-            description: 'Your Power Pass has been cancelled and will not renew.',
-        });
-    };
-
-     const handleOpenChange = (open: boolean) => {
-        setIsDialogOpen(open);
-        if (!open) {
-            setTimeout(() => {
-                setPaymentStep('confirm');
-                setPaymentStatus('idle');
-            }, 300);
-        }
-    }
-
-    const getExpiryDate = () => {
-        if (userProfile?.powerPass?.expiryDate) {
-            return format(new Date(userProfile.powerPass.expiryDate), 'PPP');
-        }
-        return 'N/A';
-    };
-    
-    const isLoading = isUserLoading || profileLoading;
-    const isActive = userProfile?.powerPass?.isActive ?? false;
-
-    if (isLoading) {
-        return (
-            <AppLayout>
-                <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
-                    <div className="max-w-2xl mx-auto w-full">
-                        <Skeleton className="h-8 w-40 mb-6" />
-                        <Skeleton className="h-96 w-full" />
-                    </div>
-                </main>
-            </AppLayout>
-        );
-    }
-
-    return (
-        <AppLayout>
-            <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
-                <div className="max-w-2xl mx-auto w-full">
-                    <div className="mb-6">
-                        <Button variant="ghost" onClick={() => router.push('/profile')} className="-ml-4">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Profile
-                        </Button>
-                    </div>
-                    <h1 className="font-headline text-3xl font-bold mb-6">MithilaCab Power Pass</h1>
-                    
-                    {!isActive ? (
-                         <Card className="text-center shadow-lg border-primary">
-                            <CardHeader>
-                                <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
-                                    <Zap className="h-12 w-12 text-primary" />
-                                </div>
-                                <CardTitle>Unlock Unlimited Savings</CardTitle>
-                                <CardDescription>Join Power Pass to save on every ride, every day.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="text-4xl font-bold">₹99 <span className="text-lg font-normal text-muted-foreground">/ month</span></div>
-                                <ul className="text-left space-y-3">
-                                    <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> <span>No surge pricing, ever.</span></li>
-                                    <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> <span>10% off on all rides.</span></li>
-                                    <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> <span>Priority support.</span></li>
-                                    <li className="flex items-center gap-3"><Check className="h-5 w-5 text-green-500" /> <span>Cancel anytime.</span></li>
-                                </ul>
-                            </CardContent>
-                            <CardFooter>
-                                <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
-                                    <DialogTrigger asChild>
-                                        <Button className="w-full font-bold text-lg h-12">
-                                            Get Power Pass
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        {paymentStep === 'confirm' && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Confirm Your Purchase</DialogTitle>
-                                                    <DialogDescription>
-                                                        You are about to purchase the MithilaCab Power Pass for ₹99.
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-4 space-y-4">
-                                                    <div className="p-4 rounded-lg bg-muted text-center">
-                                                        <p className="text-sm text-muted-foreground">Total Amount Due</p>
-                                                        <p className="font-bold text-3xl flex items-center justify-center gap-1">
-                                                            <IndianRupee className="h-6 w-6"/>99.00
-                                                        </p>
-                                                    </div>
-                                                    <p className="text-xs text-muted-foreground text-center">
-                                                        Your pass will be active for one month from today and will auto-renew. You can cancel anytime.
-                                                    </p>
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                                                    <Button onClick={() => setPaymentStep('method')}>
-                                                        Confirm & Pay ₹99
-                                                    </Button>
-                                                </DialogFooter>
-                                            </>
-                                        )}
-                                        {paymentStep === 'method' && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Choose Payment Method</DialogTitle>
-                                                    <DialogDescription>How would you like to pay ₹99.00?</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-4 space-y-4">
-                                                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => setPaymentStep('pay_qr')}>
-                                                        <ScanQrCode className="mr-4 h-6 w-6" />
-                                                        <div>
-                                                            <p className="font-semibold">Scan UPI QR Code</p>
-                                                            <p className="text-xs text-muted-foreground text-left">Pay using any UPI app</p>
-                                                        </div>
-                                                    </Button>
-                                                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => setPaymentStep('pay_upi')}>
-                                                        <Banknote className="mr-4 h-6 w-6" />
-                                                        <div>
-                                                            <p className="font-semibold">Use Saved UPI ID</p>
-                                                            <p className="text-xs text-muted-foreground text-left">{user?.email?.split('@')[0]}@upi</p>
-                                                        </div>
-                                                    </Button>
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button variant="ghost" onClick={() => setPaymentStep('confirm')}>Back</Button>
-                                                </DialogFooter>
-                                            </>
-                                        )}
-                                        {paymentStep === 'pay_qr' && qrCodeImage && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Complete Payment</DialogTitle>
-                                                    <DialogDescription>Scan the QR code with your UPI app or click the button below.</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-4 flex flex-col items-center gap-4">
-                                                    <Image
-                                                        src={qrCodeImage.imageUrl}
-                                                        alt={qrCodeImage.description}
-                                                        width={200}
-                                                        height={200}
-                                                        className="rounded-lg border"
-                                                        data-ai-hint={qrCodeImage.imageHint}
-                                                    />
-                                                    <div className="text-center">
-                                                        <p className="text-sm text-muted-foreground">Amount to Pay</p>
-                                                        <p className="text-2xl font-bold">₹99.00</p>
-                                                    </div>
-                                                </div>
-                                                <DialogFooter className="flex-col sm:flex-col sm:space-x-0 gap-2">
-                                                    <Button onClick={handlePurchase} className="w-full">
-                                                        <ScanQrCode className="mr-2 h-4 w-4" /> Simulate Successful Payment
-                                                    </Button>
-                                                    <Button variant="outline" onClick={() => setPaymentStep('method')}>Back</Button>
-                                                </DialogFooter>
-                                            </>
-                                        )}
-                                        {paymentStep === 'pay_upi' && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Complete Payment</DialogTitle>
-                                                    <DialogDescription>A payment request will be sent to your UPI app.</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-8 flex flex-col items-center gap-4 text-center">
-                                                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                                                    <p className="text-muted-foreground">Waiting for you to complete the payment of <br/><span className="font-bold text-foreground">₹99.00</span> via your UPI app.</p>
-                                                </div>
-                                                <DialogFooter className="flex-col sm:flex-col sm:space-x-0 gap-2">
-                                                    <Button onClick={handlePurchase} className="w-full">
-                                                        <CheckCircle className="mr-2 h-4 w-4" /> I have paid
-                                                    </Button>
-                                                    <Button variant="outline" onClick={() => setPaymentStep('method')}>Back</Button>
-                                                </DialogFooter>
-                                            </>
-                                        )}
-                                        {paymentStep === 'processing' && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Processing Payment</DialogTitle>
-                                                    <DialogDescription>Please wait while we confirm your transaction.</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-12 flex flex-col items-center justify-center gap-4">
-                                                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                                                    <p className="text-muted-foreground">This may take a moment...</p>
-                                                </div>
-                                            </>
-                                        )}
-                                    </DialogContent>
-                                </Dialog>
-                            </CardFooter>
-                        </Card>
-                    ) : (
-                        <Card className="bg-gradient-to-br from-primary via-primary/80 to-accent shadow-2xl text-primary-foreground">
-                            <CardHeader>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-2">
-                                        <Award className="h-6 w-6" />
-                                        <CardTitle className="text-2xl text-primary-foreground">Power Pass</CardTitle>
-                                    </div>
-                                    <Badge variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0">Active</Badge>
-                                </div>
-                                <CardDescription className="text-primary-foreground/80 pt-2">Your exclusive member benefits are active.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="p-4 rounded-lg bg-primary-foreground/10 text-center">
-                                    <p className="font-semibold text-lg">{userProfile?.displayName}</p>
-                                    <p className="text-sm opacity-80">Power Pass Member</p>
-                                </div>
-                                <Separator className="bg-primary-foreground/20" />
-                                <div className="space-y-3 text-sm">
-                                    <div className="flex items-center justify-between">
-                                        <span className="opacity-80 flex items-center gap-2"><Calendar className="h-4 w-4" /> Valid Until</span>
-                                        <span className="font-semibold">{getExpiryDate()}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="opacity-80 flex items-center gap-2"><Star className="h-4 w-4" /> Benefits</span>
-                                        <span className="font-semibold">10% Off, No Surge</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                            <CardFooter>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="secondary" className="w-full bg-primary-foreground/90 text-primary hover:bg-primary-foreground">
-                                            Manage Subscription
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Cancel Power Pass?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Are you sure you want to cancel your subscription? Your benefits will remain active until {getExpiryDate()}, but the pass will not auto-renew.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleCancelSubscription} className={buttonVariants({ variant: "destructive" })}>
-                                                Confirm Cancellation
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </CardFooter>
-                        </Card>
-                    )}
-                </div>
-            </main>
-        </AppLayout>
-    );
+        {/* Dialog */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="font-black text-lg">Confirm Power Pass</DialogTitle>
+              <DialogDescription>
+                Pay ₹99 from your wallet or UPI to unlock 30 days of discounts.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-3 rounded-xl bg-amber-400/15 border border-amber-400 text-xs font-bold space-y-1">
+              <p className="text-amber-700 dark:text-amber-400">Total payable: ₹99</p>
+              <p className="text-muted-foreground text-[11px]">Valid across Darbhanga, Madhubani & Samastipur</p>
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={handleActivate}
+                disabled={isProcessing}
+                className="w-full bg-amber-400 hover:bg-amber-500 text-black font-black rounded-xl h-11"
+              >
+                {isProcessing ? 'Activating...' : 'Pay ₹99 & Activate'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AppLayout>
+  );
 }

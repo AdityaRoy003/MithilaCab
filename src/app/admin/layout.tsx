@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useAdmin, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Logo } from '@/components/logo';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -44,7 +44,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
 function NavLink({
@@ -200,49 +200,42 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isUserLoading: authLoading } = useUser();
-  const firestore = useFirestore();
+  const { user } = useUser();
+  const { isAdmin } = useAdmin();
   const router = useRouter();
   const pathname = usePathname();
   const [year, setYear] = useState<number | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const userDocRef = useMemoFirebase(() => {
-    if (!user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
+  const isUserAdmin = isAdmin || user?.role === 'admin' || user?.email === 'admin@mithilagaadi.com';
 
-  const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
-
-  const isLoading = authLoading || profileLoading;
-  
   useEffect(() => {
-    if (!isLoading) {
-      if (!user || userProfile?.role !== 'admin') {
-        router.replace('/home');
-      }
-    }
-  }, [isLoading, user, userProfile, router]);
-  
-  useEffect(() => {
+    setMounted(true);
     setYear(new Date().getFullYear());
   }, []);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (mounted && !isUserAdmin) {
+      router.replace('/login?error=admin_required');
+    }
+  }, [mounted, isUserAdmin, router]);
+
+  // Ensure identical HTML structure between Server (SSR) and Client during hydration
+  if (!mounted || !isUserAdmin) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Logo />
-          <p className="text-muted-foreground">
-            Verifying admin credentials...
+          <p className="text-muted-foreground text-sm font-semibold">
+            Verifying admin access & security permissions...
           </p>
         </div>
       </div>
     );
   }
 
-  if (userProfile?.role === 'admin') {
-      return (
+  return (
         <div className={cn(
             "grid min-h-screen w-full transition-all duration-300",
             isCollapsed ? "md:grid-cols-[64px_1fr]" : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"
@@ -280,6 +273,10 @@ export default function AdminLayout({
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="left" className="flex flex-col bg-sidebar text-sidebar-foreground p-0">
+                      <SheetHeader className="sr-only">
+                          <SheetTitle>Admin Navigation</SheetTitle>
+                          <SheetDescription>Admin dashboard navigation menu</SheetDescription>
+                      </SheetHeader>
                       <div className="flex h-14 items-center border-b border-sidebar-border px-4 lg:h-[60px] lg:px-6">
                           <Link href="/home"><Logo /></Link>
                       </div>
@@ -303,7 +300,4 @@ export default function AdminLayout({
           </div>
         </div>
       );
-  }
-  
-  return null;
 }

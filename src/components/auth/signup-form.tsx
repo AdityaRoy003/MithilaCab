@@ -7,11 +7,8 @@ import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
 import { Car, KeyRound, Mail, Phone, User as UserIcon, Eye, EyeOff, Loader2 } from "lucide-react";
-
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,10 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { FirestorePermissionError } from "@/firebase/errors";
-import { errorEmitter } from "@/firebase/error-emitter";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -56,8 +50,6 @@ const roles = [
 export function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const auth = useAuth();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
@@ -80,89 +72,50 @@ export function SignupForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setStatus('submitting');
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      const user = userCredential.user;
-
-      await updateProfile(user, {
-        displayName: values.name,
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: values.name.trim(),
+          email: values.email.trim(),
+          phone: values.phone.trim(),
+          password: values.password,
+          role: values.role === 'driver' ? 'captain' : 'user',
+        }),
       });
 
-      // All users get a user document with their role.
-      const userProfile = {
-        id: user.uid,
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        dateJoined: serverTimestamp(),
-        photoURL: user.photoURL,
-        role: values.role, // This will be 'passenger' or 'driver'
-      };
-      const userDocRef = doc(firestore, "users", user.uid);
-      setDoc(userDocRef, userProfile, { merge: true }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: userDocRef.path,
-            operation: 'create',
-            requestResourceData: userProfile,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      });
+      const data = await res.json();
 
-      if (values.role === 'driver') {
-        // Drivers also get a separate driver document.
-        const driverProfile = {
-          id: user.uid,
-          name: values.name,
-          email: values.email,
-          phone: values.phone,
-          isAvailable: false,
-          rating: 5,
-          vehicle: "Not specified",
-          licensePlate: "N/A",
-          image: {
-            id: "driver-3",
-            description: "Portrait of a person smiling",
-            imageUrl: "https://images.unsplash.com/photo-1607529378676-a20456ee2f6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2ODYzNzM4MHww&ixlib=rb-4.1.0&q=80&w=1080",
-            imageHint: "person smiling"
-          },
-          dateJoined: serverTimestamp(),
-          isSuspended: false,
-          isVerified: false,
-        };
-        const driverDocRef = doc(firestore, "drivers", user.uid);
-        setDoc(driverDocRef, driverProfile).catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: driverDocRef.path,
-                operation: 'create',
-                requestResourceData: driverProfile,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        });
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to create account.');
       }
+
+      if (typeof window !== 'undefined') {
+        if (data.token) localStorage.setItem('auth_token', data.token);
+        if (data.user) localStorage.setItem('auth_user', JSON.stringify(data.user));
+      }
+
+      toast({
+        title: "Account Created!",
+        description: `Welcome to Mithila गाड़ी, ${data.user?.name || values.name}! Welcome bonus of ₹250 added to your wallet.`,
+      });
 
       setStatus('success');
       setTimeout(() => {
-          if (values.role === 'driver') {
-            router.push("/driver");
-          } else {
-            router.push("/home");
-          }
-      }, 1200);
+        if (values.role === 'driver') {
+          router.push("/driver");
+        } else {
+          router.push("/home");
+        }
+      }, 1000);
       
     } catch (error: any) {
       console.error("Signup Error:", error);
-      if (error.code === 'auth/email-already-in-use') {
-        toast({
-          variant: "destructive",
-          title: "Signup Failed",
-          description: "This email address is already in use. Please try logging in.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Signup Failed",
-          description: error.message || "An unexpected error occurred. Please try again.",
-        });
-      }
+      toast({
+        variant: "destructive",
+        title: "Signup Failed",
+        description: error.message || "An unexpected error occurred. Please try again.",
+      });
       setStatus('idle');
     }
   }

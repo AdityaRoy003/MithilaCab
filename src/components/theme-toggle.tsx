@@ -1,30 +1,38 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useTheme } from "next-themes"
-
-import { Switch } from "@/components/ui/switch"
+import * as React from "react";
+import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
+  const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return null
+    return <div className="h-8 w-8" />;
   }
 
+  const isDark = theme === "dark";
+
   return (
-    <div className="flex items-center gap-2">
-      <Switch
-        id="theme-switch"
-        checked={theme === "dark"}
-        onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-        aria-label="Toggle theme"
-      />
-    </div>
-  )
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-8 w-8 rounded-full text-foreground hover:bg-muted"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      aria-label="Toggle theme"
+    >
+      {isDark ? (
+        <Sun className="h-4 w-4 text-amber-400 transition-all" />
+      ) : (
+        <Moon className="h-4 w-4 text-foreground transition-all" />
+      )}
+    </Button>
+  );
 }

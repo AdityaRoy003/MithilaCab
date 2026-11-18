@@ -20,8 +20,8 @@ export default function ReferPage() {
 
     const handleShare = async () => {
         const shareData = {
-            title: 'Join me on MithilaCab!',
-            text: `Sign up for MithilaCab with my referral code ${referralCode} and get a discount on your first ride!`,
+            title: 'Join me on Mithila Gaadi (मिथिला गाड़ी)!',
+            text: `Sign up for Mithila Gaadi with my referral code ${referralCode} and get ₹50 off your first Bike Taxi or Auto ride!`,
             url: window.location.href,
         };
         try {

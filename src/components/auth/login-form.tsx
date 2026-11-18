@@ -1,116 +1,129 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { signInWithEmailAndPassword } from "firebase/auth";
-
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/firebase";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Separator } from "../ui/separator";
-
-const formSchema = z.object({
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
-  }),
-});
+import { Loader2, Phone, Lock } from "lucide-react";
 
 export function LoginForm() {
   const router = useRouter();
-  const auth = useAuth();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
-  
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  const [phoneOrEmail, setPhoneOrEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const errorParam = searchParams.get('error');
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      router.push("/home");
-    } catch (error: any) {
-      console.error("Login Error:", error);
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: phoneOrEmail, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Authentication failed.');
+      }
+
+      // Save verified user session
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('auth_user', JSON.stringify(data.user));
+      }
+
+      toast({
+        title: `Welcome back, ${data.user.name}! 🎉`,
+        description: `Logged in successfully as ${data.user.role.toUpperCase()}.`,
+      });
+
+      const redirectPath = data.redirectUrl || (data.user.role === 'admin' ? '/admin' : data.user.role === 'captain' ? '/driver' : '/home');
+      router.push(redirectPath);
+    } catch (err: any) {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        description: err.message || "Invalid credentials. Please verify your details.",
       });
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="name@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-                <div className="flex items-center">
-                    <FormLabel>Password</FormLabel>
-                    <Link
-                        href="#"
-                        className="ml-auto inline-block text-sm underline"
-                    >
-                        Forgot your password?
-                    </Link>
-                </div>
-              <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full font-bold" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Logging in...' : 'Login with Email'}
-        </Button>
-        <div className="relative">
-            <Separator className="absolute top-1/2 -translate-y-1/2" />
-            <p className="text-center bg-background px-2 text-sm text-muted-foreground w-fit mx-auto">OR</p>
+    <div className="grid gap-5">
+      {errorParam && (
+        <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold text-center">
+          {errorParam === 'admin_required' && '🔒 Admin privileges required to access the Admin Console.'}
+          {errorParam === 'captain_required' && '🏍️ Captain account required to access Driver Dashboard.'}
         </div>
-         <Button variant="outline" className="w-full font-bold" disabled>
-          Sign in with OTP
-        </Button>
-        <div className="mt-4 text-center text-sm">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="underline font-medium">
-            Sign up
-          </Link>
+      )}
+
+      <form onSubmit={handleLogin} className="grid gap-3.5">
+        <div className="grid gap-1.5">
+          <Label htmlFor="phone">Mobile Number or Email</Label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="phone"
+              placeholder="+91 98765 43210 or email"
+              value={phoneOrEmail}
+              onChange={(e) => setPhoneOrEmail(e.target.value)}
+              className="pl-9 h-11 rounded-xl"
+              autoComplete="username"
+              required
+            />
+          </div>
         </div>
+
+        <div className="grid gap-1.5">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link href="/otp" className="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-9 h-11 rounded-xl"
+              autoComplete="current-password"
+              required
+            />
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-11 bg-amber-400 hover:bg-amber-500 text-black font-black uppercase text-xs rounded-xl shadow-md transition-transform active:scale-[0.99] mt-1"
+          disabled={isLoading}
+        >
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+          Sign In to Mithila Gaadi
+        </Button>
       </form>
-    </Form>
+
+      <div className="text-center text-xs text-muted-foreground pt-2">
+        Don&apos;t have an account?{" "}
+        <Link href="/signup" className="underline underline-offset-4 font-bold text-foreground hover:text-amber-500">
+          Create an account (Sign up)
+        </Link>
+      </div>
+    </div>
   );
 }

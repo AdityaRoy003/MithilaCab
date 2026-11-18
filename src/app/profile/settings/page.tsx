@@ -192,6 +192,7 @@ export default function AppSettingsPage() {
                                     <AlertDialogContent>
                                         <AlertDialogHeader>
                                             <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+                                            <AlertDialogDescription>You will be signed out of your Mithila Gaadi account.</AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
                                             <AlertDialogCancel>Cancel</AlertDialogCancel>

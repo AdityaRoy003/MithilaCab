@@ -13,7 +13,7 @@ export default function LoginPage() {
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto grid w-[350px] gap-8">
           <div className="grid gap-4 text-center">
-            <Logo className="justify-center" />
+            <Logo className="justify-center" size="lg" showTagline />
             <h1 className="font-headline text-3xl font-bold">Welcome Back</h1>
             <p className="text-muted-foreground">
               Enter your credentials to access your account

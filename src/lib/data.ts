@@ -11,7 +11,19 @@ export interface Driver {
   isAvailable: boolean;
 }
 
-export type RideType = 'Share' | 'Standard' | 'Premium' | 'SUV';
+export type RideType = 'Bike' | 'Auto' | 'Cab' | 'Parcel' | 'Share' | 'Standard' | 'Premium' | 'SUV';
+
+export interface CaptainInfo {
+  id: string;
+  name: string;
+  rating: number;
+  vehicle: string;
+  licensePlate: string;
+  image?: ImagePlaceholder;
+  isAvailable: boolean;
+  phone?: string;
+  avatar?: string;
+}
 
 export interface Ride {
   id: string;
@@ -83,15 +95,15 @@ export interface Notification {
 
 
 const getDriverImage = (id: string): ImagePlaceholder => {
-    const placeholder = PlaceHolderImages.find(img => img.id === id);
-    if (!placeholder) {
-        // Return a default/fallback image placeholder to prevent crashes
-        const defaultImage = PlaceHolderImages.find(img => img.id === 'user-profile');
-        if (defaultImage) return defaultImage;
-        // If even the default is missing, return a hardcoded fallback
-        return { id: 'fallback', description: 'Fallback image', imageUrl: 'https://placehold.co/100x100', imageHint: 'person' };
-    };
-    return placeholder;
+  const placeholder = PlaceHolderImages.find(img => img.id === id);
+  if (!placeholder) {
+    // Return a default/fallback image placeholder to prevent crashes
+    const defaultImage = PlaceHolderImages.find(img => img.id === 'user-profile');
+    if (defaultImage) return defaultImage;
+    // If even the default is missing, return a hardcoded fallback
+    return { id: 'fallback', description: 'Fallback image', imageUrl: 'https://placehold.co/100x100', imageHint: 'person' };
+  };
+  return placeholder;
 }
 
 export const mockDrivers: Driver[] = [
@@ -128,7 +140,7 @@ export const mockRideHistory: Ride[] = [
     driver: mockDrivers[2],
     rideType: 'SUV',
   },
-   {
+  {
     id: 'r4',
     startTime: '2024-07-17T14:00:00Z',
     pickupLocation: 'Panda Sarai',

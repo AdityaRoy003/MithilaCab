@@ -16,8 +16,12 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
   }, []); // Empty dependency array ensures this runs only once on mount
 
   useEffect(() => {
-      setPersistence(firebaseServices.auth, browserSessionPersistence);
-  }, [firebaseServices.auth]);
+    try {
+      if (firebaseServices?.auth) {
+        setPersistence(firebaseServices.auth, browserSessionPersistence).catch(() => {});
+      }
+    } catch {}
+  }, [firebaseServices?.auth]);
 
   return (
     <FirebaseProvider

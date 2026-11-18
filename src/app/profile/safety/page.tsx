@@ -25,8 +25,8 @@ export default function SafetyPage() {
             navigator.geolocation.getCurrentPosition(async (position) => {
                 const { latitude, longitude } = position.coords;
                 const shareData = {
-                    title: 'My MithilaCab Ride',
-                    text: `I'm currently on a MithilaCab ride. You can follow my journey here:`,
+                    title: 'My Mithila Gaadi (मिथिला गाड़ी) Ride',
+                    text: `I'm currently on a Mithila Gaadi ride. Follow my live journey here:`,
                     url: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
                 };
                 try {

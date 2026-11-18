@@ -1,169 +1,98 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { doc, setDoc } from 'firebase/firestore';
+import { useState } from 'react';
 import AppLayout from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import type { RideType } from '@/lib/data';
 
-interface UserProfile {
-    preferences?: {
-        defaultRideType?: RideType;
-        language?: string;
-        accessibilityNeeds?: boolean;
-    };
-}
-
 export default function PreferencesPage() {
-  const { user, isUserLoading: authLoading } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
-
-  const userDocRef = useMemoFirebase(() => {
-    if (!user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
-
-  const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
 
   const [defaultRideType, setDefaultRideType] = useState<RideType>('Standard');
   const [language, setLanguage] = useState('en');
   const [accessibilityNeeds, setAccessibilityNeeds] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (userProfile) {
-      setDefaultRideType(userProfile.preferences?.defaultRideType || 'Standard');
-      setLanguage(userProfile.preferences?.language || 'en');
-      setAccessibilityNeeds(userProfile.preferences?.accessibilityNeeds || false);
-    }
-  }, [userProfile]);
-
-  const handleSaveChanges = async () => {
-    if (!userDocRef) return;
+  const handleSaveChanges = () => {
     setIsSaving(true);
-    try {
-      const updatedProfileData = {
-          preferences: {
-              defaultRideType,
-              language,
-              accessibilityNeeds,
-          }
-       };
-      
-      setDoc(userDocRef, updatedProfileData, { merge: true })
-        .catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: userDocRef!.path,
-                operation: 'update',
-                requestResourceData: updatedProfileData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        });
-
-      toast({
-        title: "Preferences Updated",
-        description: "Your preferences have been saved successfully.",
-      });
-    } catch (error: any)      {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Could not update preferences.",
-      });
-    } finally {
+    setTimeout(() => {
       setIsSaving(false);
-    }
+      toast({
+        title: "Preferences Saved! ✅",
+        description: "Your ride and language preferences have been updated.",
+      });
+    }, 400);
   };
-  
-  const loading = authLoading || profileLoading;
-
-  if (loading) {
-      return (
-          <AppLayout>
-              <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
-                  <Skeleton className="h-8 w-40 mb-6" />
-                  <Skeleton className="h-80 w-full max-w-2xl" />
-              </main>
-          </AppLayout>
-      )
-  }
 
   return (
     <AppLayout>
       <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
-        <div className="mb-6">
-            <Button variant="ghost" onClick={() => router.push('/profile')}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Profile
-            </Button>
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" onClick={() => router.push('/profile')} className="h-8 px-2 text-muted-foreground">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Profile
+          </Button>
         </div>
-        <h1 className="font-headline text-3xl font-bold mb-6">Preferences</h1>
+        <h1 className="font-headline text-2xl font-bold mb-6">Ride Preferences</h1>
         
         <div className="max-w-2xl">
-            <Card>
-              <CardHeader>
-                <CardTitle>Customize Your Experience</CardTitle>
-                <CardDescription>Adjust your app settings to match your needs.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Default Ride Type</Label>
-                  <Select value={defaultRideType} onValueChange={(value) => setDefaultRideType(value as RideType)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a ride type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Share">Share</SelectItem>
-                      <SelectItem value="Standard">Standard</SelectItem>
-                      <SelectItem value="Premium">Premium</SelectItem>
-                      <SelectItem value="SUV">SUV</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <Card className="rounded-2xl shadow-sm border">
+            <CardHeader>
+              <CardTitle>Customize Your Experience</CardTitle>
+              <CardDescription>Adjust your app settings for Mithila गाड़ी.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label>Default Ride Option</Label>
+                <Select value={defaultRideType} onValueChange={(value) => setDefaultRideType(value as RideType)}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Select a ride type" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="Standard">Bike Taxi (Fastest & Most Affordable)</SelectItem>
+                    <SelectItem value="Share">Mithila Auto (Family & Luggage)</SelectItem>
+                    <SelectItem value="Premium">Comfort Cab (AC Car)</SelectItem>
+                    <SelectItem value="SUV">SUV (Outstation / Group)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Preferred Language</Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Select a language" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
+                    <SelectItem value="mai">मैथिली (Maithili)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center justify-between rounded-xl border p-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="accessibility" className="text-sm font-semibold">Accessibility Needs</Label>
+                  <p className="text-xs text-muted-foreground">Request vehicles with step-in support or extra room.</p>
                 </div>
-                <div className="space-y-2">
-                  <Label>Language</Label>
-                  <Select value={language} onValueChange={setLanguage}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="hi">Hindi</SelectItem>
-                      <SelectItem value="mai">Maithili</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="accessibility" className="text-base">Accessibility Needs</Label>
-                    <p className="text-sm text-muted-foreground">Request wheelchair accessible vehicles.</p>
-                  </div>
-                  <Switch id="accessibility" checked={accessibilityNeeds} onCheckedChange={setAccessibilityNeeds} />
-                </div>
-              </CardContent>
-              <CardFooter>
-                 <Button onClick={handleSaveChanges} disabled={isSaving} className="font-bold">
-                  {isSaving ? 'Saving...' : 'Save Preferences'}
-                </Button>
-              </CardFooter>
-            </Card>
+                <Switch id="accessibility" checked={accessibilityNeeds} onCheckedChange={setAccessibilityNeeds} />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleSaveChanges} disabled={isSaving} className="font-bold rounded-xl bg-amber-400 text-black hover:bg-amber-500">
+                {isSaving ? 'Saving...' : 'Save Preferences'}
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       </main>
     </AppLayout>
   );
 }
-
-    

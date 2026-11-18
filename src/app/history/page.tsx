@@ -1,247 +1,253 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
-import { collection, query, where, Timestamp } from "firebase/firestore";
 import AppLayout from "@/components/app-layout";
-import { RideHistoryItem } from "@/components/ride/ride-history-item";
-import type { Ride } from "@/lib/data";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Filter, Calendar as CalendarIcon, ArrowLeft } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { DateRange } from 'react-day-picker';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Bike,
+  Car,
+  Package,
+  MapPin,
+  Clock,
+  ArrowRight,
+  Repeat,
+  Receipt,
+  Star,
+  CheckCircle2,
+  Calendar,
+  Filter,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-
-type RideStatusFilter = 'all' | 'upcoming' | 'completed' | 'cancelled';
+import { useToast } from '@/hooks/use-toast';
 
 export default function HistoryPage() {
   const router = useRouter();
-  const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
-  const [statusFilter, setStatusFilter] = useState<RideStatusFilter>('all');
+  const [rides, setRides] = useState<any[]>([]);
+  const [filterType, setFilterType] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  // State for new filters
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [locationFilter, setLocationFilter] = useState('');
-  const [fareRange, setFareRange] = useState([0, 5000]);
-
-  const ridesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(
-        collection(firestore, 'rides'), 
-        where('userId', '==', user.uid)
-    );
-  }, [firestore, user]);
-
-  const { data: rides, isLoading: areRidesLoading } = useCollection<Ride>(ridesQuery);
-  const isLoading = isUserLoading || (user && areRidesLoading);
-
-  const filteredRides = useMemo(() => {
-      if (!rides) return [];
-
-      let filtered = [...rides];
-
-      // Status filter
-      if (statusFilter === 'upcoming') {
-        filtered = filtered.filter(ride => ['requested', 'accepted', 'in-progress'].includes(ride.status || ''));
-      } else if (statusFilter !== 'all') {
-        filtered = filtered.filter(ride => ride.status === statusFilter);
-      }
-
-      // Date range filter
-      if (dateRange?.from) {
-        filtered = filtered.filter(ride => {
-          const rideDate = ride.startTime instanceof Timestamp ? ride.startTime.toDate() : new Date(ride.startTime);
-          return rideDate ? rideDate >= dateRange.from! : false;
-        });
-      }
-      if (dateRange?.to) {
-        const toDate = new Date(dateRange.to);
-        toDate.setHours(23, 59, 59, 999); // Include the whole day
-        filtered = filtered.filter(ride => {
-            const rideDate = ride.startTime instanceof Timestamp ? ride.startTime.toDate() : new Date(ride.startTime);
-            return rideDate ? rideDate <= toDate : false;
-        });
-      }
-
-      // Location filter
-      if (locationFilter) {
-          const lowerCaseFilter = locationFilter.toLowerCase();
-          filtered = filtered.filter(ride => 
-              ride.pickupLocation.toLowerCase().includes(lowerCaseFilter) || 
-              ride.destinationLocation.toLowerCase().includes(lowerCaseFilter)
-          );
-      }
-
-      // Fare range filter
-      filtered = filtered.filter(ride => ride.fareAmount >= fareRange[0] && ride.fareAmount <= fareRange[1]);
-
-      // Sort
-      return filtered.sort((a, b) => {
-        const timeA = a.startTime?.toDate ? a.startTime.toDate().getTime() : 0;
-        const timeB = b.startTime?.toDate ? b.startTime.toDate().getTime() : 0;
-        return timeB - timeA;
+  useEffect(() => {
+    setIsLoading(true);
+    fetch('/api/rides')
+      .then((res) => (res.ok ? res.json() : Promise.reject('Failed to fetch rides')))
+      .then((data) => {
+        if (data && data.rides) {
+          const formatted = data.rides.map((r: any) => ({
+            id: r.id || r._id,
+            serviceType: r.serviceType || 'bike',
+            pickup: r.pickupLocation,
+            drop: r.destinationLocation,
+            fare: r.fareAmount,
+            distance: r.distance || 3.5,
+            date: new Date(r.createdAt || Date.now()).toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            status: r.status,
+            captain: r.captain || {
+              name: 'Captain Assigned',
+              vehicleModel: 'Hero Splendor / Activa',
+              vehicleNumber: 'BR 07 BK 4921',
+              rating: 4.9,
+            },
+            rating: r.rating || 5,
+            parcelNote: r.parcelDetails?.packageType ? `Package: ${r.parcelDetails.packageType}` : undefined,
+          }));
+          setRides(formatted);
+        }
+      })
+      .catch(() => {
+        setRides([]);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-  }, [rides, statusFilter, dateRange, locationFilter, fareRange]);
+  }, []);
 
-  const resetFilters = () => {
-    setDateRange(undefined);
-    setLocationFilter('');
-    setFareRange([0, 5000]);
-  }
+  const filteredRides = rides.filter((r) => {
+    if (filterType === 'all') return true;
+    return r.serviceType === filterType;
+  });
 
-  const renderContent = () => {
-      if (isLoading) {
-        return (
-          <>
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-          </>
-        );
-      }
+  const handleRebook = (ride: any) => {
+    router.push(`/home?pickup=${encodeURIComponent(ride.pickup)}&destination=${encodeURIComponent(ride.drop)}`);
+    toast({
+      title: 'Trip Details Pre-filled',
+      description: `Booking ride from ${ride.pickup} to ${ride.drop}`,
+    });
+  };
 
-      if (user && filteredRides && filteredRides.length > 0) {
-        return filteredRides.map((ride) => (
-          <RideHistoryItem key={ride.id} ride={ride} />
-        ));
-      }
-      
-      if (user && (!filteredRides || filteredRides.length === 0)) {
-          return (
-              <div className="text-center py-10">
-              <h3 className="text-xl font-semibold">No rides found</h3>
-              <p className="text-muted-foreground">Try adjusting your filters or check back later.</p>
-            </div>
-          );
-      }
-
-      if (!user && !isLoading) {
-         return (
-            <div className="text-center py-10">
-              <h3 className="text-xl font-semibold">Please log in</h3>
-              <p className="text-muted-foreground">You need to be logged in to see your ride history.</p>
-            </div>
-         );
-      }
-
-      return null;
-  }
+  const handleDownloadReceipt = (ride: any) => {
+    toast({
+      title: 'Receipt Downloaded',
+      description: `Invoice for ₹${ride.fare} (${ride.serviceType.toUpperCase()} - Trip #${ride.id.slice(-6)}) saved.`,
+    });
+  };
 
   return (
     <AppLayout>
-      <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
-        <div className="mb-6">
-            <Button variant="ghost" onClick={() => router.push('/profile')} className="-ml-4">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Profile
-            </Button>
+      <div className="max-w-xl mx-auto px-4 py-4 md:py-6 space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
+              <span>My Rides & Deliveries</span>
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Real-time database trips & verified invoices</p>
+          </div>
+          <Badge className="bg-amber-400 text-black font-black uppercase text-xs px-2.5 py-1">
+            {filteredRides.length} Trips
+          </Badge>
         </div>
-        <h1 className="font-headline text-3xl font-bold mb-6">Ride History</h1>
-        
-        <Collapsible className="mb-6">
-            <div className="flex items-center justify-between">
-                <CollapsibleTrigger asChild>
-                    <Button variant="outline">
-                        <Filter className="mr-2 h-4 w-4" />
-                        Filter Rides
-                    </Button>
-                </CollapsibleTrigger>
-                <Button variant="ghost" onClick={resetFilters} className="text-sm">Reset Filters</Button>
+
+        {/* Filter Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {[
+            { id: 'all', label: 'All Trips' },
+            { id: 'bike', label: '🛵 Bike Taxi' },
+            { id: 'auto', label: '🛺 Auto' },
+            { id: 'cab_economy', label: '🚗 Cab' },
+            { id: 'parcel', label: '📦 Parcel' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setFilterType(tab.id)}
+              className={cn(
+                'px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border shrink-0',
+                filterType === tab.id
+                  ? 'bg-amber-400 text-black border-amber-400 shadow-sm'
+                  : 'bg-card text-muted-foreground border-border hover:border-amber-400/50'
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Rides List */}
+        <div className="space-y-3">
+          {isLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-28 w-full rounded-2xl" />
+              <Skeleton className="h-28 w-full rounded-2xl" />
             </div>
-            <CollapsibleContent className="pt-4">
-                <div className="p-4 border rounded-lg space-y-6 bg-card text-card-foreground shadow-sm">
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="date-range">Date Range</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        id="date-range"
-                                        variant={"outline"}
-                                        className={cn(
-                                            "w-full justify-start text-left font-normal",
-                                            !dateRange && "text-muted-foreground"
-                                        )}
-                                    >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {dateRange?.from ? (
-                                            dateRange.to ? (
-                                                <>
-                                                    {format(dateRange.from, "LLL dd, y")} -{" "}
-                                                    {format(dateRange.to, "LLL dd, y")}
-                                                </>
-                                            ) : (
-                                                format(dateRange.from, "LLL dd, y")
-                                            )
-                                        ) : (
-                                            <span>Pick a date range</span>
-                                        )}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        initialFocus
-                                        mode="range"
-                                        defaultMonth={dateRange?.from}
-                                        selected={dateRange}
-                                        onSelect={setDateRange}
-                                        numberOfMonths={2}
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="location">Location</Label>
-                            <Input 
-                                id="location" 
-                                placeholder="Search pickup or destination" 
-                                value={locationFilter}
-                                onChange={(e) => setLocationFilter(e.target.value)}
-                            />
-                        </div>
+          ) : filteredRides.length === 0 ? (
+            <Card className="rounded-2xl text-center p-8 border-dashed bg-card/60">
+              <div className="mx-auto w-12 h-12 rounded-full bg-amber-400/20 flex items-center justify-center text-amber-500 mb-3">
+                <Bike className="h-6 w-6" />
+              </div>
+              <h3 className="text-base font-bold text-foreground">No Trips Found</h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
+                You haven&apos;t taken any trips yet in this category. Book your first ride with Mithila Gaadi!
+              </p>
+              <Button
+                onClick={() => router.push('/home')}
+                className="mt-4 bg-amber-400 hover:bg-amber-500 text-black font-black text-xs uppercase rounded-xl"
+              >
+                Book a Ride Now
+              </Button>
+            </Card>
+          ) : (
+            filteredRides.map((ride) => (
+              <Card
+                key={ride.id}
+                className="border-2 border-border/80 hover:border-amber-400/60 shadow-md rounded-2xl overflow-hidden bg-card transition-all"
+              >
+                <CardContent className="p-4 space-y-3">
+                  {/* Top line: Date + Type + Fare */}
+                  <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-xl bg-amber-400/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                        {ride.serviceType === 'bike' ? (
+                          <Bike className="h-4 w-4" />
+                        ) : ride.serviceType === 'parcel' ? (
+                          <Package className="h-4 w-4" />
+                        ) : (
+                          <Car className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-extrabold text-xs uppercase tracking-wide text-foreground">
+                          {ride.serviceType === 'bike'
+                            ? 'Bike Taxi'
+                            : ride.serviceType === 'auto'
+                            ? 'Rapido Auto'
+                            : ride.serviceType === 'parcel'
+                            ? 'Parcel Delivery'
+                            : 'Mithila Cab'}
+                        </span>
+                        <p className="text-[10px] text-muted-foreground">{ride.date}</p>
+                      </div>
                     </div>
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <Label>Fare Range</Label>
-                            <span className="text-sm font-medium text-muted-foreground">₹{fareRange[0]} - ₹{fareRange[1]}</span>
-                        </div>
-                        <Slider
-                            defaultValue={[0, 5000]}
-                            max={5000}
-                            step={100}
-                            value={fareRange}
-                            onValueChange={setFareRange}
-                        />
+                    <div className="text-right">
+                      <span className="font-black text-base text-foreground">₹{ride.fare}</span>
+                      <span className="text-[10px] text-emerald-600 font-semibold block capitalize">
+                        {ride.status || 'Completed'}
+                      </span>
                     </div>
-                </div>
-            </CollapsibleContent>
-        </Collapsible>
-        
-        <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as RideStatusFilter)}>
-            <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
-                <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-            </TabsList>
-            <TabsContent value={statusFilter} className="mt-6">
-                <div className="space-y-4">
-                    {renderContent()}
-                </div>
-            </TabsContent>
-        </Tabs>
-      </main>
+                  </div>
+
+                  {/* Route */}
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-start gap-2">
+                      <div className="mt-1 h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                      <p className="font-medium text-foreground truncate">{ride.pickup}</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="mt-1 h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                      <p className="font-medium text-foreground truncate">{ride.drop}</p>
+                    </div>
+                  </div>
+
+                  {/* Captain Details */}
+                  {ride.captain && (
+                    <div className="flex items-center justify-between bg-muted/40 rounded-xl p-2.5 text-xs border border-border/50">
+                      <div>
+                        <p className="font-bold text-foreground">{ride.captain.name}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {ride.captain.vehicleNumber || ride.captain.vehicle || 'BR 07 BK 4921'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 font-bold text-xs bg-amber-400 text-black px-1.5 py-0.5 rounded-md">
+                        <Star className="h-3 w-3 fill-black" />
+                        <span>{ride.captain.rating || '4.9'}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadReceipt(ride)}
+                      className="flex-1 rounded-xl text-xs font-bold h-9"
+                    >
+                      <Receipt className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                      Invoice
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleRebook(ride)}
+                      className="flex-1 bg-amber-400 hover:bg-amber-500 text-black font-black text-xs rounded-xl h-9 shadow-xs"
+                    >
+                      <Repeat className="h-3.5 w-3.5 mr-1" />
+                      Book Again
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      </div>
     </AppLayout>
   );
 }

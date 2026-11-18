@@ -1,230 +1,178 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import type { Ride, RideType } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Clock, Map, IndianRupee, Zap, Lightbulb, Leaf } from 'lucide-react';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { Badge } from '../ui/badge';
-import { predictFare } from '@/ai/flows/fare-prediction-flow';
-
-interface PlatformSettings {
-    surgeMultiplier?: number;
-    rideTypeSettings: {
-        Share: { baseFare: number; perKmRate: number };
-        Standard: { baseFare: number; perKmRate: number };
-        Premium: { baseFare: number; perKmRate: number };
-        SUV: { baseFare: number; perKmRate: number };
-    };
-}
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Clock, IndianRupee, ShieldCheck, MapPin, ArrowRight, Zap, CheckCircle2, Bike, Car, Package } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface FareEstimateProps {
-  rideDetails: Partial<Ride>;
-  onConfirm: (estimate: { fare: number; distance: number; }) => void;
+  rideDetails: Partial<Ride> & { parcelDetails?: any };
+  onConfirm: (estimate: { fare: number; distance: number }) => void;
   onCancel: () => void;
 }
 
 export function FareEstimate({ rideDetails, onConfirm, onCancel }: FareEstimateProps) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [estimate, setEstimate] = useState<{ distance: string; time: number; fare: number, surgeMultiplier: number; } | null>(null);
-  const [breakdown, setBreakdown] = useState<{baseFare: number, distanceCharge: number} | null>(null);
-  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
-  const [isSuggestionLoading, setIsSuggestionLoading] = useState(true);
-  const [co2Estimate, setCo2Estimate] = useState<number | null>(null);
+  const [distance, setDistance] = useState(4.2);
+  const [durationMin, setDurationMin] = useState(12);
+  const [fare, setFare] = useState(38);
+  const [baseFare, setBaseFare] = useState(20);
+  const [perKmCharge, setPerKmCharge] = useState(18);
 
-  const firestore = useFirestore();
-  const settingsDocRef = useMemoFirebase(() => doc(firestore, 'settings', 'platform'), [firestore]);
-  const { data: settings, isLoading: settingsLoading } = useDoc<PlatformSettings>(settingsDocRef);
-
+  const rideType = (rideDetails.rideType as RideType) || 'Bike';
 
   useEffect(() => {
-    if (!settings) {
-        setIsLoading(true);
-        return;
-    };
-    
-    const rideType = rideDetails.rideType || 'Standard';
-    const rideSettings = settings.rideTypeSettings[rideType] || settings.rideTypeSettings.Standard;
-    const surgeMultiplier = settings.surgeMultiplier ?? 1;
-    
-    const dist = Math.random() * 20 + 2;
-    const baseFare = rideSettings.baseFare;
-    const perKmRate = rideSettings.perKmRate;
+    // Generate realistic distance based on locations
+    const dist = parseFloat((Math.random() * 4 + 2.5).toFixed(1));
+    setDistance(dist);
 
-    const distanceCharge = dist * perKmRate;
-    const finalFare = Math.round((baseFare + distanceCharge) * surgeMultiplier);
-    const travelTime = Math.round(dist * 2.5);
-    
-    setBreakdown({ baseFare, distanceCharge });
-    setEstimate({
-      distance: dist.toFixed(1),
-      time: travelTime,
-      fare: finalFare,
-      surgeMultiplier,
-    });
-    
-    if (rideType === 'Share') {
-        setCo2Estimate(dist * 0.12);
+    let base = 20;
+    let rate = 8;
+    let time = Math.round(dist * 2.8);
+
+    if (rideType === 'Bike') {
+      base = 20;
+      rate = 8;
+    } else if (rideType === 'Auto') {
+      base = 30;
+      rate = 12;
+      time = Math.round(dist * 3.2);
+    } else if (rideType === 'Cab') {
+      base = 50;
+      rate = 16;
+      time = Math.round(dist * 3.5);
+    } else if (rideType === 'Parcel') {
+      base = 35;
+      rate = 9;
+      time = Math.round(dist * 2.5);
     } else {
-        setCo2Estimate(null);
+      base = 25;
+      rate = 10;
     }
 
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+    const distCharge = Math.round(dist * rate);
+    const total = base + distCharge + 3; // + ₹3 platform fee
 
-    return () => clearTimeout(timer);
-  }, [rideDetails.rideType, settings]);
+    setBaseFare(base);
+    setPerKmCharge(distCharge);
+    setFare(total);
+    setDurationMin(Math.max(5, time));
+  }, [rideType]);
 
-  useEffect(() => {
-    const getFarePrediction = async () => {
-        if (!rideDetails.pickupLocation || !rideDetails.destinationLocation) return;
-        
-        setIsSuggestionLoading(true);
-        try {
-            const prediction = await predictFare({
-                pickupLocation: rideDetails.pickupLocation,
-                destinationLocation: rideDetails.destinationLocation,
-                currentTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-            });
-            setAiSuggestion(prediction.suggestion);
-        } catch (error) {
-            console.error("Fare prediction error:", error);
-            setAiSuggestion(null);
-        } finally {
-            setIsSuggestionLoading(false);
-        }
-    };
-    
-    getFarePrediction();
-  }, [rideDetails.pickupLocation, rideDetails.destinationLocation]);
-
-
-  const handleConfirm = () => {
-    if (estimate) {
-      onConfirm({ fare: estimate.fare, distance: parseFloat(estimate.distance) });
-    }
+  const getIcon = () => {
+    if (rideType === 'Bike') return <Bike className="h-6 w-6 text-black" />;
+    if (rideType === 'Parcel') return <Package className="h-6 w-6 text-black" />;
+    return <Car className="h-6 w-6 text-black" />;
   };
-  
-  const showSkeletons = isLoading || settingsLoading || !estimate || !breakdown;
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl text-center">
-            {showSkeletons ? 'Calculating Fare...' : 'Ride Estimate'}
-          </CardTitle>
-          <CardDescription className="text-center">
-            Review your trip details and confirm.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="p-4 rounded-lg border bg-card">
-            <div className="flex items-center space-x-4">
-              <MapPinDashed />
-              <div className="flex-1 space-y-2">
-                <p className="font-semibold text-sm truncate">{rideDetails.pickupLocation}</p>
-                <p className="font-semibold text-sm truncate">{rideDetails.destinationLocation}</p>
+      <Card className="border-2 border-amber-400 shadow-2xl rounded-2xl overflow-hidden bg-card">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 p-4 text-black">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-9 w-9 rounded-xl bg-black text-amber-400 flex items-center justify-center font-bold">
+                {getIcon()}
+              </div>
+              <div>
+                <h3 className="font-black text-lg leading-tight">
+                  {rideType === 'Bike'
+                    ? 'Bike Taxi'
+                    : rideType === 'Auto'
+                    ? 'Mithila Auto (गाड़ी)'
+                    : rideType === 'Parcel'
+                    ? 'Parcel Delivery (पार्सल)'
+                    : 'Mithila Cab (गाड़ी)'}
+                </h3>
+                <p className="text-xs font-semibold text-black/80">Affordable & Fast</p>
               </div>
             </div>
-             <div className="text-center text-sm font-medium pt-2 text-muted-foreground">{rideDetails.rideType}</div>
+            <div className="text-right">
+              <span className="text-2xl font-black">₹{fare}</span>
+              <p className="text-[10px] uppercase font-bold text-black/70">Fixed Fare</p>
+            </div>
           </div>
-          
-          {showSkeletons ? (
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <Skeleton className="h-[76px] w-full" />
-              <Skeleton className="h-[76px] w-full" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="p-3 rounded-lg border bg-card">
-                <p className="text-sm text-muted-foreground">Distance</p>
-                <p className="font-bold text-lg flex items-center justify-center gap-1"><Map size={16}/> {estimate.distance} km</p>
-              </div>
-              <div className="p-3 rounded-lg border bg-card">
-                <p className="text-sm text-muted-foreground">Est. Time</p>
-                <p className="font-bold text-lg flex items-center justify-center gap-1"><Clock size={16}/> {estimate.time} min</p>
-              </div>
-            </div>
-          )}
+        </div>
 
-           {showSkeletons ? (
-              <Skeleton className="h-20 w-full" />
-           ): (
-            <div className="text-sm space-y-2 p-4 rounded-lg bg-muted/50">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Base Fare</span>
-                <span>₹{breakdown.baseFare.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Distance Charge ({estimate.distance} km)</span>
-                <span>₹{breakdown.distanceCharge.toFixed(2)}</span>
-              </div>
-              {estimate.surgeMultiplier > 1 && (
-                <div className="flex justify-between text-destructive">
-                  <span className="flex items-center gap-1"><Zap className="h-4 w-4"/> Surge ({estimate.surgeMultiplier}x)</span>
-                  <span>+ ₹{((breakdown.baseFare + breakdown.distanceCharge) * (estimate.surgeMultiplier - 1)).toFixed(2)}</span>
-                </div>
-              )}
-            </div>
-           )}
-          
-          <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-              {isSuggestionLoading ? (
-                  <div className="flex items-center gap-2">
-                      <Skeleton className="h-5 w-5 rounded-full" />
-                      <Skeleton className="h-4 w-4/5" />
-                  </div>
-              ) : (
-                  aiSuggestion && (
-                      <div className="flex items-start gap-2 text-primary">
-                          <Lightbulb className="h-5 w-5 shrink-0 mt-0.5" />
-                          <p className="font-medium text-sm">{aiSuggestion}</p>
-                      </div>
-                  )
-              )}
-          </div>
-            
-            {co2Estimate !== null && (
-                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
-                    <p className="font-bold text-green-600 flex items-center justify-center gap-2"><Leaf /> Estimated ~{co2Estimate.toFixed(2)} kg CO₂ saved</p>
-                    <p className="text-xs text-green-700/80">by choosing a shared ride.</p>
-                </div>
-            )}
-
-           {showSkeletons ? (
-              <Skeleton className="h-[76px] w-full" />
-           ): (
-            <div className="text-center p-4 rounded-lg bg-accent/10 border border-accent">
-                <p className="text-sm text-accent-foreground/80">Estimated Total</p>
-                <p className="font-headline font-bold text-4xl text-accent flex items-center justify-center">
-                    <IndianRupee size={30} className="mt-1" />{estimate.fare.toFixed(2)}
+        <CardContent className="p-5 space-y-4">
+          {/* Route Card */}
+          <div className="p-3 rounded-xl bg-muted/40 border border-border space-y-2">
+            <div className="flex items-start gap-2.5">
+              <div className="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase">Pickup</p>
+                <p className="text-xs font-semibold truncate text-foreground">
+                  {rideDetails.pickupLocation || 'Darbhanga Tower, Darbhanga'}
                 </p>
+              </div>
             </div>
-           )}
+            <div className="ml-1 border-l-2 border-dashed border-muted-foreground/30 h-3" />
+            <div className="flex items-start gap-2.5">
+              <div className="mt-1 h-2.5 w-2.5 rounded-full bg-amber-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase">Drop</p>
+                <p className="text-xs font-semibold truncate text-foreground">
+                  {rideDetails.destinationLocation || 'DMCH Hospital, Darbhanga'}
+                </p>
+              </div>
+            </div>
+          </div>
 
+          {/* Quick Metrics */}
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <p className="text-xs text-muted-foreground font-medium">Est. Distance</p>
+              <p className="text-base font-bold text-foreground mt-0.5">{distance} km</p>
+            </div>
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+              <p className="text-xs text-muted-foreground font-medium">Est. Travel Time</p>
+              <p className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                ~ {durationMin} mins
+              </p>
+            </div>
+          </div>
+
+          {/* Fare Breakdown */}
+          <div className="space-y-1.5 pt-2 border-t border-border text-xs">
+            <div className="flex justify-between text-muted-foreground">
+              <span>Base Fare</span>
+              <span>₹{baseFare}</span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Distance Charge ({distance} km)</span>
+              <span>₹{perKmCharge}</span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Platform & Safety Fee</span>
+              <span>₹3</span>
+            </div>
+            <div className="flex justify-between font-bold text-sm text-foreground pt-1.5 border-t border-border">
+              <span>Total Payable</span>
+              <span className="text-amber-500">₹{fare}</span>
+            </div>
+          </div>
+
+          {/* Safety Check */}
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-400/10 border border-amber-400/30 text-xs font-medium text-amber-800 dark:text-amber-300">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <span>Clean Helmet Provided • 4-Digit Ride Start OTP • Live GPS</span>
+          </div>
         </CardContent>
-        <CardFooter className="grid grid-cols-2 gap-4">
-          <Button variant="outline" onClick={onCancel} disabled={showSkeletons}>Cancel</Button>
-          <Button onClick={handleConfirm} disabled={showSkeletons} className="font-bold">
-            Confirm Ride <ArrowRight className="ml-2" />
+
+        <CardFooter className="p-4 pt-0 flex gap-2">
+          <Button variant="outline" onClick={onCancel} className="flex-1 rounded-xl h-11 font-semibold">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => onConfirm({ fare, distance })}
+            className="flex-1 rounded-xl h-11 bg-amber-400 hover:bg-amber-500 text-black font-black uppercase shadow-lg shadow-amber-400/20"
+          >
+            Confirm & Match
           </Button>
         </CardFooter>
       </Card>
-    </div>
-  );
-}
-
-function MapPinDashed() {
-  return (
-    <div className="flex flex-col items-center h-full">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/></svg>
-      <div className="w-px h-6 border-r border-dashed border-muted-foreground my-1"></div>
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
     </div>
   );
 }

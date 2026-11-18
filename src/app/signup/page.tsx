@@ -1,62 +1,20 @@
 
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
-import { useUser } from '@/firebase';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 import { SignupForm } from '@/components/auth/signup-form';
 import { Logo } from '@/components/logo';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function SignupPage() {
   const bgImage = PlaceHolderImages.find(img => img.id === 'login-bg');
-  const { user, isUserLoading: loading } = useUser();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && user) {
-      router.push('/home');
-    }
-  }, [user, loading, router]);
-
-    if (loading || (!loading && user)) {
-    return (
-       <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
-        <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <Card className="mx-auto w-full max-w-md">
-                <CardHeader>
-                    <Skeleton className="h-10 w-48 mx-auto mb-4" />
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-4 w-3/4 mx-auto" />
-                </CardHeader>
-                <CardContent>
-                    <div className="grid gap-4 mt-4">
-                        <Skeleton className="h-20 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full mt-2" />
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-         <div className="hidden bg-muted lg:block">
-            <Skeleton className="h-full w-full" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
       <div className="flex items-center justify-center p-6 lg:p-8">
         <div className="mx-auto grid w-full max-w-md gap-8">
-            <Logo />
+            <Logo size="lg" showTagline />
             <div className="grid gap-2">
                 <h1 className="font-headline text-4xl font-bold">Join MithilaCab</h1>
                 <p className="text-muted-foreground">Your ride, your way.</p>
@@ -69,12 +27,6 @@ export default function SignupPage() {
               </CardHeader>
               <CardContent>
                 <SignupForm />
-                 <div className="mt-6 text-center text-sm">
-                    Already have an account?{" "}
-                    <Link href="/login" className="underline font-medium hover:text-primary transition-colors">
-                        Login
-                    </Link>
-                </div>
               </CardContent>
             </Card>
         </div>

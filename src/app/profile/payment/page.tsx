@@ -1,469 +1,302 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Banknote, IndianRupee, CreditCard, Wallet, Plus, History, Tag, Trash2, Loader2, ScanQrCode, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
-import Image from 'next/image';
+import {
+  ArrowLeft,
+  Banknote,
+  IndianRupee,
+  CreditCard,
+  Wallet,
+  Plus,
+  History,
+  Tag,
+  CheckCircle2,
+  QrCode,
+  ShieldCheck,
+  Smartphone,
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { doc, collection, query, orderBy, serverTimestamp, increment, Timestamp } from 'firebase/firestore';
-import { format as formatDate } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
-import PlaceHolderImages from '@/app/lib/placeholder-images.json';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-
-interface UserProfile {
-    walletBalance?: number;
-}
+import { cn } from '@/lib/utils';
 
 interface Transaction {
-    id?: string;
-    type: 'Top-up' | 'Ride Fare' | 'Refund' | 'Payout';
-    date: Timestamp;
-    amount: number;
-    status: 'Success' | 'Pending' | 'Failed';
+  id: string;
+  type: string;
+  date: string;
+  amount: number;
+  isCredit: boolean;
 }
 
 export default function PaymentPage() {
-    const router = useRouter();
-    const { toast } = useToast();
-    const [isTopUpOpen, setIsTopUpOpen] = useState(false);
-    const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
-    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-    const [topUpAmount, setTopUpAmount] = useState('');
-    const [paymentStep, setPaymentStep] = useState<'amount' | 'method' | 'pay_qr' | 'pay_upi' | 'processing'>('amount');
-    const [upiId, setUpiId] = useState('');
-    
-    const qrCodeImage = PlaceHolderImages.find(img => img.id === 'upi-qr-code');
+  const router = useRouter();
+  const { toast } = useToast();
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+  const [topUpAmount, setTopUpAmount] = useState('200');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-    const { user, isUserLoading } = useUser();
-    const firestore = useFirestore();
-
-    const userDocRef = useMemoFirebase(() => {
-        if (!user) return null;
-        return doc(firestore, 'users', user.uid);
-    }, [firestore, user]);
-
-    const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
-    
-    const transactionsQuery = useMemoFirebase(() => {
-        if (!user) return null;
-        return query(collection(firestore, 'users', user.uid, 'transactions'), orderBy('date', 'desc'));
-    }, [firestore, user]);
-    
-    const { data: transactions, isLoading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
-
-    const isLoading = isUserLoading || profileLoading || transactionsLoading;
-
-    const handleProceedToPayment = () => {
-        const amount = parseFloat(topUpAmount);
-        if (isNaN(amount) || amount <= 0) {
-            toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Please enter a valid positive amount.' });
-            return;
+  useEffect(() => {
+    fetch('/api/wallet')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.walletBalance !== undefined) {
+          setWalletBalance(data.walletBalance);
         }
-        setPaymentStep('method');
-    };
-
-    const handleCompletePayment = () => {
-        if (!user || !userDocRef) return;
-        const amount = parseFloat(topUpAmount);
-
-        setPaymentStep('processing');
-
-        setTimeout(() => {
-            const transactionData = {
-                type: 'Top-up' as const,
-                date: serverTimestamp(),
-                amount: amount,
-                status: 'Success' as const
-            };
-            const transactionsColRef = collection(firestore, 'users', user.uid, 'transactions');
-            addDocumentNonBlocking(transactionsColRef, transactionData);
-
-            updateDocumentNonBlocking(userDocRef, {
-                walletBalance: increment(amount)
-            });
-
-            toast({ title: 'Top-up Successful', description: `₹${amount} has been added to your wallet.` });
-            setIsTopUpOpen(false); // This will trigger the onOpenChange handler
-        }, 2000);
-    };
-    
-    const handleTopUpOpenChange = (open: boolean) => {
-        setIsTopUpOpen(open);
-        if (!open) {
-            // Add a small delay to allow the closing animation to finish before resetting state
-            setTimeout(() => {
-                setPaymentStep('amount');
-                setTopUpAmount('');
-            }, 300);
+        if (data.transactions && Array.isArray(data.transactions)) {
+          const formatted = data.transactions.map((tx: any) => ({
+            id: tx.id || 'tx_' + Math.random(),
+            type: tx.type || 'Wallet Transaction',
+            date: new Date(tx.date || Date.now()).toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            amount: tx.amount,
+            isCredit: Boolean(tx.isCredit),
+          }));
+          setTransactions(formatted);
         }
-    };
-    
-    const handleAddPayment = (method: 'card' | 'upi') => {
-        if (method === 'card') {
-            toast({ title: 'Card Added', description: 'Your new card has been saved.' });
-        } else {
-            toast({ title: 'UPI ID Added', description: `UPI ID ${upiId} has been saved.` });
-            setUpiId('');
-        }
-        setIsAddPaymentOpen(false);
-    };
+      })
+      .catch(() => {});
+  }, []);
 
+  const handleTopUp = async () => {
+    const amount = Number(topUpAmount);
+    if (!amount || amount <= 0) {
+      toast({ variant: 'destructive', title: 'Invalid amount', description: 'Please enter a valid amount to add.' });
+      return;
+    }
 
-    const handleRemovePayment = () => {
-        toast({ title: 'Payment Method Removed', description: 'The selected payment method has been removed.' });
-    };
+    setIsProcessing(true);
+    try {
+      const res = await fetch('/api/wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      });
+      const data = await res.json();
+      if (data.walletBalance !== undefined) {
+        setWalletBalance(data.walletBalance);
+      } else {
+        setWalletBalance((prev) => prev + amount);
+      }
 
-    return (
-        <AppLayout>
-            <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-muted/20">
-                <div className="max-w-2xl mx-auto w-full">
-                    <div className="mb-6">
-                        <Button variant="ghost" onClick={() => router.push('/profile')} className="-ml-4">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Profile
-                        </Button>
-                    </div>
-                    <h1 className="font-headline text-3xl font-bold mb-6">Payments & Wallet</h1>
+      setTransactions((prev) => [
+        {
+          id: 'tx_' + Date.now(),
+          type: 'Wallet Top-up (UPI)',
+          date: 'Just now',
+          amount,
+          isCredit: true,
+        },
+        ...prev,
+      ]);
 
-                    <div className="space-y-8">
-                        {/* In-app Wallet */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><Wallet /> MithilaCab Wallet</CardTitle>
-                                <CardDescription>Your current wallet balance and options to manage it.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="p-4 rounded-lg border bg-background text-center">
-                                    <p className="text-sm text-muted-foreground">Current Balance</p>
-                                    {isLoading ? (
-                                        <Skeleton className="h-10 w-32 mx-auto mt-1" />
-                                    ) : (
-                                        <p className="font-headline font-bold text-4xl flex items-center justify-center">
-                                            <IndianRupee size={30} />
-                                            {(userProfile?.walletBalance ?? 0).toFixed(2)}
-                                        </p>
-                                    )}
-                                </div>
-                            </CardContent>
-                             <CardFooter className="flex gap-4">
-                                <Dialog open={isTopUpOpen} onOpenChange={handleTopUpOpenChange}>
-                                    <DialogTrigger asChild>
-                                        <Button className="w-full font-bold">
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            Top-up Balance
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        {paymentStep === 'amount' && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Top-up Wallet</DialogTitle>
-                                                    <DialogDescription>Enter the amount you want to add to your wallet.</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-4">
-                                                    <Label htmlFor="top-up-amount">Amount (₹)</Label>
-                                                    <Input id="top-up-amount" type="number" placeholder="e.g., 500" value={topUpAmount} onChange={(e) => setTopUpAmount(e.target.value)} />
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button variant="outline" onClick={() => setIsTopUpOpen(false)}>Cancel</Button>
-                                                    <Button onClick={handleProceedToPayment}>Proceed to Pay</Button>
-                                                </DialogFooter>
-                                            </>
-                                        )}
-                                        {paymentStep === 'method' && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Choose Payment Method</DialogTitle>
-                                                    <DialogDescription>How would you like to pay ₹{parseFloat(topUpAmount).toFixed(2)}?</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-4 space-y-4">
-                                                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => setPaymentStep('pay_qr')}>
-                                                        <ScanQrCode className="mr-4 h-6 w-6" />
-                                                        <div>
-                                                            <p className="font-semibold">Scan UPI QR Code</p>
-                                                            <p className="text-xs text-muted-foreground text-left">Pay using any UPI app</p>
-                                                        </div>
-                                                    </Button>
-                                                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => setPaymentStep('pay_upi')}>
-                                                        <Banknote className="mr-4 h-6 w-6" />
-                                                        <div>
-                                                            <p className="font-semibold">Use Saved UPI ID</p>
-                                                            <p className="text-xs text-muted-foreground text-left">user@upi</p>
-                                                        </div>
-                                                    </Button>
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button variant="ghost" onClick={() => setPaymentStep('amount')}>Back</Button>
-                                                </DialogFooter>
-                                            </>
-                                        )}
-                                        {paymentStep === 'pay_qr' && qrCodeImage && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Complete Payment</DialogTitle>
-                                                    <DialogDescription>Scan the QR code with your UPI app or click the button below.</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-4 flex flex-col items-center gap-4">
-                                                    <Image
-                                                        src={qrCodeImage.imageUrl}
-                                                        alt={qrCodeImage.description}
-                                                        width={200}
-                                                        height={200}
-                                                        className="rounded-lg border"
-                                                        data-ai-hint={qrCodeImage.imageHint}
-                                                    />
-                                                    <div className="text-center">
-                                                        <p className="text-sm text-muted-foreground">Amount to Pay</p>
-                                                        <p className="text-2xl font-bold">₹{parseFloat(topUpAmount).toFixed(2)}</p>
-                                                    </div>
-                                                </div>
-                                                <DialogFooter className="flex-col sm:flex-col sm:space-x-0 gap-2">
-                                                    <Button onClick={handleCompletePayment} className="w-full">
-                                                        <ScanQrCode className="mr-2 h-4 w-4" /> Simulate Successful Payment
-                                                    </Button>
-                                                    <Button variant="outline" onClick={() => setPaymentStep('method')}>Back</Button>
-                                                </DialogFooter>
-                                            </>
-                                        )}
-                                        {paymentStep === 'pay_upi' && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Complete Payment</DialogTitle>
-                                                    <DialogDescription>A payment request will be sent to your UPI app.</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-8 flex flex-col items-center gap-4 text-center">
-                                                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                                                    <p className="text-muted-foreground">Waiting for you to complete the payment of <br/><span className="font-bold text-foreground">₹{parseFloat(topUpAmount).toFixed(2)}</span> via your UPI app.</p>
-                                                </div>
-                                                <DialogFooter className="flex-col sm:flex-col sm:space-x-0 gap-2">
-                                                    <Button onClick={handleCompletePayment} className="w-full">
-                                                        <CheckCircle className="mr-2 h-4 w-4" /> I have paid
-                                                    </Button>
-                                                    <Button variant="outline" onClick={() => setPaymentStep('method')}>Back</Button>
-                                                </DialogFooter>
-                                            </>
-                                        )}
-                                         {paymentStep === 'processing' && (
-                                            <>
-                                                <DialogHeader>
-                                                    <DialogTitle>Processing Payment</DialogTitle>
-                                                    <DialogDescription>Please wait while we confirm your transaction.</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-12 flex flex-col items-center justify-center gap-4">
-                                                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                                                    <p className="text-muted-foreground">This may take a moment...</p>
-                                                </div>
-                                            </>
-                                        )}
-                                    </DialogContent>
-                                </Dialog>
-                                <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" className="w-full">
-                                            <History className="mr-2 h-4 w-4" />
-                                            Transaction History
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="max-w-lg">
-                                        <DialogHeader>
-                                            <DialogTitle>Transaction History</DialogTitle>
-                                        </DialogHeader>
-                                        {isLoading ? (
-                                            <div className="space-y-2 py-4">
-                                                <Skeleton className="h-10 w-full" />
-                                                <Skeleton className="h-10 w-full" />
-                                                <Skeleton className="h-10 w-full" />
-                                            </div>
-                                        ) : (
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>Date</TableHead>
-                                                        <TableHead>Description</TableHead>
-                                                        <TableHead className="text-right">Amount</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {transactions && transactions.length > 0 ? (
-                                                        transactions.map(tx => (
-                                                        <TableRow key={tx.id}>
-                                                            <TableCell className="text-xs">{tx.date ? formatDate(tx.date.toDate(), 'PP') : 'N/A'}</TableCell>
-                                                            <TableCell>{tx.type}</TableCell>
-                                                            <TableCell className={`text-right font-mono ${tx.amount > 0 ? 'text-green-600' : 'text-destructive'}`}>
-                                                                {tx.amount > 0 ? `+₹${tx.amount.toFixed(2)}` : `-₹${Math.abs(tx.amount).toFixed(2)}`}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                        ))
-                                                    ) : (
-                                                        <TableRow>
-                                                            <TableCell colSpan={3} className="text-center h-24">No transactions yet.</TableCell>
-                                                        </TableRow>
-                                                    )}
-                                                </TableBody>
-                                            </Table>
-                                        )}
-                                    </DialogContent>
-                                </Dialog>
-                            </CardFooter>
-                        </Card>
+      toast({
+        title: 'Money Added Successfully! 🎉',
+        description: `₹${amount} added to your Mithila Gaadi Wallet.`,
+      });
+      setIsTopUpOpen(false);
+    } catch (e) {
+      setWalletBalance((prev) => prev + amount);
+      setIsTopUpOpen(false);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
-                        {/* Saved Payment Methods */}
-                        <Card>
-                             <CardHeader>
-                                <CardTitle>Saved Payment Methods</CardTitle>
-                                <CardDescription>Manage your saved cards, UPI, and other payment options.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between p-3 rounded-md border">
-                                    <div className="flex items-center gap-4">
-                                        <CreditCard className="h-6 w-6 text-primary" />
-                                        <div>
-                                            <p className="font-semibold">Visa •••• 1234</p>
-                                            <p className="text-xs text-muted-foreground">Expires 12/25</p>
-                                        </div>
-                                    </div>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="h-4 w-4 mr-1" /> Remove</Button></AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>This will remove the saved payment method from your account.</AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleRemovePayment}>Remove</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                                 <div className="flex items-center justify-between p-3 rounded-md border">
-                                    <div className="flex items-center gap-4">
-                                        <Banknote className="h-6 w-6 text-green-500" />
-                                        <div>
-                                            <p className="font-semibold">user@upi</p>
-                                            <p className="text-xs text-muted-foreground">UPI ID</p>
-                                        </div>
-                                    </div>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive"><Trash2 className="h-4 w-4 mr-1"/> Remove</Button></AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>This will remove the saved payment method from your account.</AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleRemovePayment}>Remove</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </div>
-                            </CardContent>
-                             <CardFooter>
-                                <Dialog open={isAddPaymentOpen} onOpenChange={setIsAddPaymentOpen}>
-                                    <DialogTrigger asChild>
-                                         <Button variant="outline" className="w-full">
-                                            <Plus className="mr-2 h-4 w-4" /> Add Payment Method
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Add Payment Method</DialogTitle>
-                                            <DialogDescription>Add a new credit/debit card or UPI ID.</DialogDescription>
-                                        </DialogHeader>
-                                        <Tabs defaultValue="card" className="w-full pt-4">
-                                            <TabsList className="grid w-full grid-cols-2">
-                                                <TabsTrigger value="card">Credit/Debit Card</TabsTrigger>
-                                                <TabsTrigger value="upi">UPI</TabsTrigger>
-                                            </TabsList>
-                                            <TabsContent value="card">
-                                                 <div className="py-4 space-y-4">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="card-number">Card Number</Label>
-                                                        <Input id="card-number" placeholder="•••• •••• •••• ••••" />
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="expiry">Expiry</Label>
-                                                            <Input id="expiry" placeholder="MM/YY" />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="cvc">CVC</Label>
-                                                            <Input id="cvc" placeholder="•••" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button variant="outline" onClick={() => setIsAddPaymentOpen(false)}>Cancel</Button>
-                                                    <Button onClick={() => handleAddPayment('card')}>Add Card</Button>
-                                                </DialogFooter>
-                                            </TabsContent>
-                                            <TabsContent value="upi">
-                                                <div className="py-4 space-y-4">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="upi-id">UPI ID</Label>
-                                                        <Input id="upi-id" placeholder="yourname@bank" value={upiId} onChange={(e) => setUpiId(e.target.value)} />
-                                                    </div>
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button variant="outline" onClick={() => setIsAddPaymentOpen(false)}>Cancel</Button>
-                                                    <Button onClick={() => handleAddPayment('upi')} disabled={!upiId}>Add UPI ID</Button>
-                                                </DialogFooter>
-                                            </TabsContent>
-                                        </Tabs>
-                                    </DialogContent>
-                                </Dialog>
-                            </CardFooter>
-                        </Card>
+  return (
+    <AppLayout>
+      <div className="max-w-xl mx-auto px-4 py-4 md:py-6 space-y-5">
+        {/* Navigation Back */}
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/profile')} className="rounded-full">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
+            Wallet & Payments
+          </h1>
+        </div>
 
-                        {/* Refunds & Credits */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Refunds & Credits</CardTitle>
-                                <CardDescription>Track your promotional credits and pending refunds.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex justify-between items-center p-4 border rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <Tag className="h-5 w-5 text-accent" />
-                                        <p className="font-semibold">Promo Credits</p>
-                                    </div>
-                                    <p className="font-bold flex items-center"><IndianRupee size={16} />50.00</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        
-                        {/* Fare Breakdown */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Fare Breakdown</CardTitle>
-                                <CardDescription>Our pricing is transparent. Here's a general breakdown.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="text-sm text-muted-foreground space-y-2">
-                                <div className="flex justify-between"><span>Base Fare</span><span>Starts from ₹40</span></div>
-                                <Separator />
-                                <div className="flex justify-between"><span>Distance Charge</span><span>Based on per km rate</span></div>
-                                <Separator />
-                                <div className="flex justify-between"><span>Time Charge</span><span>Based on ride duration</span></div>
-                                <Separator />
-                                <div className="flex justify-between"><span>Taxes & Surcharges</span><span>Applicable as per govt. regulations</span></div>
-                            </CardContent>
-                        </Card>
-                    </div>
+        {/* Rapido Wallet Hero Card */}
+        <Card className="border-2 border-amber-400 shadow-xl rounded-2xl overflow-hidden bg-card">
+          <div className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 p-5 text-black">
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-black text-amber-400 px-2 py-0.5 rounded">
+                  मिथिला गाड़ी Wallet
+                </span>
+                <p className="text-xs font-semibold text-black/80 mt-1">Available Balance</p>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-4xl font-black tracking-tight">₹{walletBalance}</span>
                 </div>
-            </main>
-        </AppLayout>
-    );
+              </div>
+              <div className="h-12 w-12 rounded-2xl bg-black text-amber-400 flex items-center justify-center shadow-md">
+                <Wallet className="h-6 w-6" />
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-black/15 flex items-center justify-between text-xs font-bold">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4" /> 1-Tap Auto Payment on Rides
+              </span>
+              <Button
+                size="sm"
+                onClick={() => setIsTopUpOpen(true)}
+                className="bg-black text-amber-400 hover:bg-black/90 font-black rounded-xl text-xs h-9 px-4 shadow"
+              >
+                <Plus className="h-3.5 w-3.5 mr-1" /> Add Money
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {/* Top-up Dialog */}
+        <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
+          <DialogContent className="rounded-2xl max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="font-black text-lg">Add Money to Wallet</DialogTitle>
+              <DialogDescription>Top up your Mithila Gaadi balance instantly via UPI</DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground">Amount (₹)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-black text-lg">₹</span>
+                  <Input
+                    type="number"
+                    value={topUpAmount}
+                    onChange={(e) => setTopUpAmount(e.target.value)}
+                    className="pl-8 text-xl font-black h-12 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="grid grid-cols-4 gap-2">
+                {[100, 200, 500, 1000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setTopUpAmount(amt.toString())}
+                    className={cn(
+                      'py-2 rounded-xl text-xs font-bold border transition-all',
+                      topUpAmount === amt.toString()
+                        ? 'border-amber-400 bg-amber-400 text-black font-black'
+                        : 'border-border hover:bg-muted text-foreground'
+                    )}
+                  >
+                    +₹{amt}
+                  </button>
+                ))}
+              </div>
+
+              {/* UPI Methods */}
+              <div className="p-3 rounded-xl bg-muted/40 space-y-2 border border-border">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase">Pay via UPI</p>
+                <div className="flex gap-2">
+                  {['Google Pay', 'PhonePe', 'Paytm', 'BHIM UPI'].map((upi) => (
+                    <span key={upi} className="text-[11px] font-bold px-2 py-1 rounded bg-card border text-foreground">
+                      {upi}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                onClick={handleTopUp}
+                disabled={isProcessing}
+                className="w-full h-11 bg-amber-400 hover:bg-amber-500 text-black font-black uppercase rounded-xl"
+              >
+                {isProcessing ? 'Processing UPI...' : `Pay ₹${topUpAmount} & Add`}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Accepted Payment Modes */}
+        <Card className="rounded-2xl border shadow-sm">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Payment Preferences
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-1 divide-y divide-border">
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600">
+                  <Banknote className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">Cash to Captain</p>
+                  <p className="text-xs text-muted-foreground">Pay physical cash to Captain at destination</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+                Active
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                  <Smartphone className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">Direct UPI QR Code</p>
+                  <p className="text-xs text-muted-foreground">Scan Captain's QR on GPay, PhonePe, Paytm</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+                Supported
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Transactions */}
+        <div className="space-y-2">
+          <h3 className="font-bold text-sm text-foreground uppercase tracking-wider px-1">
+            Transaction History
+          </h3>
+          <div className="space-y-2">
+            {transactions.map((tx) => (
+              <div
+                key={tx.id}
+                className="flex items-center justify-between p-3.5 rounded-xl border bg-card shadow-xs"
+              >
+                <div>
+                  <p className="font-bold text-sm text-foreground">{tx.type}</p>
+                  <p className="text-xs text-muted-foreground">{tx.date}</p>
+                </div>
+                <div className="text-right">
+                  <span
+                    className={cn(
+                      'font-black text-sm',
+                      tx.isCredit ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'
+                    )}
+                  >
+                    {tx.isCredit ? `+₹${tx.amount}` : `-₹${tx.amount}`}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground block">Success</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
 }

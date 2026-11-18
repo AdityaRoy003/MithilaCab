@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="mithila-tab-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="50%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#EAB308" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded Badge in Mithila Golden Amber -->
+  <rect width="64" height="64" rx="16" fill="url(#mithila-tab-grad)" />
+  <rect x="1.5" y="1.5" width="61" height="61" rx="14.5" stroke="#FEF08A" stroke-width="2" fill="none" opacity="0.6" />
+
+  <!-- Speed trails -->
+  <path d="M6 25 L16 25 M4 31 L13 31 M7 37 L15 37" stroke="#0A0A0A" stroke-width="2.8" stroke-linecap="round" />
+
+  <!-- Driver Helmet -->
+  <circle cx="31" cy="17" r="4.2" fill="#0A0A0A" />
+
+  <!-- Wheels (Rear and Front) -->
+  <circle cx="21" cy="42" r="7.5" stroke="#0A0A0A" stroke-width="3.5" fill="none" />
+  <circle cx="21" cy="42" r="3" fill="#0A0A0A" />
+
+  <circle cx="45" cy="42" r="7.5" stroke="#0A0A0A" stroke-width="3.5" fill="none" />
+  <circle cx="45" cy="42" r="3" fill="#0A0A0A" />
+
+  <!-- Chassis Frame -->
+  <path d="M21 42 L31 31 L39 31 L45 42 M31 31 L29 22 L35 22 M39 31 L34 42" stroke="#0A0A0A" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+
+  <!-- Headlight beam -->
+  <path d="M47 34 L55 31 L55 38 Z" fill="#0A0A0A" opacity="0.85" />
+
+  <!-- Live Green Beacon -->
+  <circle cx="51" cy="13" r="3.2" fill="#10B981" stroke="#FFFFFF" stroke-width="1.5" />
+</svg>

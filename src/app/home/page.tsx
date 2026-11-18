@@ -4,14 +4,14 @@
 import { useMemo, Suspense, useEffect, useState, useRef } from 'react';
 import AppLayout from "@/components/app-layout";
 import { BookingFlow } from "@/components/ride/booking-flow";
-import { useAdmin, useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { useAdmin, useUser } from "@/firebase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
-import { Shield, ArrowRight, Wallet, LifeBuoy, Settings, PartyPopper, ShoppingBag, Building, Utensils } from 'lucide-react';
+import { Shield, ArrowRight, Wallet, LifeBuoy, Settings, PartyPopper, ShoppingBag, Building, Utensils, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import type { Ride, Offer } from '@/lib/data';
+import { mockRideHistory } from '@/lib/data';
 import { RideHistoryItem } from '@/components/ride/ride-history-item';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
@@ -98,78 +98,92 @@ function EventPooling() {
   );
 }
 
+const STATIC_OFFERS: Offer[] = [
+  {
+    id: 'off_1',
+    title: 'Flat 20% OFF at V2 Mall',
+    description: 'Ride to V2 Mall Darbhanga and get instant shopping discounts.',
+    partnerName: 'V2 Mall Darbhanga',
+    location: 'V2 Mall, Darbhanga',
+    category: 'Shopping',
+    bannerImageUrl: 'https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=600',
+    isActive: true,
+  },
+  {
+    id: 'off_2',
+    title: 'Free Beverage with Ride',
+    description: 'Enjoy delicious authentic Maithil cuisine with complimentary chai.',
+    partnerName: 'Mithila Rasoi Restaurant',
+    location: 'Donar Chowk, Darbhanga',
+    category: 'Restaurant',
+    bannerImageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600',
+    isActive: true,
+  },
+];
+
 function LocalOffers() {
   const router = useRouter();
-  const firestore = useFirestore();
-
-  const offersQuery = useMemoFirebase(() => query(collection(firestore, 'offers'), where('isActive', '==', true)), [firestore]);
-  const { data: offers, isLoading } = useCollection<Offer>(offersQuery);
 
   const handleBookToOffer = (destination: string) => {
     router.push(`/home?destination=${encodeURIComponent(destination)}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   const getIconForCategory = (category?: string) => {
-    switch(category) {
-        case 'Hotel': return Building;
-        case 'Restaurant': return Utensils;
-        case 'Shopping': return ShoppingBag;
-        default: return ShoppingBag;
+    switch (category) {
+      case 'Hotel': return Building;
+      case 'Restaurant': return Utensils;
+      case 'Shopping': return ShoppingBag;
+      default: return ShoppingBag;
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
       <h2 className="font-headline text-2xl font-bold flex items-center gap-2">
-        <ShoppingBag className="text-primary"/>
+        <ShoppingBag className="text-primary" />
         Local Offers & Deals
       </h2>
       <div className="grid md:grid-cols-2 gap-4">
-        {isLoading && Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-56 w-full" />)}
-        {offers && offers.map((offer) => {
-            const Icon = getIconForCategory(offer.category);
-            return (
-              <motion.div
-                key={offer.id}
-                whileHover={{ scale: 1.03, y: -5 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                <Card className="overflow-hidden h-full flex flex-col">
-                  {offer.bannerImageUrl && (
-                    <Image
-                      src={offer.bannerImageUrl}
-                      alt={offer.description}
-                      width={400}
-                      height={200}
-                      className="w-full h-32 object-cover"
-                    />
-                  )}
-                  <CardHeader className="flex-row items-start gap-4 p-4">
-                    <div className="p-2 bg-muted rounded-full">
-                        <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{offer.partnerName}</CardTitle>
-                      <CardDescription>{offer.description}</CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardFooter className="p-4 pt-0 mt-auto">
-                    <Button
-                      className="w-full font-bold"
-                      variant="secondary"
-                      onClick={() => handleBookToOffer(offer.location)}
-                    >
-                      Book Ride & Redeem
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            )
+        {STATIC_OFFERS.map((offer) => {
+          const Icon = getIconForCategory(offer.category);
+          return (
+            <motion.div
+              key={offer.id}
+              whileHover={{ scale: 1.02, y: -3 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <Card className="overflow-hidden h-full flex flex-col rounded-2xl border shadow-xs">
+                {offer.bannerImageUrl && (
+                  <Image
+                    src={offer.bannerImageUrl}
+                    alt={offer.description}
+                    width={400}
+                    height={200}
+                    className="w-full h-32 object-cover"
+                  />
+                )}
+                <CardHeader className="flex-row items-start gap-3 p-4">
+                  <div className="p-2 bg-muted rounded-xl shrink-0">
+                    <Icon className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-bold">{offer.partnerName}</CardTitle>
+                    <CardDescription className="text-xs">{offer.description}</CardDescription>
+                  </div>
+                </CardHeader>
+                <CardFooter className="p-4 pt-0 mt-auto">
+                  <Button
+                    className="w-full font-bold h-9 text-xs rounded-xl bg-amber-400 hover:bg-amber-500 text-black"
+                    onClick={() => handleBookToOffer(offer.location)}
+                  >
+                    Book Ride & Redeem
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          );
         })}
-         {!isLoading && (!offers || offers.length === 0) && (
-            <p className="text-muted-foreground text-sm md:col-span-2">No local offers available right now. Check back soon!</p>
-         )}
       </div>
     </div>
   );
@@ -178,108 +192,76 @@ function LocalOffers() {
 
 function PassengerDashboard() {
     const { user } = useUser();
-    const firestore = useFirestore();
     const searchParams = useSearchParams();
     const initialPickup = searchParams.get('pickup');
     const initialDestination = searchParams.get('destination');
+    const initialType = (searchParams.get('type') as RideType) || null;
     
-    // Query for ALL rides for this user for stats
-    const allRidesQuery = useMemoFirebase(() => {
-        if (!user) return null;
-        return query(
-            collection(firestore, 'rides'),
-            where('userId', '==', user.uid)
-        );
-    }, [firestore, user]);
-    const { data: allRides, isLoading: areAllRidesLoading } = useCollection<Ride>(allRidesQuery);
+    const [recentRides, setRecentRides] = useState<any[]>([]);
+    const [rideStats, setRideStats] = useState({ thisMonth: 0, total: 0 });
 
-    // Calculate ride stats
-    const rideStats = useMemo(() => {
-        if (!allRides) return { thisMonth: 0, total: 0 };
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        const thisMonthRides = allRides.filter(ride => {
-            if (!ride.startTime) return false;
-            // Ensure startTime is a Date object
-            const rideDate = ride.startTime.toDate ? ride.startTime.toDate() : new Date(ride.startTime);
-            return rideDate >= startOfMonth;
-        });
-
-        return {
-            thisMonth: thisMonthRides.length,
-            total: allRides.length
-        };
-    }, [allRides]);
-
-    // Query for only RECENT rides for the list
-    const recentRidesQuery = useMemoFirebase(() => {
-        if (!user) return null;
-        return query(
-            collection(firestore, 'rides'),
-            where('userId', '==', user.uid),
-            orderBy('startTime', 'desc'),
-            limit(3)
-        );
-    }, [firestore, user]);
-
-    const { data: recentRides, isLoading: areRecentRidesLoading } = useCollection<Ride>(recentRidesQuery);
+    useEffect(() => {
+      fetch('/api/rides')
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.rides) {
+            setRecentRides(data.rides.slice(0, 3));
+            setRideStats({ thisMonth: data.rides.length, total: data.rides.length });
+          }
+        })
+        .catch(() => {});
+    }, []);
     
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="lg:col-span-1 space-y-8">
-                <div>
-                    <h1 className="font-headline text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0]}!</h1>
-                    <p className="text-muted-foreground">Ready for your next journey?</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 items-start max-w-full">
+            <div className="lg:col-span-1 space-y-3.5 lg:space-y-6">
+                {/* Greeting on mobile is sleek & compact */}
+                <div className="flex items-center justify-between px-0.5">
+                    <div>
+                        <h1 className="font-headline text-lg sm:text-2xl font-black text-foreground tracking-tight">
+                            Hi, {user?.displayName?.split(' ')[0] || 'Rider'}! 👋
+                        </h1>
+                        <p className="text-xs text-muted-foreground">Where would you like to go today?</p>
+                    </div>
+                    {/* Quick Wallet pill */}
+                    <Link
+                      href="/profile/payment"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/40 text-xs font-bold text-foreground hover:bg-amber-400/25 transition-all"
+                    >
+                      <Wallet className="h-3.5 w-3.5 text-amber-500" />
+                      <span>Wallet</span>
+                    </Link>
                 </div>
-                
-                 <Card>
-                    <CardContent className="p-4 flex justify-around items-center">
-                        {areAllRidesLoading ? (
-                            <>
-                                <Skeleton className="h-10 w-20" />
-                                <Skeleton className="h-10 w-20" />
-                            </>
-                        ) : (
-                            <>
-                                <div className="text-center">
-                                    <p className="text-2xl font-bold">{rideStats.thisMonth}</p>
-                                    <p className="text-xs text-muted-foreground">Rides this month</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-2xl font-bold">{rideStats.total}</p>
-                                    <p className="text-xs text-muted-foreground">Total rides</p>
-                                </div>
-                            </>
-                        )}
-                        <Separator orientation="vertical" className="h-10"/>
-                         <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" asChild><Link href="/profile/payment"><Wallet/></Link></Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Wallet</p></TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" asChild><Link href="/profile/safety"><LifeBuoy/></Link></Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Support</p></TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" asChild><Link href="/profile"><Settings/></Link></Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Profile</p></TooltipContent>
-                            </Tooltip>
-                         </TooltipProvider>
-                    </CardContent>
-                </Card>
 
                 <BookingFlow 
                     initialPickup={initialPickup} 
                     initialDestination={initialDestination}
+                    initialRideType={initialType}
                 />
+
+                {/* Quick stats underneath the booking flow */}
+                <Card className="rounded-2xl border shadow-xs overflow-hidden bg-card">
+                    <CardContent className="p-3 flex justify-around items-center">
+                        <div className="text-center">
+                            <p className="text-lg font-black text-foreground">{rideStats.thisMonth}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-semibold">Rides this month</p>
+                        </div>
+                        <Separator orientation="vertical" className="h-8"/>
+                        <div className="text-center">
+                            <p className="text-lg font-black text-foreground">{rideStats.total}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-semibold">Total rides</p>
+                        </div>
+                        <Separator orientation="vertical" className="h-8"/>
+                        <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" asChild>
+                              <Link href="/history" title="History"><Clock className="h-4 w-4" /></Link>
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" asChild>
+                              <Link href="/profile/safety" title="Support"><LifeBuoy className="h-4 w-4" /></Link>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 <div>
                     <div className="flex justify-between items-center mb-4">
@@ -290,14 +272,7 @@ function PassengerDashboard() {
                     </div>
                      <Carousel opts={{ align: "start" }} className="w-full">
                         <CarouselContent className="-ml-2">
-                            {areRecentRidesLoading && Array.from({ length: 2 }).map((_, index) => (
-                                <CarouselItem key={index} className="pl-2 basis-full sm:basis-1/2">
-                                    <div className="p-1 h-full">
-                                        <Skeleton className="h-48 w-full" />
-                                    </div>
-                                </CarouselItem>
-                            ))}
-                            {!areRecentRidesLoading && recentRides && recentRides.length > 0 && (
+                            {recentRides && recentRides.length > 0 ? (
                                 recentRides.map((ride) => (
                                     <CarouselItem key={ride.id} className="pl-2 basis-full sm:basis-1/2">
                                         <div className="p-1 h-full">
@@ -305,16 +280,15 @@ function PassengerDashboard() {
                                         </div>
                                     </CarouselItem>
                                 ))
+                            ) : (
+                                <CarouselItem className="pl-2 basis-full">
+                                    <Card className="rounded-xl p-4 text-center text-xs text-muted-foreground">
+                                        No recent rides yet. Book your first ride above!
+                                    </Card>
+                                </CarouselItem>
                             )}
                         </CarouselContent>
                     </Carousel>
-                    {!areRecentRidesLoading && (!recentRides || recentRides.length === 0) && (
-                        <Card>
-                            <CardContent className="p-6 text-center text-muted-foreground">
-                                You have no recent rides.
-                            </CardContent>
-                        </Card>
-                    )}
                 </div>
             </div>
              <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-20">
@@ -394,7 +368,7 @@ export default function HomePage() {
   if (isAdminLoading) {
     return (
       <AppLayout>
-        <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
+        <main className="flex-1 flex flex-col p-3 sm:p-5 lg:p-8 bg-background max-w-full overflow-x-hidden">
           <HomePageLoadingSkeleton />
         </main>
       </AppLayout>
@@ -407,7 +381,7 @@ export default function HomePage() {
   if (role === 'driver') {
     return (
       <AppLayout>
-        <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
+        <main className="flex-1 flex flex-col p-3 sm:p-5 lg:p-8 bg-background max-w-full overflow-x-hidden">
           <HomePageLoadingSkeleton />
         </main>
       </AppLayout>
@@ -418,7 +392,7 @@ export default function HomePage() {
   // appropriate dashboard for an admin or passenger.
   return (
     <AppLayout>
-      <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-background">
+      <main className="flex-1 flex flex-col p-3 sm:p-5 lg:p-8 bg-background max-w-full overflow-x-hidden">
         {isAdmin ? (
             <AdminWelcome />
         ) : (

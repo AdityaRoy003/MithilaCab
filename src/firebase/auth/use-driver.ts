@@ -1,19 +1,22 @@
 'use client';
 
-import { doc } from 'firebase/firestore';
-import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Driver } from '@/lib/data';
 
 export function useDriver() {
-  const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
+  const driver: Driver = {
+    id: 'cap_1',
+    name: 'Vikram Sharma',
+    rating: 4.9,
+    vehicle: 'Honda Activa 6G (Yellow Helmet Ready)',
+    licensePlate: 'BR 07 BK 4921',
+    isAvailable: true,
+    image: {
+      id: 'cap_1',
+      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      description: 'Vikram Sharma',
+      imageHint: 'person',
+    },
+  };
 
-  const driverDocRef = useMemoFirebase(() => {
-    if (!user) return null;
-    return doc(firestore, 'drivers', user.uid);
-  }, [firestore, user]);
-
-  const { data: driver, isLoading: isDriverLoading } = useDoc<Driver>(driverDocRef);
-
-  return { driver, isDriverLoading: isUserLoading || isDriverLoading };
+  return { driver, isDriverLoading: false };
 }

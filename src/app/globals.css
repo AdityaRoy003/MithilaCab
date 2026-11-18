@@ -10,14 +10,14 @@
     --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
-    --primary: 180 90% 45%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 48 100% 48%; /* Rapido Yellow */
+    --primary-foreground: 0 0% 10%;
     --secondary: 222 47% 95%;
     --secondary-foreground: 224 71% 4%;
     --muted: 222 47% 95%;
     --muted-foreground: 215 20.2% 45.1%;
-    --accent: 330 85% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 48 100% 50%;
+    --accent-foreground: 0 0% 10%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     --border: 222 47% 92%;
@@ -46,13 +46,13 @@
     --card-foreground: 210 40% 98%;
     --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
-    --primary: 180 90% 50%; /* Vibrant Cyan */
-    --primary-foreground: 222 84% 5%;
+    --primary: 48 100% 50%; /* Rapido Yellow */
+    --primary-foreground: 0 0% 10%;
     --secondary: 224 71% 12%;
     --secondary-foreground: 210 40% 98%;
     --muted: 224 71% 12%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 330 85% 65%; /* Vibrant Pink */
+    --accent: 48 100% 50%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 70% 55%;
     --destructive-foreground: 210 40% 98%;
@@ -112,5 +112,20 @@
   /* Ensure the non-printable footer inside the dialog is hidden */
   .mithila-non-printable {
     display: none !important;
+  }
+}
+
+/* Mobile Friendly Helpers */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+}
+
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

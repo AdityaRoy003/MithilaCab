@@ -1,141 +1,153 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { doc, setDoc } from 'firebase/firestore';
 import AppLayout from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Home, Briefcase } from 'lucide-react';
-
-interface UserProfile {
-    savedAddresses?: {
-        home?: string;
-        work?: string;
-    };
-}
+import { ArrowLeft, Home, Briefcase, MapPin, Plus, Trash2, CheckCircle2 } from 'lucide-react';
 
 export default function SavedAddressesPage() {
-  const { user, isUserLoading: authLoading } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
 
-  const userDocRef = useMemoFirebase(() => {
-    if (!user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
+  const [addresses, setAddresses] = useState([
+    { id: 'addr_1', label: 'Home (घर)', address: 'Darbhanga Tower, Darbhanga', icon: Home },
+    { id: 'addr_2', label: 'Work (ऑफिस)', address: 'Mithila University Campus, Darbhanga', icon: Briefcase },
+  ]);
 
-  const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userDocRef);
+  const [newLabel, setNewLabel] = useState('');
+  const [newAddress, setNewAddress] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
 
-  const [homeAddress, setHomeAddress] = useState('');
-  const [workAddress, setWorkAddress] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const handleAddAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLabel || !newAddress) return;
 
-  useEffect(() => {
-    if (userProfile) {
-      setHomeAddress(userProfile.savedAddresses?.home || '');
-      setWorkAddress(userProfile.savedAddresses?.work || '');
-    }
-  }, [userProfile]);
+    setAddresses((prev) => [
+      ...prev,
+      {
+        id: 'addr_' + Date.now(),
+        label: newLabel,
+        address: newAddress,
+        icon: MapPin,
+      },
+    ]);
 
-  const handleSaveChanges = async () => {
-    if (!userDocRef) return;
-    setIsSaving(true);
-    try {
-      const updatedProfileData = {
-          savedAddresses: {
-              home: homeAddress,
-              work: workAddress,
-          },
-       };
-      
-      setDoc(userDocRef, updatedProfileData, { merge: true })
-        .catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: userDocRef!.path,
-                operation: 'update',
-                requestResourceData: updatedProfileData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        });
-
-      toast({
-        title: "Addresses Updated",
-        description: "Your saved addresses have been updated.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Could not update addresses.",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    setNewLabel('');
+    setNewAddress('');
+    setIsAdding(false);
+    toast({
+      title: 'Address Saved',
+      description: `${newLabel} has been added to your favorite spots.`,
+    });
   };
-  
-  const loading = authLoading || profileLoading;
 
-  if (loading) {
-      return (
-          <AppLayout>
-              <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
-                  <Skeleton className="h-8 w-40 mb-6" />
-                  <Skeleton className="h-64 w-full max-w-2xl" />
-              </main>
-          </AppLayout>
-      )
-  }
+  const handleDelete = (id: string) => {
+    setAddresses((prev) => prev.filter((a) => a.id !== id));
+    toast({ title: 'Address Removed' });
+  };
 
   return (
     <AppLayout>
-      <main className="flex-1 flex flex-col p-4 md:p-6 lg:p-8">
-        <div className="mb-6">
-            <Button variant="ghost" onClick={() => router.push('/profile')}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Profile
-            </Button>
+      <div className="max-w-xl mx-auto px-4 py-4 md:py-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/profile')} className="rounded-full">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
+              Saved Addresses
+            </h1>
+            <p className="text-xs text-muted-foreground">Quick 1-tap booking for your daily destinations</p>
+          </div>
         </div>
-        <h1 className="font-headline text-3xl font-bold mb-6">Saved Addresses</h1>
-        
-        <div className="max-w-2xl">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Frequent Locations</CardTitle>
-                <CardDescription>Add your home and work addresses for faster booking.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="home-address">Home Address</Label>
-                  <div className="relative flex items-center">
-                    <Home className="absolute left-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="home-address" placeholder="e.g., 123 Main St, Your City" value={homeAddress} onChange={(e) => setHomeAddress(e.target.value)} className="pl-9" />
+
+        {/* Existing Addresses */}
+        <div className="space-y-3">
+          {addresses.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Card key={item.id} className="border shadow-xs rounded-2xl overflow-hidden bg-card">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-xl bg-amber-400/20 text-amber-600 dark:text-amber-400 mt-0.5">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">{item.label}</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">{item.address}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="work-address">Work Address</Label>
-                  <div className="relative flex items-center">
-                    <Briefcase className="absolute left-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="work-address" placeholder="e.g., 456 Business Ave, Your City" value={workAddress} onChange={(e) => setWorkAddress(e.target.value)} className="pl-9" />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                 <Button onClick={handleSaveChanges} disabled={isSaving} className="font-bold">
-                  {isSaving ? 'Saving...' : 'Save Addresses'}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(item.id)}
+                    className="text-muted-foreground hover:text-destructive rounded-full h-8 w-8"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Add Address Form */}
+        {isAdding ? (
+          <Card className="border-2 border-amber-400 shadow-lg rounded-2xl p-4">
+            <form onSubmit={handleAddAddress} className="space-y-3">
+              <h3 className="font-bold text-sm">Add New Spot</h3>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Label (e.g. Gym, Friend's House)</Label>
+                <Input
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  placeholder="e.g. Tuition / Gym"
+                  required
+                  className="h-10 text-xs rounded-xl"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Address in Mithila</Label>
+                <Input
+                  value={newAddress}
+                  onChange={(e) => setNewAddress(e.target.value)}
+                  placeholder="e.g. Donar Chowk, Darbhanga"
+                  required
+                  className="h-10 text-xs rounded-xl"
+                />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAdding(false)}
+                  className="flex-1 rounded-xl h-10 text-xs"
+                >
+                  Cancel
                 </Button>
-              </CardFooter>
-            </Card>
-        </div>
-      </main>
+                <Button
+                  type="submit"
+                  className="flex-1 rounded-xl h-10 text-xs font-bold bg-amber-400 hover:bg-amber-500 text-black"
+                >
+                  Save Spot
+                </Button>
+              </div>
+            </form>
+          </Card>
+        ) : (
+          <Button
+            onClick={() => setIsAdding(true)}
+            className="w-full h-11 border-2 border-dashed border-amber-400/60 bg-amber-400/10 hover:bg-amber-400/20 text-foreground font-bold rounded-2xl"
+          >
+            <Plus className="h-4 w-4 mr-2 text-amber-500" /> Add Another Favorite Location
+          </Button>
+        )}
+      </div>
     </AppLayout>
   );
 }
