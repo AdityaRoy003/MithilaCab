@@ -13,7 +13,7 @@ import Link from 'next/link';
 import type { Ride, Offer } from '@/lib/data';
 import { mockRideHistory } from '@/lib/data';
 import { RideHistoryItem } from '@/components/ride/ride-history-item';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -192,15 +192,29 @@ function LocalOffers() {
 
 function PassengerDashboard() {
     const { user } = useUser();
-    const searchParams = useSearchParams();
-    const initialPickup = searchParams.get('pickup');
-    const initialDestination = searchParams.get('destination');
-    const initialType = (searchParams.get('type') as RideType) || null;
-    
+    const [initialParams, setInitialParams] = useState<{
+      pickup: string | null;
+      destination: string | null;
+      type: RideType | null;
+    }>({ pickup: null, destination: null, type: null });
+
+    const initialPickup = initialParams.pickup;
+    const initialDestination = initialParams.destination;
+    const initialType = initialParams.type;
+
     const [recentRides, setRecentRides] = useState<any[]>([]);
     const [rideStats, setRideStats] = useState({ thisMonth: 0, total: 0 });
 
     useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        setInitialParams({
+          pickup: params.get('pickup'),
+          destination: params.get('destination'),
+          type: (params.get('type') as RideType) || null,
+        });
+      }
+
       fetch('/api/rides')
         .then((r) => r.json())
         .then((data) => {
