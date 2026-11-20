@@ -1,9 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import Image from 'next/image';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 import { LoginForm } from '@/components/auth/login-form';
 import { Logo } from '@/components/logo';
+import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const bgImage = PlaceHolderImages.find(img => img.id === 'login-bg');
@@ -19,7 +21,9 @@ export default function LoginPage() {
               Enter your credentials to access your account
             </p>
           </div>
-          <LoginForm />
+          <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-amber-500" /></div>}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
       <div className="hidden bg-muted lg:block">

@@ -1,11 +1,13 @@
 
 'use client';
 
+import { Suspense } from 'react';
 import Image from 'next/image';
 import PlaceHolderImages from '@/app/lib/placeholder-images.json';
 import { SignupForm } from '@/components/auth/signup-form';
 import { Logo } from '@/components/logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
 export default function SignupPage() {
   const bgImage = PlaceHolderImages.find(img => img.id === 'login-bg');
@@ -26,7 +28,9 @@ export default function SignupPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SignupForm />
+                <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-amber-500" /></div>}>
+                  <SignupForm />
+                </Suspense>
               </CardContent>
             </Card>
         </div>
