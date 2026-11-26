@@ -123,7 +123,51 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <div className="text-center text-xs text-muted-foreground pt-2">
+      <div className="pt-2">
+        <p className="text-[11px] font-semibold text-muted-foreground text-center mb-2">
+          Demo Test Accounts (Click to autofill):
+        </p>
+        <div className="flex flex-wrap gap-2 justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-[11px] h-7 px-2.5 rounded-lg border-amber-500/30 hover:bg-amber-500/10"
+            onClick={() => {
+              setPhoneOrEmail('rider@mithilagaadi.com');
+              setPassword('Rider@Mithila2026!');
+            }}
+          >
+            🚗 Passenger
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-[11px] h-7 px-2.5 rounded-lg border-emerald-500/30 hover:bg-emerald-500/10"
+            onClick={() => {
+              setPhoneOrEmail('captain@mithilagaadi.com');
+              setPassword('Captain@Mithila2026!');
+            }}
+          >
+            🏍️ Captain
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-[11px] h-7 px-2.5 rounded-lg border-purple-500/30 hover:bg-purple-500/10"
+            onClick={() => {
+              setPhoneOrEmail('admin@mithilagaadi.com');
+              setPassword('Admin@Mithila2026!');
+            }}
+          >
+            👑 Admin
+          </Button>
+        </div>
+      </div>
+
+      <div className="text-center text-xs text-muted-foreground pt-1">
         Don&apos;t have an account?{" "}
         <Link href="/signup" className="underline underline-offset-4 font-bold text-foreground hover:text-amber-500">
           Create an account (Sign up)

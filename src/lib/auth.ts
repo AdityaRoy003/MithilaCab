@@ -188,13 +188,15 @@ export async function seedInitialUsers() {
 // Find user by email or phone
 export async function findUserByCredentials(identifier: string): Promise<any | null> {
   const clean = identifier.trim().toLowerCase();
-  const cleanPhone = identifier.replace(/\s+/g, '');
+  const cleanDigits = identifier.replace(/\D/g, '');
 
   // 1. Check in-memory first for instant 0ms return
   for (const user of inMemoryUsers.values()) {
+    const userDigits = (user.phone || '').replace(/\D/g, '');
     if (
       user.email.toLowerCase() === clean ||
-      user.phone.replace(/\s+/g, '') === cleanPhone
+      user.phone.replace(/\s+/g, '') === identifier.replace(/\s+/g, '') ||
+      (cleanDigits.length >= 10 && userDigits.slice(-10) === cleanDigits.slice(-10))
     ) {
       return user;
     }
@@ -204,9 +206,16 @@ export async function findUserByCredentials(identifier: string): Promise<any | n
   try {
     const db = await connectToDatabase();
     if (db) {
-      const doc = await User.findOne({
-        $or: [{ email: clean }, { phone: clean }, { phone: identifier.trim() }],
-      }).lean();
+      const orConditions: any[] = [
+        { email: clean },
+        { phone: identifier.trim() },
+        { phone: identifier.replace(/\s+/g, '') },
+      ];
+      if (cleanDigits.length >= 10) {
+        orConditions.push({ phone: { $regex: cleanDigits.slice(-10) + '$' } });
+      }
+
+      const doc = await User.findOne({ $or: orConditions }).lean();
       if (doc) {
         const u = { ...doc, id: (doc as any)._id.toString() };
         inMemoryUsers.set(u.email.toLowerCase(), u);
